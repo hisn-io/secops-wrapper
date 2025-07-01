@@ -28,6 +28,7 @@ dependencies = [
     "google-auth>=2.0.0",
     "google-auth-httplib2>=0.1.0",
     "google-api-python-client>=2.0.0",
+    "requests-toolbelt (>=1.0.0,<2.0.0)",
 ]
 
 [project.urls]

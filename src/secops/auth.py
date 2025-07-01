@@ -18,6 +18,7 @@ from google.auth.credentials import Credentials
 from google.oauth2 import service_account
 import google.auth
 import google.auth.transport.requests
+from requests_toolbelt.sessions import BaseUrlSession
 from secops.exceptions import AuthenticationError
 
 # Define default scopes needed for Chronicle API
@@ -33,7 +34,8 @@ class SecOpsAuth:
         credentials: Optional[Credentials] = None,
         service_account_path: Optional[str] = None,
         service_account_info: Optional[Dict[str, Any]] = None,
-        scopes: Optional[List[str]] = None
+        scopes: Optional[List[str]] = None,
+        base_url: Optional[str] = None,
     ):
         """Initialize authentication for SecOps.
         
@@ -44,6 +46,7 @@ class SecOpsAuth:
             scopes: Optional list of OAuth scopes to request
         """
         self.scopes = scopes or CHRONICLE_SCOPES
+        self.base_url = base_url
         self.credentials = self._get_credentials(
             credentials, 
             service_account_path,
@@ -87,8 +90,7 @@ class SecOpsAuth:
         Returns:
             Authorized session for API requests
         """
-        if self._session is None:
-            self._session = google.auth.transport.requests.AuthorizedSession(
-                self.credentials
-            )
-        return self._session 
+        self._session |= google.auth.transport.requests.AuthorizedSession(
+            self.credentials, session=BaseUrlSession(self.base_url)
+        )
+        return self._session
