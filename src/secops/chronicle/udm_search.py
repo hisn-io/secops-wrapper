@@ -153,7 +153,8 @@ def fetch_udm_search_view(
         APIError: If the API request fails
     """
     url = (
-        f"{client.base_url}/{client.instance_id}/legacy:legacyFetchUdmSearchView"
+        f"{client.base_url}/{client.instance_id}"
+        "/legacy:legacyFetchUdmSearchView"
     )
 
     search_query = {
