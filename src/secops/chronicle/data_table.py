@@ -573,7 +573,7 @@ def _create_row_batches(
     current_batch = []
     current_batch_size = 0
 
-    for i, (row, row_size) in enumerate(zip(rows, row_sizes)):
+    for row, row_size in zip(rows, row_sizes):
         # Start a new batch if adding this row would exceed limits
         if len(current_batch) >= 1000 or (
             current_batch_size + row_size > 4000000 and current_batch
