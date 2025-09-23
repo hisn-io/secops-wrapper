@@ -539,7 +539,9 @@ def setup_udm_search_view_command(subparsers):
     )
 
     # Create a mutually exclusive group for query input
-    query_group = udm_search_view_parser.add_mutually_exclusive_group(required=True)
+    query_group = udm_search_view_parser.add_mutually_exclusive_group(
+        required=True
+    )
     query_group.add_argument("--query", help="UDM query string")
     query_group.add_argument(
         "--query-file",
@@ -550,7 +552,7 @@ def setup_udm_search_view_command(subparsers):
 
     # Add snapshot query option
     udm_search_view_parser.add_argument(
-        "--snapshot-query", 
+        "--snapshot-query",
         "--snapshot_query",
         dest="snapshot_query",
         help="Query for filtering alerts",
@@ -573,7 +575,7 @@ def setup_udm_search_view_command(subparsers):
         default=1000,
         help="Maximum detections to return",
     )
-    
+
     # Add case sensitivity option
     udm_search_view_parser.add_argument(
         "--case-sensitive",
@@ -620,11 +622,11 @@ def handle_udm_search_view_command(args, chronicle):
             "max_detections": args.max_detections,
             "case_insensitive": not args.case_sensitive,
         }
-        
+
         # Add snapshot_query only if it's provided
         if hasattr(args, "snapshot_query") and args.snapshot_query:
             params["snapshot_query"] = args.snapshot_query
-            
+
         result = chronicle.fetch_udm_search_view(**params)
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
@@ -679,11 +681,11 @@ def handle_stats_command(args, chronicle):
             "max_detections": args.max_detections,
             "case_insensitive": not args.case_sensitive,
         }
-        
+
         # Add snapshot_query only if it's provided
         if hasattr(args, "snapshot_query") and args.snapshot_query:
             params["snapshot_query"] = args.snapshot_query
-            
+
         result = chronicle.fetch_udm_search_view(**params)
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught

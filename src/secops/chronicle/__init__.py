@@ -143,7 +143,7 @@ from secops.chronicle.udm_search import (
     find_udm_field_values,
 )
 from secops.chronicle.udm_search import (
-  fetch_udm_search_view,
+    fetch_udm_search_view,
 )
 from secops.chronicle.validate import validate_query
 

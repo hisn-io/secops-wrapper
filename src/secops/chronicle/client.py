@@ -441,8 +441,7 @@ class ChronicleClient:
         max_detections: Optional[int] = 1000,
         case_insensitive: bool = True,
     ) -> str:
-        """Fetch UDM Search View results.
-        """
+        """Fetch UDM Search View results."""
         return _fetch_udm_search_view(
             self,
             query,

@@ -167,9 +167,7 @@ def fetch_udm_search_view(
     }
 
     if snapshot_query:
-        search_query["detectionOptions"] = {
-            "snapshotQuery": snapshot_query
-        }
+        search_query["detectionOptions"] = {"snapshotQuery": snapshot_query}
 
     if max_detections:
         search_query["detectionOptions"] = {
@@ -203,7 +201,7 @@ def fetch_udm_search_view(
 
         if resp.get("error", ""):
             raise APIError(
-                f"Chronicle API request failed: {resp.get('error', '')}"
+                f'Chronicle API request failed: {resp.get("error", "")}'
             )
 
         final_resp.append(resp)
