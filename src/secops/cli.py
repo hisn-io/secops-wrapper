@@ -672,21 +672,14 @@ def handle_stats_command(args, chronicle):
     start_time, end_time = get_time_range(args)
 
     try:
-        # Build parameters for fetch_udm_search_view
-        params = {
-            "query": args.query,
-            "start_time": start_time,
-            "end_time": end_time,
-            "max_events": args.max_events,
-            "max_detections": args.max_detections,
-            "case_insensitive": not args.case_sensitive,
-        }
-
-        # Add snapshot_query only if it's provided
-        if hasattr(args, "snapshot_query") and args.snapshot_query:
-            params["snapshot_query"] = args.snapshot_query
-
-        result = chronicle.fetch_udm_search_view(**params)
+        result = chronicle.get_stats(
+            query=args.query,
+            start_time=start_time,
+            end_time=end_time,
+            max_events=args.max_events,
+            max_values=args.max_values,
+            timeout=args.timeout,
+        )
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error: {e}", file=sys.stderr)
