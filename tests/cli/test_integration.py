@@ -47,6 +47,50 @@ def test_cli_search(cli_env, common_args):
 
 
 @pytest.mark.integration
+def test_cli_udm_search_view(cli_env, common_args):
+    """Test the udm-search-view command."""
+    # Execute the CLI command
+    cmd = (
+        [
+            "secops",
+        ]
+        + common_args
+        + [
+            "udm-search-view",
+            "--query",
+            'metadata.event_type = "NETWORK_CONNECTION"',
+            "--time-window",
+            "1",
+            "--max-events",
+            "5",
+        ]
+    )
+
+    result = subprocess.run(cmd, env=cli_env, capture_output=True, text=True)
+
+    # Check that the command executed successfully
+    assert result.returncode == 0
+
+    # Try to parse the output as JSON
+    try:
+        output = json.loads(result.stdout)
+        # The output should be a list
+        assert isinstance(output, list)
+        # Check for expected fields in the first response object
+        if output and len(output) > 0:
+            assert "complete" in output[0]
+            # If there are events, check their structure
+            if "events" in output[0] and "events" in output[0]["events"]:
+                events = output[0]["events"]["events"]
+                if events:
+                    assert "metadata" in events[0].get("event", {})
+                    assert "id" in events[0].get("event", {}).get("metadata")
+    except json.JSONDecodeError:
+        # If not valid JSON, check for expected error messages
+        assert "Error:" not in result.stdout
+
+
+@pytest.mark.integration
 def test_cli_entity(cli_env, common_args):
     """Test the entity command."""
     # Execute the CLI command
