@@ -451,10 +451,11 @@ class ChronicleClient:
                 snapshot_query will not require re-running the baseline query.
             start_time: Search start time.
             end_time: Search end time.
-            snapshot_query: Query for filtering alerts. Uses a syntax similar to UDM
-                search, with supported fields including: detection.rule_set,
-                detection.rule_id, detection.rule_name, case_name,
-                feedback_summary.status, feedback_summary.priority, etc.
+            snapshot_query: Query for filtering alerts. Uses a syntax similar
+                to UDM search, with supported fields including:
+                detection.rule_set, detection.rule_id, detection.rule_name,
+                case_name, feedback_summary.status,
+                feedback_summary.priority, etc.
             max_events: Maximum number of events to return. If not specified, a
             default of 10000 events will be returned.
             max_detections: Maximum number of detections to return. If not
