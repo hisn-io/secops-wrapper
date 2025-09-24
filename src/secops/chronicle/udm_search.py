@@ -126,7 +126,7 @@ def fetch_udm_search_view(
     max_detections: Optional[int] = 1000,
     case_insensitive: bool = True,
 ) -> List[Dict[str, Any]]:
-    """Fetch UDM search results in CSV format.
+    """Fetch UDM search result view.
 
     Args:
         client: The ChronicleClient instance.
@@ -147,7 +147,7 @@ def fetch_udm_search_view(
         case_insensitive: Whether to perform case-insensitive search or not.
 
     Returns:
-        CSV formatted string of results
+        List of udm search results.
 
     Raises:
         APIError: If the API request fails

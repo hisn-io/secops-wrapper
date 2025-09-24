@@ -672,6 +672,31 @@ results = chronicle.search_udm(
 }
 ```
 
+### UDM Search View
+
+Retrieve UDM search results with additional contextual information, including detection data:
+
+```python
+from datetime import datetime, timedelta, timezone
+
+# Set time range for queries
+end_time = datetime.now(timezone.utc)
+start_time = end_time - timedelta(hours=24)  # Last 24 hours
+
+# Fetch UDM search view results
+results = chronicle.fetch_udm_search_view(
+    query='metadata.event_type = "NETWORK_CONNECTION"',
+    start_time=start_time,
+    end_time=end_time,
+    max_events=5,  # Limit to 5 events
+    max_detections=10,  # Get up to 10 detections
+    snapshot_query='feedback_summary.status = "OPEN"',  # Filter for open alerts
+    case_insensitive=True  # Case-insensitive search
+)
+```
+
+> **Note:** The `fetch_udm_search_view` method is synchronous and returns all results at once, not as a streaming response since the parameter passed to endpoint(legacyFetchUDMSearchView) provides synchronous response.
+
 ### Fetch UDM Field Values
 
 Search for ingested UDM field values that match a query:

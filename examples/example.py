@@ -77,6 +77,103 @@ def example_udm_search(chronicle):
         print(f"Error performing UDM search: {e}")
 
 
+def example_udm_search_view(chronicle):
+    """Example 14: UDM Search View."""
+    print("\n=== Example 14: UDM Search View ===")
+    start_time, end_time = get_time_range()
+
+    try:
+        print("\nFetching UDM search view results...")
+        # Basic query for network connection events
+        result = chronicle.fetch_udm_search_view(
+            query='metadata.event_type = "NETWORK_CONNECTION"',
+            start_time=start_time,
+            end_time=end_time,
+            max_events=5,  # Limit to 5 events for display purposes
+        )
+
+        # The result is a list of response objects
+        print(f"\nReceived {len(result)} response objects")
+        
+        if result and len(result) > 0:
+            # Check if search completed successfully
+            search_complete = result[0].get("complete", False)
+            print(f"Search completed: {search_complete}")
+            
+            # Get events from the response
+            events = result[0].get("events", {}).get("events", [])
+            print(f"Found {len(events)} events")
+            
+            if events:
+                # Display details of the first event
+                print("\nFirst event details:")
+                event = events[0].get("event")
+                
+                # Print basic event information
+                print(f'Event ID: {event.get("metadata",{}).get("id", "N/A")}')
+                
+                # Extract and print metadata
+                metadata = event.get("metadata", {})
+                print(f"Event Type: {metadata.get('eventType', 'N/A')}")
+                print(f"Event Timestamp: {metadata.get('eventTimestamp', 'N/A')}")
+                
+                # Extract principal and target information if available
+                if "principal" in event:
+                    principal = event["principal"]
+                    print("\nPrincipal Information:")
+                    if "ip" in principal:
+                        print(f"IP: {principal.get('ip', 'N/A')}")
+                    if "hostname" in principal:
+                        print(f"Hostname: {principal.get('hostname', 'N/A')}")
+                
+                if "target" in event:
+                    target = event["target"]
+                    print("\nTarget Information:")
+                    if "ip" in target:
+                        print(f"IP: {target.get('ip', 'N/A')}")
+                    if "hostname" in target:
+                        print(f"Hostname: {target.get('hostname', 'N/A')}")
+                
+                # Show detection information if available
+                detections = event.get("detection", [])
+                if detections:
+                    print(f"\nDetections: {len(detections)} found")
+                    for i, detection in enumerate(detections[:2]):  # Show first 2 detections
+                        print(f"Detection {i+1}:")
+                        print(f"  Rule Name: {detection.get('ruleName', 'N/A')}")
+                        print(f"  Rule ID: {detection.get('ruleId', 'N/A')}")
+            else:
+                print("\nNo events found in the specified time range.")
+                
+            # Show if there are more events available
+            more_available = result[0].get("events", {}).get("moreDataAvailable", False)
+            print(f"\nMore events available: {more_available}")
+            
+        # Example with snapshot query to filter alerts
+        print("\n--- Using snapshot query to filter alerts ---")
+        filtered_result = chronicle.fetch_udm_search_view(
+            query='metadata.event_type = "NETWORK_CONNECTION"',
+            start_time=start_time,
+            end_time=end_time,
+            snapshot_query='feedback_summary.status = "OPEN"',  # Filter for open alerts
+            max_events=5,
+        )
+        
+        if filtered_result and len(filtered_result) > 0:
+            filtered_events = filtered_result[0].get("events", {}).get("events", [])
+            print(f"Found {len(filtered_events)} events after applying snapshot query")
+        
+    except APIError as e:
+        print(f"Error fetching UDM search view: {e}")
+        
+        # Additional information for specific error cases
+        if "invalid query" in str(e).lower():
+            print("\nTip: Make sure your query syntax is correct.")
+            print("Example valid query: metadata.event_type = \"NETWORK_CONNECTION\"")
+        elif "authorization" in str(e).lower() or "permission" in str(e).lower():
+            print("\nTip: Check that your account has permissions to access UDM search.")
+
+
 def example_stats_query(chronicle):
     """Example 2: Stats Query."""
     print("\n=== Example 2: Stats Query ===")
@@ -1395,6 +1492,7 @@ EXAMPLES = {
     "11": example_gemini,
     "12": example_parser_workflow,
     "13": example_rule_test,
+    "14": example_udm_search_view,
 }
 
 
@@ -1409,7 +1507,7 @@ def main():
     parser.add_argument(
         "--example",
         "-e",
-        help="Example number to run (1-13). If not specified, runs all examples.",
+        help="Example number to run (1-14). If not specified, runs all examples.",
     )
 
     args = parser.parse_args()
