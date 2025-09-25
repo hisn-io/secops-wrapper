@@ -795,6 +795,67 @@ rule test_rule {
 
 
 @pytest.mark.integration
+def test_chronicle_fetch_udm_search_view():
+    """Test fetch_udm_search_view functionality with real API.
+
+    This test verifies that the fetch_udm_search_view function can successfully
+    connect to the Chronicle API and retrieve UDM search results.
+    """
+    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
+    chronicle = client.chronicle(**CHRONICLE_CONFIG)
+
+    # Use a reasonable time window (1 hour)
+    end_time = datetime.now(timezone.utc)
+    start_time = end_time - timedelta(hours=1)
+
+    # Use a common event type that should exist in most environments
+    query = 'metadata.event_type = "NETWORK_CONNECTION"'
+
+    try:
+        print("\nStarting fetch_udm_search_view integration test...")
+        print(f"Time window: {start_time.isoformat()} to {end_time.isoformat()}")
+        print(f"Query: {query}")
+
+        # Execute the function being tested
+        result = chronicle.fetch_udm_search_view(
+            query=query,
+            start_time=start_time,
+            end_time=end_time,
+            max_events=5,  # Limit results for quicker testing
+            case_insensitive=True,
+        )
+
+        # Basic validation of the response
+        assert isinstance(result, list), "Result should be a list"
+        assert len(result) > 0, "Result list should not be empty"
+        
+        if result[0].get("complete") is True:
+            print("\nSearch completed successfully")
+            
+            # Check if events were found
+            events = result[0].get("events", {}).get("events", [])
+            print(f"Found {len(events)} events")
+            
+            if events:
+                # Validate structure of the first event
+                event = events[0]
+                assert "id" in event.get("event",{}).get("metadata"), "Event should have an ID"
+                assert "metadata" in event.get("event",{}), "Event should have metadata"
+            
+            else:
+                pytest.skip("No events found in the specified time range")
+        else:
+            pytest.skip("Search did not complete successfully")
+
+    except APIError as e:
+        print(f"\nAPI Error: {str(e)}")
+        # Skip the test rather than fail if service unavailable or permissions issue
+        if any(msg in str(e).lower() for msg in ["permission", "not authorized", "unavailable"]):
+            pytest.skip(f"Test skipped due to API error: {str(e)}")
+        raise
+
+
+@pytest.mark.integration
 def test_chronicle_nl_search():
     """Test Chronicle natural language search functionality with real API."""
     client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)

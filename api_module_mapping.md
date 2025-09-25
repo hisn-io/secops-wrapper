@@ -228,7 +228,7 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 |legacy.legacyCreateSoarAlert                                                  |v1alpha|                                                            |                                       |
 |legacy.legacyFetchAlertsView                                                  |v1alpha|chronicle.alert.get_alerts                                  |secops alert                           |
 |legacy.legacyFetchUdmSearchCsv                                                |v1alpha|chronicle.udm_search.fetch_udm_search_csv                   |secops search --csv                    |
-|legacy.legacyFetchUdmSearchView                                               |v1alpha|                                                            |                                       |
+|legacy.legacyFetchUdmSearchView                                               |v1alpha|chronicle.udm_search.fetch_udm_search_view                                                            |secops udm-search-view                                       |
 |legacy.legacyFindAssetEvents                                                  |v1alpha|                                                            |                                       |
 |legacy.legacyFindRawLogs                                                      |v1alpha|                                                            |                                       |
 |legacy.legacyFindUdmEvents                                                    |v1alpha|                                                            |                                       |

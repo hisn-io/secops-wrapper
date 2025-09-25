@@ -230,6 +230,9 @@ from secops.chronicle.udm_search import (
 from secops.chronicle.udm_search import (
     find_udm_field_values as _find_udm_field_values,
 )
+from secops.chronicle.udm_search import (
+    fetch_udm_search_view as _fetch_udm_search_view,
+)
 from secops.chronicle.validate import validate_query as _validate_query
 from secops.exceptions import SecOpsError
 from secops.chronicle.rule import get_rule_deployment as _get_rule_deployment
@@ -426,6 +429,51 @@ class ChronicleClient:
         """
         return _fetch_udm_search_csv(
             self, query, start_time, end_time, fields, case_insensitive
+        )
+
+    def fetch_udm_search_view(
+        self,
+        query: str,
+        start_time: datetime,
+        end_time: datetime,
+        snapshot_query: Optional[str] = 'feedback_summary.status != "CLOSED"',
+        max_events: Optional[int] = 10000,
+        max_detections: Optional[int] = 1000,
+        case_insensitive: bool = True,
+    ) -> str:
+        """Fetch UDM Search View results.
+
+        Args:
+            client: The ChronicleClient instance.
+            query: Chronicle search query to search for. The baseline
+                query is used for this request and its results are cached for
+                subsequent requests, so supplying additional filters in the
+                snapshot_query will not require re-running the baseline query.
+            start_time: Search start time.
+            end_time: Search end time.
+            snapshot_query: Query for filtering alerts. Uses a syntax similar
+                to UDM search, with supported fields including:
+                detection.rule_set, detection.rule_id, detection.rule_name,
+                case_name, feedback_summary.status,
+                feedback_summary.priority, etc.
+            max_events: Maximum number of events to return. If not specified, a
+            default of 10000 events will be returned.
+            max_detections: Maximum number of detections to return. If not
+                specified, a default of 1000 detections will be returned.
+            case_insensitive: Whether to perform case-insensitive search or not.
+
+        Returns:
+            List of udm search results.
+        """
+        return _fetch_udm_search_view(
+            self,
+            query,
+            start_time,
+            end_time,
+            snapshot_query,
+            max_events,
+            max_detections,
+            case_insensitive,
         )
 
     def validate_query(self, query: str) -> Dict[str, Any]:
