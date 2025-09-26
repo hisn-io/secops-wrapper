@@ -121,6 +121,29 @@ secops search --query "metadata.event_type = \"USER_LOGIN\" AND security_result.
 
 > **Note:** Chronicle API uses snake_case for UDM field names. For example, use `security_result` instead of `securityResult`, `event_timestamp` instead of `eventTimestamp`. Valid UDM fields include: `metadata`, `principal`, `target`, `security_result`, `network`, etc.
 
+### UDM Search View
+
+Fetch UDM search results with additional contextual information including detection data:
+
+```bash
+# Basic search with query
+secops udm-search-view --query "metadata.event_type = \"NETWORK_CONNECTION\"" --time-window 24 --max-events 10
+
+# Search with query file
+secops udm-search-view --query-file "/path/to/query.txt" --time-window 24 --max-events 10
+
+# Search with snapshot query
+secops udm-search-view \
+  --query "metadata.event_type = \"NETWORK_CONNECTION\"" \
+  --snapshot-query "feedback_summary.status = \"OPEN\"" \
+  --time-window 24 \
+  --max-events 10 \
+  --max-detections 5
+  
+# Enable case sensitivity (disabled by default)
+secops udm-search-view --query "metadata.event_type = \"NETWORK_CONNECTION\"" --case-sensitive --time-window 24
+```
+
 ### Find UDM Field Values
 
 Search ingested UDM field values that match a query:
