@@ -786,84 +786,149 @@ class TestReferenceLists:
                 row_time_to_live="invalid"
             )
 
-    def test_replace_data_table_rows_chunking(self, mock_chronicle_client: Mock) -> None:
-        """Test that replace_data_table_rows chunks large inputs."""
-        # Patch the internal function using patch.object for Python 3.9 compatibility
-        with patch('secops.chronicle.data_table._replace_data_table_rows') as mock_internal_replace_rows:
-            # Similar to create_data_table_rows, test chunking functionality
-            # Provide more than 1000 rows to ensure chunking
-            rows_data = [[f"new_value{i}"] for i in range(1500)]  # 1500 rows
-            mock_internal_replace_rows.return_value = {
-                "dataTableRows": [{"name": "row_replaced_chunk"}]
-            }
+    @patch('secops.chronicle.data_table._estimate_row_json_size')
+    def test_replace_data_table_rows_size_based_batching(self, mock_estimate_size: Mock, mock_chronicle_client: Mock) -> None:
+        """Test that replace_data_table_rows handles size-based batching."""
+        # Mock response for API calls
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "dataTableRows": [{"name": "row_replaced"}]
+        }
+        mock_chronicle_client.session.post.return_value = mock_response
+        
+        # Mock client.create_data_table_rows (instance method) for remaining rows
+        mock_chronicle_client.create_data_table_rows = Mock()
+        mock_chronicle_client.create_data_table_rows.return_value = [{"dataTableRows": [{"name": "row_created"}]}]
+        
+        # Create test data: first batch will have some rows close to 4MB limit
+        # to test size-based batching
+        dt_name = "dt_for_replace_batching"
+        rows_data = [[f"small_value{i}"] for i in range(950)]  # Under 1000 rows total
+        
+        # Mock size estimation to force size-based batching
+        # First 5 rows are large (close to 1MB each), rest are small
+        def estimate_size_side_effect(row):
+            if row[0].startswith("small_value") and int(row[0][11:]) < 5:
+                return 900000  # Almost 1MB each for first 5 rows
+            return 10000  # Small size for other rows
+            
+        mock_estimate_size.side_effect = estimate_size_side_effect
+        
+        # Call the function under test
+        responses = replace_data_table_rows(mock_chronicle_client, dt_name, rows_data)
+        
+        # Verify the correct behavior:
+        # 1. Single bulkReplace call for the rows that fit in 4MB
+        # 2. client.create_data_table_rows call for remaining rows
+        
+        # First call should be bulkReplace with only the rows that fit in 4MB
+        mock_chronicle_client.session.post.assert_called_once()
+        post_call = mock_chronicle_client.session.post.call_args
+        assert "bulkReplace" in post_call[0][0]
+        
+        # The client.create_data_table_rows should be called for remaining rows
+        mock_chronicle_client.create_data_table_rows.assert_called_once()
+        
+        # Verify we got responses from both operations
+        assert len(responses) == 2
 
-            dt_name = "dt_for_replace_chunking"
-            responses = replace_data_table_rows(mock_chronicle_client, dt_name, rows_data)
-
-            # Expect two calls: one for 1000 rows, one for 500 rows
-            assert mock_internal_replace_rows.call_count == 2
-            # First call with the first 1000 rows
-            call_args_1 = mock_internal_replace_rows.call_args_list[0]
-            assert call_args_1[0][1] == dt_name  # name
-            assert len(call_args_1[0][2]) == 1000  # rows in first chunk
-            # Second call with the remaining 500 rows
-            call_args_2 = mock_internal_replace_rows.call_args_list[1]
-            assert call_args_2[0][1] == dt_name
-            assert len(call_args_2[0][2]) == 500
-
-            assert len(responses) == 2
+    @patch('secops.chronicle.data_table._estimate_row_json_size', return_value=1000)  # Small enough for all rows
+    def test_replace_data_table_rows_chunking(self, mock_estimate_size: Mock, mock_chronicle_client: Mock) -> None:
+        """Test that replace_data_table_rows chunks large inputs over 1000 rows."""
+        # Mock responses for API calls
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "dataTableRows": [{"name": "row_replaced_chunk"}]
+        }
+        mock_chronicle_client.session.post.return_value = mock_response
+        
+        # Mock client.create_data_table_rows for the second chunk
+        mock_chronicle_client.create_data_table_rows = Mock()
+        mock_chronicle_client.create_data_table_rows.return_value = [{"dataTableRows": [{"name": "row_created_chunk"}]}]
+        
+        # Create test data with more than 1000 rows
+        dt_name = "dt_for_replace_chunking"
+        rows_data = [[f"new_value{i}"] for i in range(1500)]  # 1500 rows
+        
+        # Call the function under test
+        responses = replace_data_table_rows(mock_chronicle_client, dt_name, rows_data)
+        
+        # Verify first call was bulkReplace with first 1000 rows
+        assert mock_chronicle_client.session.post.call_count == 1
+        post_call = mock_chronicle_client.session.post.call_args
+        assert "bulkReplace" in post_call[0][0]
+        
+        # Verify the remaining rows were sent using create_data_table_rows
+        mock_chronicle_client.create_data_table_rows.assert_called_once()
+        create_call = mock_chronicle_client.create_data_table_rows.call_args
+        assert create_call[0][0] == dt_name  # Same table name
+        
+        # We need to include rows 1000-1499 (500 rows total) in the remaining batch
+        remaining_rows = create_call[0][1]  # Get the rows passed to client.create_data_table_rows
+        assert len(remaining_rows) == 500  # 500 remaining rows
+        
+        # Verify we got responses from both operations
+        assert len(responses) == 2
 
     def test_replace_data_table_rows_direct_call(self, mock_chronicle_client: Mock) -> None:
         """Test direct call to replace_data_table_rows with a small number of rows."""
-        # Use context manager for patching for Python 3.9 compatibility
-        with patch('secops.chronicle.data_table._replace_data_table_rows') as mock_replace_rows_internal:
-            mock_response = {
-                "dataTableRows": [
-                    {"name": "replaced_row1", "values": ["new1", "new2"]},
-                    {"name": "replaced_row2", "values": ["new3", "new4"]},
-                ]
-            }
-            mock_replace_rows_internal.return_value = mock_response
+        # Mock response for API call
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "dataTableRows": [
+                {"name": "replaced_row1", "values": ["new1", "new2"]},
+                {"name": "replaced_row2", "values": ["new3", "new4"]},
+            ]
+        }
+        mock_chronicle_client.session.post.return_value = mock_response
             
-            dt_name = "test_dt_replace"
-            rows_to_replace = [["new1", "new2"], ["new3", "new4"]]
+        dt_name = "test_dt_replace"
+        rows_to_replace = [["new1", "new2"], ["new3", "new4"]]  # Small set of rows
             
+        # Patch row size estimation to return small values
+        with patch('secops.chronicle.data_table._estimate_row_json_size', return_value=1000):
             result = replace_data_table_rows(mock_chronicle_client, dt_name, rows_to_replace)
             
-            # Verify internal function was called correctly
-            mock_replace_rows_internal.assert_called_once_with(
-                mock_chronicle_client, dt_name, rows_to_replace
-            )
+            # Verify API was called correctly
+            mock_chronicle_client.session.post.assert_called_once()
+            call_args = mock_chronicle_client.session.post.call_args
+            assert "bulkReplace" in call_args[0][0]  # URL has bulkReplace
             
-            # Verify we got the expected result
-            assert result[0] == mock_response
+            # Verify we have all rows in a single request
+            requests = call_args[1]["json"]["requests"]
+            assert len(requests) == 2  # Both rows in a single request
+            
+            # Verify response was processed correctly
+            assert len(result) == 1
+            assert result[0] == mock_response.json.return_value
 
     def test_replace_data_table_rows_api_error(self, mock_chronicle_client: Mock) -> None:
         """Test API error handling in replace_data_table_rows."""
-        # Use context manager for patching for Python 3.9 compatibility
-        with patch('secops.chronicle.data_table._replace_data_table_rows') as mock_replace_rows_internal:
-            error_message = "Failed to replace data table rows for 'invalid_table': 400 Invalid row format"
-            mock_replace_rows_internal.side_effect = APIError(error_message)
-            
-            dt_name = "invalid_table"
-            rows_to_replace = [["bad_data"]]  # Doesn't matter for this test
-            
-            with pytest.raises(APIError, match=error_message):
+        # Mock API error response
+        error_response = Mock()
+        error_response.status_code = 400
+        error_response.text = "Invalid row format"
+        mock_chronicle_client.session.post.return_value = error_response
+        
+        dt_name = "invalid_table"
+        rows_to_replace = [["bad_data"]]  # Small test data
+        
+        # Patch row size estimation to avoid size issues
+        with patch('secops.chronicle.data_table._estimate_row_json_size', return_value=1000):
+            with pytest.raises(APIError, match="Failed to replace data table rows for 'invalid_table': 400 Invalid row format"):
                 replace_data_table_rows(mock_chronicle_client, dt_name, rows_to_replace)
 
     def test_replace_data_table_rows_single_oversized_row(self, mock_chronicle_client: Mock) -> None:
         """Test handling of a single oversized row in replace_data_table_rows."""
-        # Use context manager for patching for Python 3.9 compatibility
-        with patch('sys.getsizeof') as mock_getsizeof:
-            dt_name = "dt_with_big_row"
-            oversized_row = [["*" * 1000000]]  # Very large row
+        dt_name = "dt_with_big_row"
+        oversized_row = [["*" * 1000000]]  # Very large row
             
-            # Mock sys.getsizeof to return a value larger than 4MB for our oversized row
-            mock_getsizeof.return_value = 5000000  # 5MB, over the 4MB limit
-            
-            with pytest.raises(
-                SecOpsError, match="Single row is too large to process"
-            ):
+        # Mock _estimate_row_json_size to return a value larger than 4MB for our oversized row
+        with patch('secops.chronicle.data_table._estimate_row_json_size', return_value=5000000):
+            with pytest.raises(SecOpsError, match="Single row is too large to process"):
                 replace_data_table_rows(mock_chronicle_client, dt_name, oversized_row)
 
     # TODO: Add more unit tests for:

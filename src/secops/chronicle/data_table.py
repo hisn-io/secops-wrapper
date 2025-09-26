@@ -536,10 +536,76 @@ def update_data_table(
     return response.json()
 
 
+def _estimate_row_json_size(row: List[str]) -> int:
+    """Estimate the size of a row when formatted as JSON.
+
+    Args:
+        row: A list of string values representing a row
+
+    Returns:
+        Estimated size in bytes of the row when formatted as JSON
+    """
+    # Basic size for JSON structure: {"data_table_row":{"values":[...]}}
+    base_size = 30
+
+    # Add size for each string value in the row
+    # Account for quotes, commas, and possible escaping
+    for value in row:
+        # String length + quotes + possible escaping (estimate ~10% overhead)
+        base_size += len(value) + 3 + int(len(value) * 0.1)
+
+    return base_size
+
+
+def _create_row_batches(
+    rows: List[List[str]], row_sizes: List[int]
+) -> List[List[List[str]]]:
+    """Create optimally sized batches of rows respecting API limits.
+
+    Args:
+        rows: List of rows to batch
+        row_sizes: Pre-calculated sizes for each row
+
+    Returns:
+        List of batches, where each batch is a list of rows
+    """
+    all_batches = []
+    current_batch = []
+    current_batch_size = 0
+
+    for row, row_size in zip(rows, row_sizes):
+        # Start a new batch if adding this row would exceed limits
+        if len(current_batch) >= 1000 or (
+            current_batch_size + row_size > 4000000 and current_batch
+        ):
+            # Finalize current batch and start a new one
+            all_batches.append(current_batch)
+            print(
+                f"Created batch with {len(current_batch)} rows, "
+                f"estimated size: {current_batch_size/1000000:.2f} MB"
+            )
+            current_batch = []
+            current_batch_size = 0
+
+        # Add row to current batch
+        current_batch.append(row)
+        current_batch_size += row_size
+
+    # Add the last batch if it has any rows
+    if current_batch:
+        all_batches.append(current_batch)
+        print(
+            f"Created batch with {len(current_batch)} rows, "
+            f"estimated size: {current_batch_size/1000000:.2f} MB"
+        )
+
+    return all_batches
+
+
 def replace_data_table_rows(
     client: "Any", name: str, rows: List[List[str]]
 ) -> List[Dict[str, Any]]:
-    """Replace all rows in a data table with new rows, chunking if necessary.
+    """Replace all rows in a data table with new rows.
 
     Args:
         client: ChronicleClient instance
@@ -547,81 +613,94 @@ def replace_data_table_rows(
         rows: A list of new rows to replace all existing rows in the table
 
     Returns:
-        List of responses containing the created data table rows
+        List of responses from the API calls
 
     Raises:
-        APIError: If the API request fails
+        APIError: If any API request fails
         SecOpsError: If a row is too large to process
     """
-    responses = []
-    row_iter = iter(rows)
 
-    # Process rows in chunks of up to 1000 rows or 4MB
-    while chunk := list(islice(row_iter, 1000)):
-        current_chunk_size_bytes = sum(
-            sys.getsizeof(".".join(r)) for r in chunk
-        )
-
-        # If chunk is too large, split it
-        while current_chunk_size_bytes > 4000000 and len(chunk) > 1:
-            half_len = len(chunk) // 2
-            if half_len == 0:  # Should not happen if len(chunk) > 1
-                break
-
-            temp_chunk_for_next_iter = chunk[half_len:]
-            chunk = chunk[:half_len]
-            row_iter = iter(temp_chunk_for_next_iter + list(row_iter))
-            current_chunk_size_bytes = sum(
-                sys.getsizeof(".".join(r)) for r in chunk
-            )
-
-        if not chunk:  # If chunk became empty
-            continue
-
-        # If a single row is too large
-        if current_chunk_size_bytes > 4000000 and len(chunk) == 1:
-            raise SecOpsError(
-                "Single row is too large to process "
-                f"(>{current_chunk_size_bytes} bytes): {chunk[0][:100]}..."
-            )
-
-        responses.append(_replace_data_table_rows(client, name, chunk))
-
-    return responses
-
-
-def _replace_data_table_rows(
-    client: "Any", name: str, rows: List[List[str]]
-) -> Dict[str, Any]:
-    """Replace all rows in a data table with new rows in a single request.
-
-    Args:
-        client: ChronicleClient instance
-        name: The name of the data table
-        rows: New data table rows to replace all existing rows.
-              A maximum of 1000 rows can be replaced in a single request.
-              Total size of the rows should be less than 4MB.
-
-    Returns:
-        Dictionary containing the data table rows that replaced existing
-        data table rows
-
-    Raises:
-        APIError: If the API request fails
-    """
     url = (
         f"{client.base_url}/{client.instance_id}/dataTables/{name}"
         "/dataTableRows:bulkReplace"
     )
-    response = client.session.post(
-        url,
-        json={"requests": [{"data_table_row": {"values": x}} for x in rows]},
-    )
 
-    if response.status_code != 200:
-        raise APIError(
-            f"Failed to replace data table rows for '{name}': "
-            f"{response.status_code} {response.text}"
+    # Check for empty input
+    if not rows:
+        return []
+
+    row_sizes = []
+
+    # Validate each row isn't too large before processing
+    for i, row in enumerate(rows):
+        row_size = _estimate_row_json_size(row)
+        if row_size > 4000000:
+            raise SecOpsError(
+                "Single row is too large to process "
+                f"(>{row_size} bytes): {rows[i][:100]}..."
+            )
+
+    all_responses = []
+
+    # Use bulkReplace for the first batch (up to 1000 rows)
+    # This replaces all existing rows in the table
+    first_batch_size = min(1000, len(rows))
+    first_batch = rows[:first_batch_size]
+    first_batch_sizes = row_sizes[:first_batch_size]
+
+    print(f"Replacing all existing rows with first {first_batch_size} rows")
+
+    first_api_batch = []
+    first_api_batch_size = 0
+    first_batch_max_size = 4000000  # 4MB in bytes
+
+    # First, determine how many rows we can include in the first API call
+    # (max 4MB)
+    for i, row in enumerate(first_batch):
+        row_size = (
+            _estimate_row_json_size(row)
+            if i >= len(first_batch_sizes)
+            else first_batch_sizes[i]
         )
 
-    return response.json()
+        # If adding this row would exceed 4MB,
+        # stop adding rows to first API call
+        if first_api_batch_size + row_size > first_batch_max_size:
+            break
+
+        first_api_batch.append(row)
+        first_api_batch_size += row_size
+
+    if first_api_batch:
+        replace_requests = [
+            {"data_table_row": {"values": r}} for r in first_api_batch
+        ]
+
+        response = client.session.post(
+            url,
+            json={"requests": replace_requests},
+        )
+
+        if response.status_code != 200:
+            raise APIError(
+                f"Failed to replace data table rows for '{name}': "
+                f"{response.status_code} {response.text}"
+            )
+
+        all_responses.append(response.json())
+
+    # Handle any remaining rows from the first 1000 using bulkCreate
+    remaining_first_batch = first_batch[len(first_api_batch) :]
+
+    # Add remaining rows using bulkCreate (if any)
+    if remaining_first_batch or len(rows) > 1000:
+        print(f"Adding remaining {len(rows) - 1000} rows with bulkCreate")
+
+        # Instead of processing chunks ourselves,
+        # leverage the existing client method
+        # which already handles batching properly
+        remaining_rows = remaining_first_batch + rows[1000:]
+        create_response = client.create_data_table_rows(name, remaining_rows)
+        all_responses.append(create_response)
+
+    return all_responses
