@@ -2344,7 +2344,7 @@ class ChronicleClient:
         gcs_bucket: str,
         start_time: datetime,
         end_time: datetime,
-        log_types: List[str] = [],
+        log_types: Optional[List[str]] = None,
         export_all_logs: bool = False,
     ) -> Dict[str, Any]:
         """Create a new data export job.
@@ -2455,7 +2455,7 @@ class ChronicleClient:
 
     def list_data_export_v2(
         self,
-        filter: Optional[str] = None,
+        filters: Optional[str] = None,
         page_size: Optional[int] = None,
         page_token: Optional[str] = None,
     ) -> Dict[str, Any]:
@@ -2463,6 +2463,9 @@ class ChronicleClient:
 
         Args:
             client: ChronicleClient instance
+            filters: Filter string
+            page_size: Page size
+            page_token: Page token
 
         Returns:
             Dictionary containing data export list
@@ -2477,7 +2480,7 @@ class ChronicleClient:
         """
         return _list_data_export_v2(
             self,
-            filter=filter,
+            filters=filters,
             page_size=page_size,
             page_token=page_token,
         )

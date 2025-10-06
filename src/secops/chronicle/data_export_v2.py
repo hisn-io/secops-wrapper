@@ -75,7 +75,7 @@ def create_data_export_v2(
     gcs_bucket: str,
     start_time: datetime,
     end_time: datetime,
-    log_types: List[str] = [],
+    log_types: Optional[List[str]] = None,
     export_all_logs: bool = False,
 ) -> Dict[str, Any]:
     """Create a new data export job.
@@ -121,6 +121,9 @@ def create_data_export_v2(
         )
         ```
     """
+
+    log_types = [] if log_types is None else log_types
+
     # Validate parameters
     if not gcs_bucket:
         raise ValueError("GCS bucket must be provided")
@@ -257,7 +260,6 @@ def update_data_export_v2(
     return response.json()
 
 
-
 def cancel_data_export_v2(client, data_export_id: str) -> Dict[str, Any]:
     """Cancel an in-progress data export.
 
@@ -290,11 +292,19 @@ def cancel_data_export_v2(client, data_export_id: str) -> Dict[str, Any]:
     return response.json()
 
 
-def list_data_export_v2(client, filter: Optional[str] = None, page_size: Optional[int] = None, page_token: Optional[str] = None) -> Dict[str, Any]:
+def list_data_export_v2(
+    client,
+    filters: Optional[str] = None,
+    page_size: Optional[int] = None,
+    page_token: Optional[str] = None,
+) -> Dict[str, Any]:
     """List data export jobs.
 
     Args:
         client: ChronicleClient instance
+        filters: Filter string
+        page_size: Page size
+        page_token: Page token
 
     Returns:
         Dictionary containing data export list
@@ -312,7 +322,7 @@ def list_data_export_v2(client, filter: Optional[str] = None, page_size: Optiona
     params = {
         "pageSize": page_size,
         "pageToken": page_token,
-        "filter": filter,
+        "filter": filters,
     }
 
     response = client.session.get(url, params=params)
