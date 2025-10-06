@@ -652,7 +652,7 @@ def replace_data_table_rows(
 
     # Add remaining rows using bulkCreate (if any)
     if remaining_first_batch or len(rows) > 1000:
-        print(f"Adding remaining {len(rows) - 1000} rows")
+        print(f"Adding remaining {len(rows) - len(first_api_batch)} rows")
 
         remaining_rows = remaining_first_batch + rows[1000:]
         create_responses = create_data_table_rows(client, name, remaining_rows)
