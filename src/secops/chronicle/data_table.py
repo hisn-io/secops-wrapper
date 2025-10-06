@@ -599,9 +599,10 @@ def replace_data_table_rows(
         row_sizes.append(row_size)  # Store calculated size
 
         if row_size > 4000000:
+            row_preview = repr(row[:50])
             raise SecOpsError(
-                "Single row is too large to process "
-                f"(>{row_size} bytes): {str(row)[:100]}..."
+                f"Single row is too large to process (>{row_size} bytes): "
+                f"{row_preview}..."
             )
 
     all_responses = []
