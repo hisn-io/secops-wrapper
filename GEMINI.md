@@ -96,7 +96,7 @@
 - Handle exceptions gracefully with informative error messages
 - Create custom exception classes for domain-specific errors
 - Provide proper context in error messages
-- Log errors appropriately using the standard logging module
+- Log errors appropriately
 
 # Testing
 - Write unit tests for all public methods and functions
@@ -113,74 +113,81 @@
 - Handle API errors and rate limits gracefully
 - Follow secure coding practices for API access
 
-# Example Code
+# Example Service Method Code
 ```python
-"""Module for secure API client implementation."""
+"""Example service functionality module."""
 
-import logging
-from typing import Dict, Optional, Any
+from typing import Dict, Any, Optional
+from datetime import datetime
 
-from google.auth.credentials import Credentials
-
-from secops.exceptions import AuthenticationError
+from secops.chronicle import ChronicleClient
+from secops.exceptions import APIError, SecOpsError
 
 # Constants should be UPPER_CASE
-DEFAULT_TIMEOUT = 60
-MAX_RETRIES = 3
-
-# Logger for this module
-logger = logging.getLogger(__name__)
+DEFAULT_SORT = "ASC"
 
 
-class ApiClient:
-    """Client for making secure API requests.
-    
-    This class handles authentication, request retry logic, and
-    proper error handling for API interactions.
+def example_service(
+    client: "ChronicleClient",
+    resource_id: str,
+    params: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Performs an example service operation with proper error handling.
+
+    Args:
+        client: ChronicleClient instance for API requests
+        resource_id: Unique identifier for the target resource
+        params: Optional parameters to include in the request
+
+    Returns:
+        Dictionary containing the processed service response with:
+        - status: Operation result status
+        - data: The returned resource data
+        - timestamp: Processing timestamp
+
+    Raises:
+        APIError: If the API request fails or returns an error status
+        SecOpsError: If input validation fails or processing error occurs
+        ValueError: If resource_id is empty or invalid
     """
+    # Input validation
+    if not resource_id or not isinstance(resource_id, str):
+        raise ValueError("resource_id must be a non-empty string")
 
-    def __init__(
-        self,
-        credentials: Credentials,
-        base_url: str,
-        timeout: int = DEFAULT_TIMEOUT,
-    ):
-        """Initialize the API client.
+    # Prepare request parameters
+    request_params = {"format": "json", "sort": DEFAULT_SORT}
+    if params:
+        request_params.update(params)
+
+    try:
+        # Construct the API endpoint URL
+        url = f"{client.base_url}/resources/{resource_id}"
+
+        # Execute the API request
+        response = client.session.get(
+            url,
+            params=request_params,
+        )
+
+        # Handle error responses
+        if response.status_code != 200:
+            print(f"Service request failed with status {response.status_code}")
+            raise APIError(f"Service request failed: {response.text}")
+
+        # Process successful response
+        result = response.json()
         
-        Args:
-            credentials: Google auth credentials for API access.
-            base_url: The base URL for API requests.
-            timeout: Request timeout in seconds.
-        """
-        self.credentials = credentials
-        self.base_url = base_url
-        self.timeout = timeout
-        self._session = None
+        # Perform additional processing if needed
+        processed_result = {
+            "status": "success",
+            "data": result,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
         
-    def request(
-        self,
-        path: str,
-        method: str = "GET",
-        params: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
-        """Make an authenticated request to the API.
+        return processed_result
         
-        Args:
-            path: API endpoint path to request.
-            method: HTTP method to use for the request.
-            params: Optional parameters to include in the request.
-            
-        Returns:
-            Dictionary containing the API response.
-            
-        Raises:
-            AuthenticationError: If authentication fails.
-            ApiError: If the API returns an error response.
-        """
-        try:
-            # Implementation details would go here
-            return {"success": True}
-        except Exception as error:
-            logger.error("API request failed: %s", error)
-            raise
+    except Exception as error:
+        # Log the error with appropriate context
+        print(f"Unexpected error in example_service for resource {resource_id}: {error}")
+        raise
 ```
