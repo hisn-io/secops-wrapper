@@ -96,7 +96,7 @@
 - Handle exceptions gracefully with informative error messages
 - Create custom exception classes for domain-specific errors
 - Provide proper context in error messages
-- Log errors appropriately using the standard logging module
+- Log errors appropriately
 
 # Testing
 - Write unit tests for all public methods and functions
@@ -117,28 +117,25 @@
 ```python
 """Example service functionality module."""
 
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 from datetime import datetime
 
+from secops.chronicle import ChronicleClient
 from secops.exceptions import APIError, SecOpsError
 
 # Constants should be UPPER_CASE
-DEFAULT_TIMEOUT = 60
-MAX_RETRY_COUNT = 3
+DEFAULT_SORT = "ASC"
 
 
 def example_service(
-    client,
+    client: "ChronicleClient",
     resource_id: str,
     params: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """Performs an example service operation with proper error handling.
 
-    This method demonstrates the standard pattern for making API requests,
-    handling errors, and returning structured responses.
-
     Args:
-        client: API client instance with proper authentication
+        client: ChronicleClient instance for API requests
         resource_id: Unique identifier for the target resource
         params: Optional parameters to include in the request
 
@@ -158,7 +155,7 @@ def example_service(
         raise ValueError("resource_id must be a non-empty string")
 
     # Prepare request parameters
-    request_params = {"format": "json"}
+    request_params = {"format": "json", "sort": DEFAULT_SORT}
     if params:
         request_params.update(params)
 
