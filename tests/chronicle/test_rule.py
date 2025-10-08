@@ -659,3 +659,25 @@ def test_list_rule_deployments_error(chronicle_client, mock_error_response):
             list_rule_deployments(chronicle_client)
 
         assert "Failed to list rule deployments" in str(exc_info.value)
+
+
+def test_list_rule_deployments_empty(chronicle_client, mock_response):
+    """Test list_rule_deployments function with no rule deployments."""
+    # Arrange
+    mock_response.json.return_value = {}
+
+    with patch.object(
+        chronicle_client.session, "get", return_value=mock_response
+    ) as mock_get:
+        from secops.chronicle.rule import list_rule_deployments
+
+        # Act
+        result = list_rule_deployments(chronicle_client)
+
+        # Assert
+        mock_get.assert_called_once_with(
+            f"{chronicle_client.base_v1_url}/{chronicle_client.instance_id}/rules/-/deployments",
+            params={},
+        )
+        assert result == {"ruleDeployments": []}
+        assert len(result["ruleDeployments"]) == 0
