@@ -28,15 +28,15 @@ from secops.chronicle.case import get_cases_from_list
 from secops.chronicle.dashboard import DashboardAccessType, DashboardView
 from secops.chronicle.dashboard import add_chart as _add_chart
 from secops.chronicle.dashboard import create_dashboard as _create_dashboard
-from secops.chronicle.dashboard import import_dashboard as _import_dashboard
-from secops.chronicle.dashboard import export_dashboard as _export_dashboard
 from secops.chronicle.dashboard import delete_dashboard as _delete_dashboard
 from secops.chronicle.dashboard import (
     duplicate_dashboard as _duplicate_dashboard,
 )
 from secops.chronicle.dashboard import edit_chart as _edit_chart
+from secops.chronicle.dashboard import export_dashboard as _export_dashboard
 from secops.chronicle.dashboard import get_chart as _get_chart
 from secops.chronicle.dashboard import get_dashboard as _get_dashboard
+from secops.chronicle.dashboard import import_dashboard as _import_dashboard
 from secops.chronicle.dashboard import list_dashboards as _list_dashboards
 from secops.chronicle.dashboard import remove_chart as _remove_chart
 from secops.chronicle.dashboard import update_dashboard as _update_dashboard
@@ -56,20 +56,9 @@ from secops.chronicle.data_export import (
     fetch_available_log_types as _fetch_available_log_types,
 )
 from secops.chronicle.data_export import get_data_export as _get_data_export
-from secops.chronicle.data_export_v2 import (
-    cancel_data_export_v2 as _cancel_data_export_v2,
-)
-from secops.chronicle.data_export_v2 import (
-    create_data_export_v2 as _create_data_export_v2,
-)
-from secops.chronicle.data_export_v2 import (
-    get_data_export_v2 as _get_data_export_v2,
-)
-from secops.chronicle.data_export_v2 import (
-    list_data_export_v2 as _list_data_export_v2,
-)
-from secops.chronicle.data_export_v2 import (
-    update_data_export_v2 as _update_data_export_v2,
+from secops.chronicle.data_export import list_data_export as _list_data_export
+from secops.chronicle.data_export import (
+    update_data_export as _update_data_export,
 )
 from secops.chronicle.data_table import DataTableColumnType
 from secops.chronicle.data_table import create_data_table as _create_data_table
@@ -180,11 +169,15 @@ from secops.chronicle.rule import create_rule as _create_rule
 from secops.chronicle.rule import delete_rule as _delete_rule
 from secops.chronicle.rule import enable_rule as _enable_rule
 from secops.chronicle.rule import get_rule as _get_rule
+from secops.chronicle.rule import get_rule_deployment as _get_rule_deployment
+from secops.chronicle.rule import (
+    list_rule_deployments as _list_rule_deployments,
+)
 from secops.chronicle.rule import list_rules as _list_rules
 from secops.chronicle.rule import run_rule_test
 from secops.chronicle.rule import search_rules as _search_rules
-from secops.chronicle.rule import update_rule as _update_rule
 from secops.chronicle.rule import set_rule_alerting as _set_rule_alerting
+from secops.chronicle.rule import update_rule as _update_rule
 from secops.chronicle.rule import (
     update_rule_deployment as _update_rule_deployment,
 )
@@ -243,17 +236,13 @@ from secops.chronicle.udm_search import (
     fetch_udm_search_csv as _fetch_udm_search_csv,
 )
 from secops.chronicle.udm_search import (
-    find_udm_field_values as _find_udm_field_values,
+    fetch_udm_search_view as _fetch_udm_search_view,
 )
 from secops.chronicle.udm_search import (
-    fetch_udm_search_view as _fetch_udm_search_view,
+    find_udm_field_values as _find_udm_field_values,
 )
 from secops.chronicle.validate import validate_query as _validate_query
 from secops.exceptions import SecOpsError
-from secops.chronicle.rule import get_rule_deployment as _get_rule_deployment
-from secops.chronicle.rule import (
-    list_rule_deployments as _list_rule_deployments,
-)
 
 
 class ValueType(Enum):
@@ -2194,6 +2183,7 @@ class ChronicleClient:
         start_time: datetime,
         end_time: datetime,
         log_type: Optional[str] = None,
+        log_types: Optional[List[str]] = None,
         export_all_logs: bool = False,
     ) -> Dict[str, Any]:
         """Create a new data export job.
@@ -2203,7 +2193,9 @@ class ChronicleClient:
                 "projects/{project}/buckets/{bucket}"
             start_time: Start time for the export (inclusive)
             end_time: End time for the export (exclusive)
-            log_type: Optional specific log type to export.
+            log_type: Optional specific log type to export (deprecated).
+                Use log_types instead.
+            log_types: Optional list of log types to export.
                 If None and export_all_logs is False, no logs will be exported
             export_all_logs: Whether to export all log types
 
@@ -2221,7 +2213,15 @@ class ChronicleClient:
             end_time = datetime.now()
             start_time = end_time - timedelta(days=1)
 
-            # Export a specific log type
+            # Export specific log types
+            export = chronicle.create_data_export(
+                gcs_bucket="projects/my-project/buckets/my-bucket",
+                start_time=start_time,
+                end_time=end_time,
+                log_types=["WINDOWS", "LINUX"]
+            )
+
+            # Export a single log type (legacy method)
             export = chronicle.create_data_export(
                 gcs_bucket="projects/my-project/buckets/my-bucket",
                 start_time=start_time,
@@ -2244,6 +2244,7 @@ class ChronicleClient:
             start_time=start_time,
             end_time=end_time,
             log_type=log_type,
+            log_types=log_types,
             export_all_logs=export_all_logs,
         )
 
@@ -2319,86 +2320,7 @@ class ChronicleClient:
             page_token=page_token,
         )
 
-    def get_data_export_v2(self, data_export_id: str) -> Dict[str, Any]:
-        """Get information about a specific data export.
-
-        Args:
-            data_export_id: ID of the data export to retrieve
-
-        Returns:
-            Dictionary containing data export details
-
-        Raises:
-            APIError: If the API request fails
-
-        Example:
-            ```python
-            export = chronicle.get_data_export("export123")
-            print(f"Export status: {export['data_export_status']['stage']}")
-            ```
-        """
-        return _get_data_export_v2(self, data_export_id)
-
-    def create_data_export_v2(
-        self,
-        gcs_bucket: str,
-        start_time: datetime,
-        end_time: datetime,
-        log_types: Optional[List[str]] = None,
-        export_all_logs: bool = False,
-    ) -> Dict[str, Any]:
-        """Create a new data export job.
-
-        Args:
-            gcs_bucket: GCS bucket path in format
-                "projects/{project}/buckets/{bucket}"
-            start_time: Start time for the export (inclusive)
-            end_time: End time for the export (exclusive)
-            log_type: Optional specific log type to export.
-                If None and export_all_logs is False, no logs will be exported
-            export_all_logs: Whether to export all log types
-
-        Returns:
-            Dictionary containing details of the created data export
-
-        Raises:
-            APIError: If the API request fails
-            ValueError: If invalid parameters are provided
-
-        Example:
-            ```python
-            from datetime import datetime, timedelta
-
-            end_time = datetime.now()
-            start_time = end_time - timedelta(days=1)
-
-            # Export a specific log type
-            export = chronicle.create_data_export(
-                gcs_bucket="projects/my-project/buckets/my-bucket",
-                start_time=start_time,
-                end_time=end_time,
-                log_type="WINDOWS"
-            )
-
-            # Export all logs
-            export = chronicle.create_data_export(
-                gcs_bucket="projects/my-project/buckets/my-bucket",
-                start_time=start_time,
-                end_time=end_time,
-                export_all_logs=True
-            )
-            ```
-        """
-        return _create_data_export_v2(
-            self,
-            gcs_bucket=gcs_bucket,
-            start_time=start_time,
-            end_time=end_time,
-            log_types=log_types,
-            export_all_logs=export_all_logs,
-        )
-
-    def update_data_export_v2(
+    def update_data_export(
         self,
         data_export_id: str,
         start_time: Optional[datetime] = None,
@@ -2424,7 +2346,7 @@ class ChronicleClient:
             APIError: If the API request fails
             ValueError: If invalid parameters are provided
         """
-        return _update_data_export_v2(
+        return _update_data_export(
             self,
             data_export_id=data_export_id,
             start_time=start_time,
@@ -2433,27 +2355,7 @@ class ChronicleClient:
             log_types=log_types,
         )
 
-    def cancel_data_export_v2(self, data_export_id: str) -> Dict[str, Any]:
-        """Cancel an in-progress data export.
-
-        Args:
-            data_export_id: ID of the data export to cancel
-
-        Returns:
-            Dictionary containing details of the cancelled data export
-
-        Raises:
-            APIError: If the API request fails
-
-        Example:
-            ```python
-            result = chronicle.cancel_data_export("export123")
-            print("Export cancellation request submitted")
-            ```
-        """
-        return _cancel_data_export_v2(self, data_export_id)
-
-    def list_data_export_v2(
+    def list_data_export(
         self,
         filters: Optional[str] = None,
         page_size: Optional[int] = None,
@@ -2462,7 +2364,6 @@ class ChronicleClient:
         """List data export jobs.
 
         Args:
-            client: ChronicleClient instance
             filters: Filter string
             page_size: Page size
             page_token: Page token
@@ -2478,7 +2379,7 @@ class ChronicleClient:
             export = chronicle.list_data_export()
             ```
         """
-        return _list_data_export_v2(
+        return _list_data_export(
             self,
             filters=filters,
             page_size=page_size,
