@@ -113,6 +113,9 @@ def list_rules(
             raise APIError(f"Failed to list rules: {response.text}")
 
         data = response.json()
+        if not data:
+            # no rules, api returns {}
+            return rules
 
         # If Page size is provided return fetched rules as user expects
         # only that many rules in the response
