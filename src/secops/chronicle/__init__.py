@@ -42,6 +42,8 @@ from secops.chronicle.data_export import (
     create_data_export,
     fetch_available_log_types,
     get_data_export,
+    list_data_export,
+    update_data_export,
 )
 
 # Import data table and reference list classes
@@ -189,6 +191,8 @@ __all__ = [
     "create_data_export",
     "cancel_data_export",
     "fetch_available_log_types",
+    "list_data_export",
+    "update_data_export",
     "AvailableLogType",
     "DataExport",
     "DataExportStatus",
