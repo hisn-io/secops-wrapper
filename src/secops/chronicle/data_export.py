@@ -93,7 +93,10 @@ def get_data_export(client, data_export_id: str) -> Dict[str, Any]:
         print(f"Export status: {export['data_export_status']['stage']}")
         ```
     """
-    url = f"{_get_base_url(client)}/{client.instance_id}/dataExports/{data_export_id}"
+    url = (
+        f"{_get_base_url(client)}/{client.instance_id}/"
+        f"dataExports/{data_export_id}"
+    )
 
     response = client.session.get(url)
 
