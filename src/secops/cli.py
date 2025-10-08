@@ -367,26 +367,36 @@ def add_chronicle_args(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def add_time_range_args(parser: argparse.ArgumentParser) -> None:
+def add_time_range_args(
+    parser: argparse.ArgumentParser, required: bool = True
+) -> None:
     """Add time range arguments to a parser.
 
     Args:
         parser: Parser to add arguments to
+        required: Whether the time range arguments are required
     """
     config = load_config()
+
+    # Default values only used when not required
+    default_start = config.get("start_time") if not required else None
+    default_end = config.get("end_time") if not required else None
+    default_window = config.get("time_window", 24) if not required else 24
 
     parser.add_argument(
         "--start-time",
         "--start_time",
         dest="start_time",
-        default=config.get("start_time"),
+        default=default_start,
+        required=required and not default_start,  # Only required if no default
         help="Start time in ISO format (YYYY-MM-DDTHH:MM:SSZ)",
     )
     parser.add_argument(
         "--end-time",
         "--end_time",
         dest="end_time",
-        default=config.get("end_time"),
+        default=default_end,
+        required=required and not default_end,  # Only required if no default
         help="End time in ISO format (YYYY-MM-DDTHH:MM:SSZ)",
     )
     parser.add_argument(
@@ -394,13 +404,14 @@ def add_time_range_args(parser: argparse.ArgumentParser) -> None:
         "--time_window",
         dest="time_window",
         type=int,
-        default=config.get("time_window", 24),
+        default=default_window,
         help="Time window in hours (alternative to start/end time)",
     )
 
 
 def get_time_range(args: argparse.Namespace) -> Tuple[datetime, datetime]:
-    """Get start and end time from arguments.
+    """Get start and end time from arguments. None if no time range arguments
+    are present.
 
     Args:
         args: Command line arguments
@@ -408,6 +419,12 @@ def get_time_range(args: argparse.Namespace) -> Tuple[datetime, datetime]:
     Returns:
         Tuple of (start_time, end_time)
     """
+    # Check if time arguments exist
+    has_time_args = hasattr(args, "end_time") and hasattr(args, "start_time")
+
+    if not has_time_args:
+        return None, None
+
     end_time = (
         parse_datetime(args.end_time)
         if args.end_time
@@ -417,7 +434,11 @@ def get_time_range(args: argparse.Namespace) -> Tuple[datetime, datetime]:
     if args.start_time:
         start_time = parse_datetime(args.start_time)
     else:
-        start_time = end_time - timedelta(hours=args.time_window)
+        # Check if time_window attribute exists
+        if hasattr(args, "time_window"):
+            start_time = end_time - timedelta(hours=args.time_window)
+        else:
+            start_time = end_time - timedelta(hours=24)  # Default to 24 hours
 
     return start_time, end_time
 
@@ -2080,7 +2101,16 @@ def setup_export_command(subparsers):
         help="GCS bucket in format 'projects/PROJECT_ID/buckets/BUCKET_NAME'",
     )
     create_parser.add_argument(
-        "--log-type", "--log_type", dest="log_type", help="Log type to export"
+        "--log-type",
+        "--log_type",
+        dest="log_type",
+        help="Single log type to export (deprecated, use --log-types instead)",
+    )
+    create_parser.add_argument(
+        "--log-types",
+        "--log_types",
+        dest="log_types",
+        help="Comma-separated list of log types to export",
     )
     create_parser.add_argument(
         "--all-logs",
@@ -2091,6 +2121,48 @@ def setup_export_command(subparsers):
     )
     add_time_range_args(create_parser)
     create_parser.set_defaults(func=handle_export_create_command)
+
+    # List exports command
+    list_parser = export_subparsers.add_parser("list", help="List data exports")
+    list_parser.add_argument(
+        "--filter", dest="filters", help="Filter string for listing exports"
+    )
+    list_parser.add_argument(
+        "--page-size",
+        "--page_size",
+        dest="page_size",
+        type=int,
+        help="Page size for results",
+    )
+    list_parser.add_argument(
+        "--page-token",
+        "--page_token",
+        dest="page_token",
+        help="Page token for pagination",
+    )
+    list_parser.set_defaults(func=handle_export_list_command)
+
+    # Update export command
+    update_parser = export_subparsers.add_parser(
+        "update", help="Update an existing data export"
+    )
+    update_parser.add_argument(
+        "--id", required=True, help="Export ID to update"
+    )
+    update_parser.add_argument(
+        "--gcs-bucket",
+        "--gcs_bucket",
+        dest="gcs_bucket",
+        help="New GCS bucket in format 'projects/PROJECT_ID/buckets/BUCKET_NAME'",
+    )
+    update_parser.add_argument(
+        "--log-types",
+        "--log_types",
+        dest="log_types",
+        help="Comma-separated list of log types to export",
+    )
+    add_time_range_args(update_parser, required=False)
+    update_parser.set_defaults(func=handle_export_update_command)
 
     # Get export status command
     status_parser = export_subparsers.add_parser(
@@ -2202,15 +2274,27 @@ def handle_export_create_command(args, chronicle):
                 export_all_logs=True,
             )
         elif args.log_type:
+            # Single log type (legacy method)
             result = chronicle.create_data_export(
                 gcs_bucket=args.gcs_bucket,
                 start_time=start_time,
                 end_time=end_time,
                 log_type=args.log_type,
             )
+        elif args.log_types:
+            # Multiple log types
+            log_types_list = [
+                log_type.strip() for log_type in args.log_types.split(",")
+            ]
+            result = chronicle.create_data_export(
+                gcs_bucket=args.gcs_bucket,
+                start_time=start_time,
+                end_time=end_time,
+                log_types=log_types_list,
+            )
         else:
             print(
-                "Error: Either --log-type or --all-logs must be specified",
+                "Error: Either --log-type, --log-types, or --all-logs must be specified",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -2276,6 +2360,47 @@ def handle_export_cancel_command(args, chronicle):
     """Handle export cancel command."""
     try:
         result = chronicle.cancel_data_export(args.id)
+        output_formatter(result, args.output)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def handle_export_list_command(args, chronicle):
+    """Handle listing data exports command."""
+    try:
+        result = chronicle.list_data_export(
+            filters=args.filters,
+            page_size=args.page_size,
+            page_token=args.page_token,
+        )
+        output_formatter(result, args.output)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def handle_export_update_command(args, chronicle):
+    """Handle updating an existing data export command."""
+    # Get the start_time and end_time if provided
+    start_time = None
+    end_time = None
+    if hasattr(args, "start_time") and args.start_time:
+        start_time, end_time = get_time_range(args)
+
+    # Convert log_types string to list if provided
+    log_types = None
+    if args.log_types:
+        log_types = [log_type.strip() for log_type in args.log_types.split(",")]
+
+    try:
+        result = chronicle.update_data_export(
+            data_export_id=args.id,
+            gcs_bucket=args.gcs_bucket if hasattr(args, "gcs_bucket") else None,
+            start_time=start_time,
+            end_time=end_time,
+            log_types=log_types,
+        )
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error: {e}", file=sys.stderr)
