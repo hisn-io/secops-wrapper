@@ -301,7 +301,7 @@ def list_rule_deployments(
         if not data:
             # no rule deployments, api returns {}
             return deployments
-        
+
         deployments["ruleDeployments"].extend(data["ruleDeployments"])
 
         if "nextPageToken" in data:
