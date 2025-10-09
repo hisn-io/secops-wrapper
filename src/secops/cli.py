@@ -2153,7 +2153,10 @@ def setup_export_command(subparsers):
         "--gcs-bucket",
         "--gcs_bucket",
         dest="gcs_bucket",
-        help="New GCS bucket in format 'projects/PROJECT_ID/buckets/BUCKET_NAME'",
+        help=(
+            "New GCS bucket in format "
+            "'projects/PROJECT_ID/buckets/BUCKET_NAME'"
+        ),
     )
     update_parser.add_argument(
         "--log-types",
@@ -2294,7 +2297,8 @@ def handle_export_create_command(args, chronicle):
             )
         else:
             print(
-                "Error: Either --log-type, --log-types, or --all-logs must be specified",
+                "Error: Either --log-type, --log-types, or --all-logs "
+                "must be specified",
                 file=sys.stderr,
             )
             sys.exit(1)
