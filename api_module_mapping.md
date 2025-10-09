@@ -115,6 +115,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 |dataExports.create                                                            |v1alpha|chronicle.data_export.create_data_export                    |secops export create                   |
 |dataExports.fetchavailablelogtypes                                            |v1alpha|chronicle.data_export.fetch_available_log_types             |secops export log-types                |
 |dataExports.get                                                               |v1alpha|chronicle.data_export.get_data_export                       |secops export status                   |
+|dataExports.list                                                               |v1alpha|chronicle.data_export.list_data_export                       |secops export list                   |
+|dataExports.patch                                                               |v1alpha|chronicle.data_export.update_data_export                       |secops export update                   |
 |dataTableOperationErrors.get                                                  |v1alpha|                                                            |                                       |
 |dataTables.create                                                             |v1alpha|chronicle.data_table.create_data_table                      |secops data-table create               |
 |dataTables.dataTableRows.bulkCreate                                           |v1alpha|chronicle.data_table.create_data_table_rows                 |secops data-table add-rows             |

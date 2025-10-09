@@ -657,17 +657,49 @@ secops export log-types --time-window 24
 secops export log-types --page-size 50
 ```
 
+List recent data exports:
+
+```bash
+# List all recent exports
+secops export list
+
+# List with pagination
+secops export list --page-size 10
+```
+
 Create a data export:
 
 ```bash
+# Export a single log type (legacy method)
 secops export create --gcs-bucket "projects/my-project/buckets/my-bucket" --log-type "WINDOWS" --time-window 24
+
+# Export multiple log types
+secops export create --gcs-bucket "projects/my-project/buckets/my-bucket" --log-types "WINDOWS,LINUX,GCP_DNS" --time-window 24
+
+# Export all log types
 secops export create --gcs-bucket "projects/my-project/buckets/my-bucket" --all-logs --time-window 24
+
+# Export with explicit start and end times
+secops export create --gcs-bucket "projects/my-project/buckets/my-bucket" --all-logs --start-time "2025-01-01T00:00:00Z" --end-time "2025-01-02T00:00:00Z"
 ```
 
 Check export status:
 
 ```bash
 secops export status --id "export-123"
+```
+
+Update an export (only for exports in IN_QUEUE state):
+
+```bash
+# Update start time
+secops export update --id "export-123" --start-time "2025-01-01T02:00:00Z"
+
+# Update log types
+secops export update --id "export-123" --log-types "WINDOWS,LINUX,AZURE"
+
+# Update the GCS bucket
+secops export update --id "export-123" --gcs-bucket "projects/my-project/buckets/my-new-bucket"
 ```
 
 Cancel an export:
