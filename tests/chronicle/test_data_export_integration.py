@@ -29,8 +29,7 @@ from ..config import CHRONICLE_CONFIG, SERVICE_ACCOUNT_JSON
 
 # Get GCS bucket from environment or use default
 GCS_BUCKET_NAME = os.environ.get(
-    "TEST_GCS_BUCKET",
-    f"projects/{CHRONICLE_CONFIG['project_id']}/buckets/gcs-exports-prober-bucket-us",
+    "TEST_GCS_BUCKET", "gcs-exports-prober-bucket-us"
 )
 
 
@@ -112,11 +111,15 @@ def test_data_export_lifecycle():
         # Set up time range for testing
         end_time = datetime.now(timezone.utc)
         start_time = end_time - timedelta(days=1)  # Look back 1 day
+        bucket_path = (
+            f"projects/{CHRONICLE_CONFIG['project_id']}/"
+            f"buckets/{GCS_BUCKET_NAME}"
+        )
 
         # Step 1: Create a data export with all logs
         print("\nStep 1: Creating data export with all logs")
         export = chronicle.create_data_export(
-            gcs_bucket=GCS_BUCKET,
+            gcs_bucket=bucket_path,
             start_time=start_time,
             end_time=end_time,
             export_all_logs=True,  # Using export_all_logs parameter as requested
