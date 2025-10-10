@@ -18,7 +18,7 @@ This module provides functions to interact with the Chronicle Data Export API,
 allowing users to export Chronicle data to Google Cloud Storage buckets.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from datetime import datetime
 from dataclasses import dataclass
 from secops.exceptions import APIError
@@ -41,6 +41,39 @@ class AvailableLogType:
     end_time: datetime
 
 
+def _get_base_url(client) -> str:
+    """Get the enhanced/new base URL for the Chronicle Data Export API for
+    region other then dev and staging.
+    Args:
+        client: ChronicleClient instance
+
+    Returns:
+        The base URL for the Chronicle Data Export API
+    """
+    if client.region not in ["dev", "staging"]:
+        return f"https://chronicle.{client.region}.rep.googleapis.com/v1alpha"
+    return client.base_url
+
+
+def _get_formatted_log_type(client, log_type: str) -> str:
+    """Get the formatted log type for the given log type.
+
+    Args:
+        client: ChronicleClient instance
+        log_type: The log type to format
+
+    Returns:
+        The formatted log type
+    """
+    if "/" not in log_type:
+        return (
+            f"projects/{client.project_id}/locations/{client.region}/"
+            f"instances/{client.customer_id}/logTypes/{log_type}"
+        )
+
+    return log_type
+
+
 def get_data_export(client, data_export_id: str) -> Dict[str, Any]:
     """Get information about a specific data export.
 
@@ -60,7 +93,10 @@ def get_data_export(client, data_export_id: str) -> Dict[str, Any]:
         print(f"Export status: {export['data_export_status']['stage']}")
         ```
     """
-    url = f"{client.base_url}/{client.instance_id}/dataExports/{data_export_id}"
+    url = (
+        f"{_get_base_url(client)}/{client.instance_id}/"
+        f"dataExports/{data_export_id}"
+    )
 
     response = client.session.get(url)
 
@@ -76,6 +112,7 @@ def create_data_export(
     start_time: datetime,
     end_time: datetime,
     log_type: Optional[str] = None,
+    log_types: Optional[List[str]] = None,
     export_all_logs: bool = False,
 ) -> Dict[str, Any]:
     """Create a new data export job.
@@ -86,7 +123,9 @@ def create_data_export(
             "projects/{project}/buckets/{bucket}"
         start_time: Start time for the export (inclusive)
         end_time: End time for the export (exclusive)
-        log_type: Optional specific log type to export.
+        log_type: Optional specific log type to export (deprecated).
+            Use log_types instead.
+        log_types: Optional list of log types to export.
             If None and export_all_logs is False, no logs will be exported
         export_all_logs: Whether to export all log types
 
@@ -103,13 +142,12 @@ def create_data_export(
 
         end_time = datetime.now()
         start_time = end_time - timedelta(days=1)
-
         # Export a specific log type
         export = chronicle.create_data_export(
             gcs_bucket="projects/my-project/buckets/my-bucket",
             start_time=start_time,
             end_time=end_time,
-            log_type="WINDOWS"
+            log_types=["WINDOWS"]
         )
 
         # Export all logs
@@ -119,8 +157,18 @@ def create_data_export(
             end_time=end_time,
             export_all_logs=True
         )
-        ```
     """
+    # Validate that the user hasn't provided both log_type and log_types
+    if log_type is not None and log_types is not None:
+        raise ValueError("Use either log_type or log_types, not both")
+
+    # Handle both log_type and log_types for backward compatibility
+    if log_type is not None:
+        log_types = [log_type]
+
+    # Initialize log_types if None
+    log_types = [] if log_types is None else log_types
+
     # Validate parameters
     if not gcs_bucket:
         raise ValueError("GCS bucket must be provided")
@@ -133,12 +181,12 @@ def create_data_export(
     if end_time <= start_time:
         raise ValueError("End time must be after start time")
 
-    if not export_all_logs and not log_type:
+    if not export_all_logs and len(log_types) == 0:
         raise ValueError(
             "Either log_type must be specified or export_all_logs must be True"
         )
 
-    if export_all_logs and log_type:
+    if export_all_logs and len(log_types) > 0:
         raise ValueError(
             "Cannot specify both log_type and export_all_logs=True"
         )
@@ -149,68 +197,23 @@ def create_data_export(
 
     # Construct the request payload
     payload = {
-        "start_time": start_time_str,
-        "end_time": end_time_str,
-        "gcs_bucket": gcs_bucket,
+        "startTime": start_time_str,
+        "endTime": end_time_str,
+        "gcsBucket": gcs_bucket,
     }
 
-    # Add log_type if provided
-    if log_type:
-        # Check if we need to prefix with logTypes
-        if "/" not in log_type:
-            # First check if log type exists
-            try:
-                # Try to fetch available log types to validate
-                available_logs = fetch_available_log_types(
-                    client, start_time=start_time, end_time=end_time
-                )
-                found = False
-                for lt in available_logs.get("available_log_types", []):
-                    if lt.log_type.endswith(
-                        "/" + log_type
-                    ) or lt.log_type.endswith("/logTypes/" + log_type):
-                        # If we found the log type in the list,
-                        # use its exact format
-                        payload["log_type"] = lt.log_type
-                        found = True
-                        break
-
-                if not found:
-                    # If log type isn't in the list, try the standard format
-                    # Format log_type as required by the API -
-                    # the complete format
-                    formatted_log_type = (
-                        f"projects/{client.project_id}/"
-                        f"locations/{client.region}/instances/"
-                        f"{client.customer_id}/logTypes/{log_type}"
-                    )
-                    payload["log_type"] = formatted_log_type
-            except Exception:  # pylint: disable=broad-exception-caught
-                # If we can't validate, just use the standard format
-                formatted_log_type = (
-                    f"projects/{client.project_id}/locations/"
-                    f"{client.region}/instances/{client.customer_id}/"
-                    f"logTypes/{log_type}"
-                )
-                payload["log_type"] = formatted_log_type
-        else:
-            # Log type is already formatted
-            payload["log_type"] = log_type
+    # Process log types
+    payload["includeLogTypes"] = list(
+        map(lambda x: _get_formatted_log_type(client, x), log_types)
+    )
 
     # Add export_all_logs if True
     if export_all_logs:
-        # Setting log type as ALL TYPES for all log export
-        payload["log_type"] = (
-            f"projects/{client.project_id}/"
-            f"locations/{client.region}/instances/"
-            f"{client.customer_id}/logTypes/ALL_TYPES"
-        )
-        # export_all_logs parameter is currently not valid
-        # TODO: Revert back to export_all_logs once parameter works
-        # payload["export_all_logs"] = True
+        # Setting log types as empty list for all log export
+        payload["includeLogTypes"] = []
 
     # Construct the URL and send the request
-    url = f"{client.base_url}/{client.instance_id}/dataExports"
+    url = f"{_get_base_url(client)}/{client.instance_id}/dataExports"
 
     response = client.session.post(url, json=payload)
 
@@ -240,7 +243,7 @@ def cancel_data_export(client, data_export_id: str) -> Dict[str, Any]:
         ```
     """
     url = (
-        f"{client.base_url}/{client.instance_id}/dataExports/"
+        f"{_get_base_url(client)}/{client.instance_id}/dataExports/"
         f"{data_export_id}:cancel"
     )
 
@@ -306,18 +309,18 @@ def fetch_available_log_types(
     end_time_str = end_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
     # Construct the request payload
-    payload = {"start_time": start_time_str, "end_time": end_time_str}
+    payload = {"startTime": start_time_str, "endTime": end_time_str}
 
     # Add optional parameters if provided
     if page_size:
-        payload["page_size"] = page_size
+        payload["pageSize"] = page_size
 
     if page_token:
-        payload["page_token"] = page_token
+        payload["pageToken"] = page_token
 
     # Construct the URL and send the request
     url = (
-        f"{client.base_url}/{client.instance_id}/"
+        f"{_get_base_url(client)}/{client.instance_id}/"
         "dataExports:fetchavailablelogtypes"
     )
 
@@ -352,3 +355,116 @@ def fetch_available_log_types(
         "available_log_types": available_log_types,
         "next_page_token": result.get("next_page_token", ""),
     }
+
+
+def update_data_export(
+    client,
+    data_export_id: str,
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None,
+    gcs_bucket: Optional[str] = None,
+    log_types: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Update an existing data export job.
+
+    Note: The job must be in the "IN_QUEUE" state to be updated.
+
+    Args:
+        client: ChronicleClient instance
+        data_export_id: ID of the data export to update
+        start_time: Optional new start time for the export
+        end_time: Optional new end time for the export
+        gcs_bucket: Optional new GCS bucket path
+        log_types: Optional new list of log types to export
+
+    Returns:
+        Dictionary containing details of the updated data export
+
+    Raises:
+        APIError: If the API request fails
+        ValueError: If invalid parameters are provided
+    """
+    # Construct the request payload and update mask
+    payload = {}
+    update_mask = []
+
+    if start_time:
+        payload["startTime"] = start_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        update_mask.append("startTime")
+
+    if end_time:
+        payload["endTime"] = end_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        update_mask.append("endTime")
+
+    if gcs_bucket:
+        if not gcs_bucket.startswith("projects/"):
+            raise ValueError(
+                "GCS bucket must be in format: "
+                "projects/{project}/buckets/{bucket}"
+            )
+        payload["gcsBucket"] = gcs_bucket
+        update_mask.append("gcsBucket")
+
+    if log_types is not None:
+        payload["includeLogTypes"] = list(
+            map(lambda x: _get_formatted_log_type(client, x), log_types)
+        )
+        update_mask.append("includeLogTypes")
+
+    if not payload:
+        raise ValueError("At least one field to update must be provided.")
+
+    # Construct the URL and send the request
+    url = (
+        f"{_get_base_url(client)}/{client.instance_id}/dataExports/"
+        f"{data_export_id}"
+    )
+    params = {"update_mask": ",".join(update_mask)}
+
+    response = client.session.patch(url, json=payload, params=params)
+
+    if response.status_code != 200:
+        raise APIError(f"Failed to update data export: {response.text}")
+
+    return response.json()
+
+
+def list_data_export(
+    client,
+    filters: Optional[str] = None,
+    page_size: Optional[int] = None,
+    page_token: Optional[str] = None,
+) -> Dict[str, Any]:
+    """List data export jobs.
+
+    Args:
+        client: ChronicleClient instance
+        filters: Filter string
+        page_size: Page size
+        page_token: Page token
+
+    Returns:
+        Dictionary containing data export list
+
+    Raises:
+        APIError: If the API request fails
+
+    Example:
+        ```python
+        export = chronicle.list_data_export()
+        ```
+    """
+    url = f"{_get_base_url(client)}/{client.instance_id}/dataExports"
+
+    params = {
+        "pageSize": page_size,
+        "pageToken": page_token,
+        "filter": filters,
+    }
+
+    response = client.session.get(url, params=params)
+
+    if response.status_code != 200:
+        raise APIError(f"Failed to get data export: {response.text}")
+
+    return response.json()

@@ -583,26 +583,56 @@ for log_type in available_log_types["available_log_types"]:
     print(f"{log_type.display_name} ({log_type.log_type.split('/')[-1]})")
     print(f"  Available from {log_type.start_time} to {log_type.end_time}")
 
-# Create a data export for a specific log type
+# Create a data export for a single log type (legacy method)
 export = chronicle.create_data_export(
     gcs_bucket="projects/my-project/buckets/my-export-bucket",
     start_time=start_time,
     end_time=end_time,
-    log_type="GCP_DNS"  # Specify log type to export
+    log_type="GCP_DNS"  # Single log type to export
+)
+
+# Create a data export for multiple log types
+export_multiple = chronicle.create_data_export(
+    gcs_bucket="projects/my-project/buckets/my-export-bucket",
+    start_time=start_time,
+    end_time=end_time,
+    log_types=["WINDOWS", "LINUX", "GCP_DNS"]  # Multiple log types to export
 )
 
 # Get the export ID
 export_id = export["name"].split("/")[-1]
 print(f"Created export with ID: {export_id}")
-print(f"Status: {export['data_export_status']['stage']}")
+    print(f"Status: {export['data_export_status']['stage']}")
+
+# List recent exports
+recent_exports = chronicle.list_data_export(page_size=10)
+print(f"Found {len(recent_exports.get('dataExports', []))} recent exports")
+
+# Print details of recent exports
+for item in recent_exports.get("dataExports", []):
+    item_id = item["name"].split("/")[-1]
+    if "dataExportStatus" in item:
+        status = item["dataExportStatus"]["stage"]
+    else:
+        status = item["data_export_status"]["stage"]
+    print(f"Export ID: {item_id}, Status: {status}")
 
 # Check export status
 status = chronicle.get_data_export(export_id)
-print(f"Export status: {status['data_export_status']['stage']}")
-print(f"Progress: {status['data_export_status'].get('progress_percentage', 0)}%")
+
+# Update an export that is in IN_QUEUE state
+if status.get("dataExportStatus", {}).get("stage") == "IN_QUEUE":
+    # Update with a new start time
+    updated_start = start_time + timedelta(hours=2)
+    update_result = chronicle.update_data_export(
+        data_export_id=export_id,
+        start_time=updated_start,
+        # Optionally update other parameters like end_time, gcs_bucket, or log_types
+    )
+    print("Export updated successfully")
 
 # Cancel an export if needed
-if status['data_export_status']['stage'] in ['IN_QUEUE', 'PROCESSING']:
+if status.get("dataExportStatus", {}).get("stage") in ["IN_QUEUE", "PROCESSING"]:
     cancelled = chronicle.cancel_data_export(export_id)
     print(f"Export has been cancelled. New status: {cancelled['data_export_status']['stage']}")
 
@@ -618,8 +648,10 @@ print(f"Created export for all logs. Status: {export_all['data_export_status']['
 ```
 
 The Data Export API supports:
-- Exporting one or all log types to Google Cloud Storage
+- Exporting one, multiple, or all log types to Google Cloud Storage
+- Listing recent exports and filtering results
 - Checking export status and progress
+- Updating exports that are in the queue
 - Cancelling exports in progress
 - Fetching available log types for a specific time range
 

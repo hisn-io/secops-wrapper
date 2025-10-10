@@ -20,6 +20,7 @@ import json
 import os
 import sys
 from datetime import datetime, timedelta, timezone
+from time import sleep
 from secops import SecOpsClient
 from secops.exceptions import APIError
 
@@ -30,11 +31,15 @@ def parse_args():
     parser.add_argument("--project_id", required=True, help="GCP project ID")
     parser.add_argument("--customer_id", required=True, help="Chronicle customer ID")
     parser.add_argument("--region", default="us", help="Chronicle region (default: us)")
-    parser.add_argument("--bucket", required=True, help="GCS bucket name for export")
+    parser.add_argument("--bucket", help="GCS bucket name for export")
     parser.add_argument(
         "--days", type=int, default=1, help="Number of days to look back (default: 1)"
     )
-    parser.add_argument("--log_type", help="Optional specific log type to export")
+    parser.add_argument("--log_type", help="Single log type to export (deprecated)")
+    parser.add_argument(
+        "--log_types",
+        help="Comma-separated list of log types to export (e.g., WINDOWS,LINUX)"
+    )
     parser.add_argument("--all_logs", action="store_true", help="Export all log types")
     parser.add_argument(
         "--list_only",
@@ -42,6 +47,31 @@ def parse_args():
         help="Only list available log types, don't create export",
     )
     parser.add_argument("--credentials", help="Path to service account JSON key file")
+    
+    # Additional options for demonstrating list/update functionality
+    parser.add_argument(
+        "--list_exports", 
+        action="store_true",
+        help="List recent data exports"
+    )
+    parser.add_argument(
+        "--list_count", 
+        type=int, 
+        default=5,
+        help="Number of exports to list when using --list_exports"
+    )
+    parser.add_argument(
+        "--update",
+        help="Update an existing export with the given ID (must be in IN_QUEUE state)"
+    )
+    parser.add_argument(
+        "--new_bucket",
+        help="New bucket name when updating an export"
+    )
+    parser.add_argument(
+        "--new_log_types",
+        help="New comma-separated list of log types when updating an export"
+    )
 
     return parser.parse_args()
 
@@ -70,7 +100,79 @@ def main():
     )
 
     try:
-        # Fetch available log types
+        # Check if we should just list exports
+        if args.list_exports:
+            print("\nListing recent data exports...")
+            list_result = chronicle.list_data_export(page_size=args.list_count)
+            exports = list_result.get("dataExports", [])
+            print(f"Found {len(exports)} exports")
+            
+            for i, export_item in enumerate(exports, 1):
+                export_id = export_item["name"].split("/")[-1]
+                stage = export_item["dataExportStatus"]["stage"]
+                start = export_item.get("startTime", "N/A")
+                end = export_item.get("endTime", "N/A")
+                
+                print(f"\n{i}. Export ID: {export_id}")
+                print(f"   Status: {stage}")
+                print(f"   Time range: {start} to {end}")
+                print(f"   GCS Bucket: {export_item.get('gcsBucket', 'N/A')}")
+                
+                # Get the log types
+                log_types = export_item.get("includeLogTypes", [])
+                if log_types:
+                    log_type_names = [lt.split("/")[-1] for lt in log_types[:3]]
+                    if len(log_types) <= 3:
+                        print(f"   Log types: {', '.join(log_type_names)}")
+                    else:
+                        print(f"   Log types: {', '.join(log_type_names)} and {len(log_types) - 3} more")
+                        
+            if "nextPageToken" in list_result:
+                print(f"\nNext page token: {list_result['nextPageToken']}")
+            
+            return 0
+            
+        # Handle update command if specified
+        if args.update:
+            print(f"\nUpdating export ID: {args.update}")
+            
+            # Get current status to verify it's in queue state
+            status = chronicle.get_data_export(args.update)
+            stage = status["dataExportStatus"]["stage"]
+            
+            if stage != "IN_QUEUE":
+                print(f"Cannot update export: current status is {stage} but must be IN_QUEUE")
+                return 1
+                
+            update_params = {"data_export_id": args.update}
+            updated = False
+            
+            # Add GCS bucket if provided
+            if args.new_bucket:
+                new_gcs_bucket = f"projects/{args.project_id}/buckets/{args.new_bucket}"
+                update_params["gcs_bucket"] = new_gcs_bucket
+                print(f"Setting new GCS bucket: {new_gcs_bucket}")
+                updated = True
+                
+            # Add log types if provided
+            if args.new_log_types:
+                new_log_types_list = [lt.strip() for lt in args.new_log_types.split(',')]
+                update_params["log_types"] = new_log_types_list
+                print(f"Setting new log types: {', '.join(new_log_types_list)}")
+                updated = True
+                
+            if not updated:
+                print("No update parameters provided. Use --new_bucket or --new_log_types")
+                return 1
+                
+            # Perform the update
+            result = chronicle.update_data_export(**update_params)
+            print("\nExport updated successfully!")
+            print(f"Status: {result['dataExportStatus']['stage']}")
+            
+            return 0
+            
+        # Fetch available log types for regular create flow
         print("\nFetching available log types for export...")
         result = chronicle.fetch_available_log_types(
             start_time=start_time, end_time=end_time
@@ -94,14 +196,19 @@ def main():
             return 0
 
         # Validate export options
-        if args.all_logs and args.log_type:
-            print("Error: Cannot specify both --all_logs and --log_type")
+        option_count = sum([bool(args.all_logs), bool(args.log_type), bool(args.log_types)])
+        
+        if option_count > 1:
+            print("Error: Can only specify one of: --all_logs, --log_type, or --log_types")
+            return 1
+            
+        if option_count == 0:
+            print("Error: Must specify one of: --all_logs, --log_type, or --log_types")
             return 1
 
-        if not args.all_logs and not args.log_type:
-            print("Error: Must specify either --all_logs or --log_type")
+        if not hasattr(args, "bucket") or not args.bucket:
+            print("Error: Must specify a GCS bucket name")
             return 1
-
         # Format GCS bucket path
         gcs_bucket = f"projects/{args.project_id}/buckets/{args.bucket}"
         print(f"\nExporting to GCS bucket: {gcs_bucket}")
@@ -130,6 +237,18 @@ def main():
                 end_time=end_time,
                 log_type=args.log_type,
             )
+        elif args.log_types:
+            # Parse and validate comma-separated log types
+            log_types_list = [lt.strip() for lt in args.log_types.split(',')]
+            print(f"Creating data export for log types: {', '.join(log_types_list)}")
+            
+            # Create export with multiple log types
+            export = chronicle.create_data_export(
+                gcs_bucket=gcs_bucket,
+                start_time=start_time,
+                end_time=end_time,
+                log_types=log_types_list,
+            )
         else:
             print("Creating data export for ALL log types")
             export = chronicle.create_data_export(
@@ -143,15 +262,24 @@ def main():
         export_id = export["name"].split("/")[-1]
         print(f"\nExport created successfully!")
         print(f"Export ID: {export_id}")
-        print(f"Status: {export['data_export_status']['stage']}")
+        
+        if "dataExportStatus" in export:
+            print(f"Status: {export['dataExportStatus']['stage']}")
+        else:
+            print(f"Status: {export['data_export_status']['stage']}")
 
         # Poll for status a few times to show progress
         print("\nChecking export status:")
 
         for i in range(3):
             status = chronicle.get_data_export(export_id)
-            stage = status["data_export_status"]["stage"]
-            progress = status["data_export_status"].get("progress_percentage", 0)
+            
+            if "dataExportStatus" in status:
+                stage = status["dataExportStatus"]["stage"]
+                progress = status["dataExportStatus"].get("progressPercentage", 0)
+            else:
+                stage = status["data_export_status"]["stage"]
+                progress = status["data_export_status"].get("progress_percentage", 0)
 
             print(f"  Status: {stage}, Progress: {progress}%")
 
@@ -160,12 +288,15 @@ def main():
 
             if i < 2:  # Don't wait after the last check
                 print("  Waiting 5 seconds...")
-                from time import sleep
-
                 sleep(5)
 
-        print("\nExport job is running. You can check its status later with:")
+        print("\nExport job is running. You can check its status or manage it with:")
+        print(f"  # Check Status:")
         print(f"  python export_status.py --export_id {export_id} ...")
+        print(f"  # List all exports:")
+        print(f"  python data_export_example.py --project_id={args.project_id} --customer_id={args.customer_id} --list_exports")
+        print(f"  \n  # Update the export if still in queue:")
+        print(f"  python data_export_example.py --project_id={args.project_id} --customer_id={args.customer_id} --bucket={args.bucket} --update={export_id} --new_log_types=WINDOWS,LINUX")
 
         return 0
 

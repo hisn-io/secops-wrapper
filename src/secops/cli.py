@@ -2080,7 +2080,16 @@ def setup_export_command(subparsers):
         help="GCS bucket in format 'projects/PROJECT_ID/buckets/BUCKET_NAME'",
     )
     create_parser.add_argument(
-        "--log-type", "--log_type", dest="log_type", help="Log type to export"
+        "--log-type",
+        "--log_type",
+        dest="log_type",
+        help="Single log type to export (deprecated, use --log-types instead)",
+    )
+    create_parser.add_argument(
+        "--log-types",
+        "--log_types",
+        dest="log_types",
+        help="Comma-separated list of log types to export",
     )
     create_parser.add_argument(
         "--all-logs",
@@ -2091,6 +2100,51 @@ def setup_export_command(subparsers):
     )
     add_time_range_args(create_parser)
     create_parser.set_defaults(func=handle_export_create_command)
+
+    # List exports command
+    list_parser = export_subparsers.add_parser("list", help="List data exports")
+    list_parser.add_argument(
+        "--filter", dest="filters", help="Filter string for listing exports"
+    )
+    list_parser.add_argument(
+        "--page-size",
+        "--page_size",
+        dest="page_size",
+        type=int,
+        help="Page size for results",
+    )
+    list_parser.add_argument(
+        "--page-token",
+        "--page_token",
+        dest="page_token",
+        help="Page token for pagination",
+    )
+    list_parser.set_defaults(func=handle_export_list_command)
+
+    # Update export command
+    update_parser = export_subparsers.add_parser(
+        "update", help="Update an existing data export"
+    )
+    update_parser.add_argument(
+        "--id", required=True, help="Export ID to update"
+    )
+    update_parser.add_argument(
+        "--gcs-bucket",
+        "--gcs_bucket",
+        dest="gcs_bucket",
+        help=(
+            "New GCS bucket in format "
+            "'projects/PROJECT_ID/buckets/BUCKET_NAME'"
+        ),
+    )
+    update_parser.add_argument(
+        "--log-types",
+        "--log_types",
+        dest="log_types",
+        help="Comma-separated list of log types to export",
+    )
+    add_time_range_args(update_parser)
+    update_parser.set_defaults(func=handle_export_update_command)
 
     # Get export status command
     status_parser = export_subparsers.add_parser(
@@ -2202,15 +2256,28 @@ def handle_export_create_command(args, chronicle):
                 export_all_logs=True,
             )
         elif args.log_type:
+            # Single log type (legacy method)
             result = chronicle.create_data_export(
                 gcs_bucket=args.gcs_bucket,
                 start_time=start_time,
                 end_time=end_time,
                 log_type=args.log_type,
             )
+        elif args.log_types:
+            # Multiple log types
+            log_types_list = [
+                log_type.strip() for log_type in args.log_types.split(",")
+            ]
+            result = chronicle.create_data_export(
+                gcs_bucket=args.gcs_bucket,
+                start_time=start_time,
+                end_time=end_time,
+                log_types=log_types_list,
+            )
         else:
             print(
-                "Error: Either --log-type or --all-logs must be specified",
+                "Error: Either --log-type, --log-types, or --all-logs "
+                "must be specified",
                 file=sys.stderr,
             )
             sys.exit(1)
@@ -2276,6 +2343,49 @@ def handle_export_cancel_command(args, chronicle):
     """Handle export cancel command."""
     try:
         result = chronicle.cancel_data_export(args.id)
+        output_formatter(result, args.output)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def handle_export_list_command(args, chronicle):
+    """Handle listing data exports command."""
+    try:
+        result = chronicle.list_data_export(
+            filters=args.filters,
+            page_size=args.page_size,
+            page_token=args.page_token,
+        )
+        output_formatter(result, args.output)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def handle_export_update_command(args, chronicle):
+    """Handle updating an existing data export command."""
+    # Get the start_time and end_time if provided
+    start_time = None
+    end_time = None
+    if (hasattr(args, "start_time") and args.start_time) or (
+        hasattr(args, "time_window") and args.time_window
+    ):
+        start_time, end_time = get_time_range(args)
+
+    # Convert log_types string to list if provided
+    log_types = None
+    if args.log_types:
+        log_types = [log_type.strip() for log_type in args.log_types.split(",")]
+
+    try:
+        result = chronicle.update_data_export(
+            data_export_id=args.id,
+            gcs_bucket=args.gcs_bucket if hasattr(args, "gcs_bucket") else None,
+            start_time=start_time,
+            end_time=end_time,
+            log_types=log_types,
+        )
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error: {e}", file=sys.stderr)
