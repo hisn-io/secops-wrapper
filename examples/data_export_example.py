@@ -291,6 +291,8 @@ def main():
                 sleep(5)
 
         print("\nExport job is running. You can check its status or manage it with:")
+        print(f"  # Check Status:")
+        print(f"  python export_status.py --export_id {export_id} ...")
         print(f"  # List all exports:")
         print(f"  python data_export_example.py --project_id={args.project_id} --customer_id={args.customer_id} --list_exports")
         print(f"  \n  # Update the export if still in queue:")
