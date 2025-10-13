@@ -260,6 +260,7 @@ def list_rule_deployments(
     client,
     page_size: Optional[int] = None,
     page_token: Optional[str] = None,
+    filter_query: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Lists rule deployments for the instance.
 
@@ -268,6 +269,8 @@ def list_rule_deployments(
         page_size: Maximum number of deployments to return per page. If omitted,
             all pages are fetched and aggregated.
         page_token: Token for the next page of results, if available.
+        filter_query: Optional filter query to restrict results. Filters results based on
+            expression matching specific fields.
 
     Returns:
         Dictionary containing rule deployment entries. If ``page_size`` is not
@@ -282,6 +285,8 @@ def list_rule_deployments(
         params["pageSize"] = page_size
     if page_token:
         params["pageToken"] = page_token
+    if filter_query:
+        params["filter"] = filter_query
 
     url = f"{client.base_v1_url}/{client.instance_id}/rules/-/deployments"
 

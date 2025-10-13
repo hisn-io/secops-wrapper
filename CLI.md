@@ -509,6 +509,9 @@ secops rule list-deployments
 
 # List deployments with pagination
 secops rule list-deployments --page-size 10 --page-token "token"
+
+# List deployments with filter
+secops rule list-deployments --filter "enabled=true"
 ```
 
 Get rule deployment details:

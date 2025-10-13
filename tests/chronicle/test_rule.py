@@ -167,8 +167,9 @@ def test_list_rules(chronicle_client, mock_response):
         assert result == mock_response.json.return_value
         assert len(result["rules"]) == 2
 
+
 def test_list_rules_empty(chronicle_client, mock_response):
-    """Test list_rules function with no rules """
+    """Test list_rules function with no rules"""
     # Arrange
     mock_response.json.return_value = {}
 
@@ -185,6 +186,7 @@ def test_list_rules_empty(chronicle_client, mock_response):
         )
         assert result == {"rules": []}
         assert len(result["rules"]) == 0
+
 
 def test_list_rules_pagination(chronicle_client):
     """Test list_rules function with pagination."""
@@ -681,3 +683,34 @@ def test_list_rule_deployments_empty(chronicle_client, mock_response):
         )
         assert result == {"ruleDeployments": []}
         assert len(result["ruleDeployments"]) == 0
+
+
+def test_list_rule_deployments_with_filter(chronicle_client, mock_response):
+    """Test list_rule_deployments function with filter parameter."""
+    # Arrange
+    mock_response.json.return_value = {
+        "ruleDeployments": [{"name": "filtered_deployment", "enabled": True}]
+    }
+
+    with patch.object(
+        chronicle_client.session, "get", return_value=mock_response
+    ) as mock_get:
+        from secops.chronicle.rule import list_rule_deployments
+
+        # Act
+        filter_query = "enabled=true"
+        result = list_rule_deployments(
+            chronicle_client, filter_query=filter_query
+        )
+
+        # Assert
+        mock_get.assert_called_once_with(
+            f"{chronicle_client.base_v1_url}/{chronicle_client.instance_id}/rules/-/deployments",
+            params={"filter": filter_query},
+        )
+        assert result == {
+            "ruleDeployments": [
+                {"name": "filtered_deployment", "enabled": True}
+            ]
+        }
+        assert len(result["ruleDeployments"]) == 1
