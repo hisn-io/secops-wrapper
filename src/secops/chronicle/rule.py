@@ -269,8 +269,8 @@ def list_rule_deployments(
         page_size: Maximum number of deployments to return per page. If omitted,
             all pages are fetched and aggregated.
         page_token: Token for the next page of results, if available.
-        filter_query: Optional filter query to restrict results. Filters results based on
-            expression matching specific fields.
+        filter_query: Optional filter query to restrict results.
+            Filters results based on expression matching specific fields.
 
     Returns:
         Dictionary containing rule deployment entries. If ``page_size`` is not
