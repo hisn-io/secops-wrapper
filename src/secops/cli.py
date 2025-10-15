@@ -1673,6 +1673,12 @@ def setup_rule_command(subparsers):
         type=str,
         help="A page token, received from a previous `list` call.",
     )
+    list_dep_parser.add_argument(
+        "--filter",
+        dest="filter_query",
+        type=str,
+        help="Filter query to restrict results.",
+    )
     list_dep_parser.set_defaults(func=handle_rule_list_deployments_command)
 
     upd_parser = rule_subparsers.add_parser(
@@ -1914,6 +1920,9 @@ def handle_rule_list_deployments_command(args, chronicle):
         result = chronicle.list_rule_deployments(
             page_size=args.page_size if hasattr(args, "page_size") else None,
             page_token=args.page_token if hasattr(args, "page_token") else None,
+            filter_query=(
+                args.filter_query if hasattr(args, "filter_query") else None
+            ),
         )
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught

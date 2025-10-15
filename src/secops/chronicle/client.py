@@ -3243,13 +3243,17 @@ class ChronicleClient:
         return _get_rule_deployment(self, rule_id)
 
     def list_rule_deployments(
-        self, page_size: Optional[int] = None, page_token: Optional[str] = None
+        self,
+        page_size: Optional[int] = None,
+        page_token: Optional[str] = None,
+        filter_query: Optional[str] = None,
     ) -> Dict[str, Any]:
         """List rule deployments for the instance.
 
         Args:
             page_size: Maximum number of deployments to return per page
             page_token: Token for the next page of results, if available
+            filter_query: Optional filter query to restrict results
 
         Returns:
             Dictionary containing rule deployments and pagination info
@@ -3258,7 +3262,10 @@ class ChronicleClient:
             APIError: If the API request fails
         """
         return _list_rule_deployments(
-            self, page_size=page_size, page_token=page_token
+            self,
+            page_size=page_size,
+            page_token=page_token,
+            filter_query=filter_query,
         )
 
     def set_rule_alerting(

@@ -1443,6 +1443,9 @@ deployment = chronicle.get_rule_deployment(rule_id)
 # List deployments (paginated)
 page = chronicle.list_rule_deployments(page_size=10)
 
+# List deployments with filter
+filtered = chronicle.list_rule_deployments(filter_query="enabled=true")
+
 # Update deployment fields (partial updates supported)
 chronicle.update_rule_deployment(
     rule_id=rule_id,
