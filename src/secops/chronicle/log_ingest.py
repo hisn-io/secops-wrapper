@@ -1054,14 +1054,14 @@ def import_entities(
 
     Args:
         client: ChronicleClient instance
-        entities: A single entity dictionary or a list of entity dictionaries
+        entities: An entity dictionary or a list of entity dictionaries
         log_type: The log type of the log from which this entity is created
 
     Returns:
         Dictionary containing the operation details for the ingestion
 
     Raises:
-        ValueError: If any required fields are missing or entities are malformed
+        ValueError: If any required fields are missing or entities malformed
         APIError: If the API request fails
     """
     # Ensure we have a list of entities

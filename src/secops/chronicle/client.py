@@ -1922,22 +1922,22 @@ class ChronicleClient:
         )
 
     def import_entities(
-            self,
-            entities: Union[Dict[str, Any], List[Dict[str, Any]]],
-            log_type: str,
+        self,
+        entities: Union[Dict[str, Any], List[Dict[str, Any]]],
+        log_type: str,
     ) -> Dict[str, Any]:
         """Import entities into Chronicle.
 
         Args:
             client: ChronicleClient instance
-            entities: A single entity dictionary or a list of entity dictionaries
+            entities: An entity dictionary or a list of entity dictionaries
             log_type: The log type of the log from which this entity is created
 
         Returns:
             Dictionary containing the operation details for the ingestion
 
         Raises:
-            ValueError: If any required fields are missing or entities are malformed
+            ValueError: If any required fields are missing or entities malformed
             APIError: If the API request fails
         """
         return _import_entities(
