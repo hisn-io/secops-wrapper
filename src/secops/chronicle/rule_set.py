@@ -12,10 +12,58 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Rule set functionality for Chronicle."""
+"""Curated rule set functionality for Chronicle."""
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from secops.exceptions import APIError
+
+
+def list_rule_sets(
+        client,
+        page_size: Optional[str] = None,
+        page_token: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Get a list of all curated rule sets
+
+    Args:
+        client: ChronicleClient instance
+        page_size: Number of results to return per page
+        page_token: Token for the page to retrieve
+
+    Returns:
+        Dictionary containing the list of curated rule sets
+
+    Raises:
+        APIError: If the API request fails
+    """
+
+    base_url = (
+        f'{client.base_url}/{client.instance_id}/curatedRuleSetCategories/-/curatedRuleSets'
+    )
+
+    rule_sets = {"ruleSets": []}
+
+    while True:
+        params = {"pageSize": 1000 if not page_size else page_size}
+        if page_token:
+            params["pageToken"] = page_token
+
+        response = client.session.get(base_url, params=params)
+        if response.status_code != 200:
+            raise APIError(f"Failed to list rules: {response.text}")
+
+        data = response.json()
+        if not data:
+            return rule_sets
+
+        curated_sets = data.get("curatedRuleSets", [])
+        rule_sets["ruleSets"].extend(curated_sets)
+
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+
+    return rule_sets
 
 
 def batch_update_curated_rule_set_deployments(
