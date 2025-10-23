@@ -18,11 +18,11 @@ from typing import Dict, Any, List, Optional
 from secops.exceptions import APIError
 
 
-def list_rule_sets(
+def list_curated_rule_sets(
         client,
         page_size: Optional[str] = None,
         page_token: Optional[str] = None,
-) -> Dict[str, Any]:
+) -> List[Dict[str, Any]]:
     """Get a list of all curated rule sets
 
     Args:
@@ -41,7 +41,7 @@ def list_rule_sets(
         f'{client.base_url}/{client.instance_id}/curatedRuleSetCategories/-/curatedRuleSets'
     )
 
-    rule_sets = {"ruleSets": []}
+    rule_sets = []
 
     while True:
         params = {"pageSize": 1000 if not page_size else page_size}
@@ -57,7 +57,7 @@ def list_rule_sets(
             return rule_sets
 
         curated_sets = data.get("curatedRuleSets", [])
-        rule_sets["ruleSets"].extend(curated_sets)
+        rule_sets.extend(curated_sets)
 
         page_token = data.get("nextPageToken")
         if not page_token:
