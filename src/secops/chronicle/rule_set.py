@@ -411,7 +411,7 @@ def get_curated_rule_set_deployment_by_name(
     return get_curated_rule_set_deployment(client, rule_set_id, precision)
 
 
-def patch_curated_rule_set_deployment(
+def update_curated_rule_set_deployment(
     client, deployment: Dict[str, Any]
 ) -> Dict[str, Any]:
     """Update a curated rule set deployment to enable or disable
