@@ -231,6 +231,7 @@ from secops.chronicle.rule_set import (
     list_curated_rule_set_deployments as _list_curated_rule_set_deployments,
     get_curated_rule_set_deployment as _get_curated_rule_set_deployment,
     get_curated_rule_set_deployment_by_name as _get_curated_rule_set_deployment_by_name,
+    get_curated_rule_by_name as _get_curated_rule_by_name,
 )
 from secops.chronicle.rule_validation import validate_rule as _validate_rule
 from secops.chronicle.search import search_udm as _search_udm
@@ -1824,13 +1825,13 @@ class ChronicleClient:
 
     def get_curated_rule_set_deployment_by_name(
         self,
-        rule_set_name: str,
+        display_name: str,
         precision: str = "precise",
     ) -> Dict[str, Any]:
         """Get a curated rule set deployment by human-readable display name
 
         Args:
-            rule_set_name: Display name of the curated rule set
+            display_name: Display name of the curated rule set
             precision: Precision level ("precise" or "broad")
 
         Returns:
@@ -1840,7 +1841,7 @@ class ChronicleClient:
             APIError: If the API request fails
             SecOpsError: If the rule set is not found or precision is invalid
         """
-        return _get_curated_rule_set_deployment_by_name(self, rule_set_name, precision)
+        return _get_curated_rule_set_deployment_by_name(self, display_name, precision)
 
     def list_curated_rules(
         self,
@@ -1874,6 +1875,21 @@ class ChronicleClient:
             APIError: If the API request fails
         """
         return _get_curated_rule(self, rule_id)
+
+    def get_curated_rule_by_name(self, display_name: str) -> Dict[str, Any]:
+        """Get a curated rule by human-readable display name
+
+        Args:
+            display_name: Display name of the curated rule
+
+        Returns:
+            Dictionary containing the curated rule
+
+        Raises:
+            APIError: If the API request fails
+            SecOpsError: If the rule is not found
+        """
+        return _get_curated_rule_by_name(self, display_name)
 
     def get_curated_rule_set_category(self, category_id: str) -> Dict[str, Any]:
         """Get a curated rule set category by ID.

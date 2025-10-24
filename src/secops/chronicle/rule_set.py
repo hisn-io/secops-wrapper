@@ -235,6 +235,32 @@ def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
     return response.json()
 
 
+def get_curated_rule_by_name(
+    client, display_name: str
+) -> Dict[str, Any]:
+    """Get a curated rule by display name
+
+    Args:
+        client: ChronicleClient instance
+        display_name: Display name of the curated rule
+
+    Returns:
+        Dictionary containing the curated rule
+
+    Raises:
+        APIError: If the API request fails
+    """
+    rule = None
+    for r in list_curated_rules(client):
+        if r.get("displayName", "").lower() == display_name.lower():
+            rule = r
+            break
+    if not rule:
+        raise SecOpsError(f"Rule with name '{display_name}' not found")
+
+    return rule
+
+
 def list_curated_rule_set_deployments(
     client,
     page_size: Optional[str] = None,
@@ -349,14 +375,14 @@ def get_curated_rule_set_deployment(
 
 def get_curated_rule_set_deployment_by_name(
     client,
-    rule_set_name: str,
+    display_name: str,
     precision: str = "precise",
 ) -> Dict[str, Any]:
     """Get the deployment status of a curated rule set by its display name
 
     Args:
         client: ChronicleClient instance
-        rule_set_name: Display name of the curated rule set (case-insensitive)
+        display_name: Display name of the curated rule set (case-insensitive)
         precision: Precision level ("precise" or "broad")
 
     Returns:
@@ -372,13 +398,12 @@ def get_curated_rule_set_deployment_by_name(
     rule_set = None
     for rs in list_curated_rule_sets(client):
         # Names normalised as lowercase
-        current_name = rs.get("displayName", "").lower()
-        if current_name == rule_set_name.lower():
+        if rs.get("displayName", "").lower() == display_name.lower():
             rule_set = rs
             break
 
     if not rule_set:
-        raise SecOpsError(f"Rule set with name '{rule_set_name}' not found")
+        raise SecOpsError(f"Rule set with name '{display_name}' not found")
 
     # Extract the rule set ID from the resource name
     name_parts = rule_set["name"].split("/")
