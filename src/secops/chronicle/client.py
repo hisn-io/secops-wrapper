@@ -1742,7 +1742,7 @@ class ChronicleClient:
         """
         return _batch_update_curated_rule_set_deployments(self, deployments)
 
-    def list_rule_sets(
+    def list_curated_rule_sets(
         self,
         page_size: Optional[str] = None,
         page_token: Optional[str] = None,
@@ -1761,7 +1761,7 @@ class ChronicleClient:
         """
         return _list_curated_rule_sets(self, page_size, page_token)
 
-    def list_rule_set_categories(
+    def list_curated_rule_set_categories(
         self,
         page_size: Optional[str] = None,
         page_token: Optional[str] = None,
