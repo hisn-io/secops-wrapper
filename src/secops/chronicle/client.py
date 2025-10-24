@@ -229,6 +229,7 @@ from secops.chronicle.rule_set import (
     get_curated_rule_set_category as _get_curated_rule_set_category,
     get_curated_rule_set as _get_curated_rule_set,
     list_curated_rule_set_deployments as _list_curated_rule_set_deployments,
+    get_curated_rule_set_deployment as _get_curated_rule_set_deployment,
 )
 from secops.chronicle.rule_validation import validate_rule as _validate_rule
 from secops.chronicle.search import search_udm as _search_udm
@@ -1797,7 +1798,28 @@ class ChronicleClient:
         Raises:
             APIError: If the API request fails
         """
-        return _list_curated_rule_set_deployments(self, page_size, page_token, only_enabled, only_alerting)
+        return _list_curated_rule_set_deployments(
+            self, page_size, page_token, only_enabled, only_alerting
+        )
+
+    def get_curated_rule_set_deployment(
+        self,
+        rule_set_id: str,
+        precision: str = "precise",
+    ) -> Dict[str, Any]:
+        """Get a curated rule set deployment by ID
+
+        Args:
+            rule_set_id: Unique ID of the curated rule set
+            precision: Precision level ("precise" or "broad")
+
+        Returns:
+            Dictionary containing the curated rule set deployment
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_curated_rule_set_deployment(self, rule_set_id, precision)
 
     def list_curated_rules(
         self,

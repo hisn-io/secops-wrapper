@@ -15,7 +15,7 @@
 """Curated rule set functionality for Chronicle."""
 
 from typing import Dict, Any, List, Optional
-from secops.exceptions import APIError
+from secops.exceptions import APIError, SecOpsError
 
 
 def _paginated_request(
@@ -242,7 +242,7 @@ def list_curated_rule_set_deployments(
     only_enabled: Optional[bool] = False,
     only_alerting: Optional[bool] = False,
 ) -> List[Dict[str, Any]]:
-    """Get a list of all curated rule set deployments
+    """Get a list of all curated rule set deployment statuses
 
     Args:
         client: ChronicleClient instance
@@ -259,29 +259,92 @@ def list_curated_rule_set_deployments(
     """
     rule_set_deployments = _paginated_request(
         client,
-        path="curatedRuleSetCategories/-/curatedRuleSets/-/curatedRuleSetDeployments",
+        path="curatedRuleSetCategories/-/curatedRuleSets/"
+        "-/curatedRuleSetDeployments",
         items_key="curatedRuleSetDeployments",
         page_size=page_size,
         start_page_token=page_token,
     )
 
+    # Enrich the deployment data with the rule set displayName
     all_rule_sets = list_curated_rule_sets(client)
     for deployment in rule_set_deployments:
-        rule_set_id = deployment.get("name", "").split("curatedRuleSetDeployment")[0].rstrip("/")
+        rule_set_id = (
+            deployment.get("name", "")
+            .split("curatedRuleSetDeployment")[0]
+            .rstrip("/")
+        )
         for rule_set in all_rule_sets:
             if rule_set.get("name", "") == rule_set_id:
                 deployment["displayName"] = rule_set.get("displayName", "")
 
+    # Apply filters for only enabled and/or alerting rule sets
     if only_enabled:
         rule_set_deployments = [
-            deployment for deployment in rule_set_deployments if deployment.get("enabled", False)
+            deployment
+            for deployment in rule_set_deployments
+            if deployment.get("enabled", False)
         ]
     if only_alerting:
         rule_set_deployments = [
-            deployment for deployment in rule_set_deployments if deployment.get("alerting", False)
+            deployment
+            for deployment in rule_set_deployments
+            if deployment.get("alerting", False)
         ]
 
     return rule_set_deployments
+
+
+def get_curated_rule_set_deployment(
+    client,
+    rule_set_id: str,
+    precision: str = "precise",
+) -> Dict[str, Any]:
+    """Get the deployment status of a curated rule set by ID
+
+    Args:
+        client: ChronicleClient instance
+        rule_set_id: Unique ID of the curated rule set
+        precision: Precision level ("precise" or "broad")
+
+    Returns:
+        Dictionary containing the curated rule set deployment
+
+    Raises:
+        APIError: If the API request fails
+        SecOpsError: If the rule set is not found or precision is invalid
+    """
+    if precision not in ["precise", "broad"]:
+        raise SecOpsError("Precision must be 'precise' or 'broad'")
+
+    # Get the rule set by ID
+    rule_set = next(
+        (
+            rs
+            for rs in list_curated_rule_sets(client)
+            if rule_set_id in rs.get("name", "")
+        ),
+        None,
+    )
+    if rule_set is None:
+        raise SecOpsError(f"Rule set {rule_set_id} not found")
+
+    url = (
+        f"{client.base_url}/{rule_set.get("name", "")}/"
+        f"curatedRuleSetDeployments/{precision}"
+    )
+
+    response = client.session.get(url)
+    if response.status_code != 200:
+        raise APIError(
+            f"Failed to get curated rule set deployment: {response.text}"
+        )
+
+    # Enrich the deployment data with the rule set displayName
+    deployment = response.json()
+    deployment["displayName"] = rule_set.get("displayName", "")
+
+    return deployment
 
 
 def batch_update_curated_rule_set_deployments(
