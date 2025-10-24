@@ -235,9 +235,7 @@ def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
     return response.json()
 
 
-def get_curated_rule_by_name(
-    client, display_name: str
-) -> Dict[str, Any]:
+def get_curated_rule_by_name(client, display_name: str) -> Dict[str, Any]:
     """Get a curated rule by display name
 
     Args:
@@ -411,6 +409,70 @@ def get_curated_rule_set_deployment_by_name(
 
     # Get the deployment status using existing function
     return get_curated_rule_set_deployment(client, rule_set_id, precision)
+
+
+def patch_curated_rule_set_deployment(
+    client, deployment: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Update a curated rule set deployment to enable or disable
+            alerting or change precision.
+
+    Args:
+        client: ChronicleClient instance
+        deployment: Dict of deployment configuration containing:
+            - category_id: UUID of the category
+            - rule_set_id: UUID of the rule set
+            - precision: Precision level either "broad" or "precise"
+            - enabled: Whether the rule set should be enabled
+            - alerting: Whether alerting should be enabled for the rule set
+
+    Returns:
+        Dictionary containing the updated curated rule set deployment
+
+    Raises:
+        APIError: If the API request fails
+        SecOpsError: If the rule set is not found or precision is invalid
+    """
+    # Check required fields
+    required_fields = ["category_id", "rule_set_id", "precision", "enabled"]
+    missing_fields = [
+        field for field in required_fields if field not in deployment
+    ]
+
+    if missing_fields:
+        raise ValueError(
+            f"Deployment missing required fields: {missing_fields}"
+        )
+
+    # Get deployment configuration
+    category_id = deployment["category_id"]
+    rule_set_id = deployment["rule_set_id"]
+    precision = deployment["precision"]
+    enabled = deployment["enabled"]
+    alerting = deployment.get("alerting", False)
+
+    deployment_name = (
+        f"{client.instance_id}/curatedRuleSetCategories/{category_id}"
+        f"/curatedRuleSets/{rule_set_id}"
+        f"/curatedRuleSetDeployments/{precision}"
+    )
+
+    deployment = {
+        "name": deployment_name,
+        "precision": precision,
+        "enabled": enabled,
+        "alerting": alerting,
+    }
+
+    url = f"{client.base_url}/{deployment_name}"
+
+    response = client.session.patch(url, json=deployment)
+    if response.status_code != 200:
+        raise APIError(
+            f"Failed to patch curated rule set deployment: {response.text}"
+        )
+
+    return response.json()
 
 
 def batch_update_curated_rule_set_deployments(

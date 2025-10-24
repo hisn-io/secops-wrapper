@@ -232,6 +232,7 @@ from secops.chronicle.rule_set import (
     get_curated_rule_set_deployment as _get_curated_rule_set_deployment,
     get_curated_rule_set_deployment_by_name as _get_curated_rule_set_deployment_by_name,
     get_curated_rule_by_name as _get_curated_rule_by_name,
+    patch_curated_rule_set_deployment as _patch_curated_rule_set_deployment,
 )
 from secops.chronicle.rule_validation import validate_rule as _validate_rule
 from secops.chronicle.search import search_udm as _search_udm
@@ -1841,7 +1842,9 @@ class ChronicleClient:
             APIError: If the API request fails
             SecOpsError: If the rule set is not found or precision is invalid
         """
-        return _get_curated_rule_set_deployment_by_name(self, display_name, precision)
+        return _get_curated_rule_set_deployment_by_name(
+            self, display_name, precision
+        )
 
     def list_curated_rules(
         self,
@@ -1890,6 +1893,29 @@ class ChronicleClient:
             SecOpsError: If the rule is not found
         """
         return _get_curated_rule_by_name(self, display_name)
+
+    def patch_curated_rule_set_deployment(
+        self, deployment: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Update a curated rule set deployment to enable or disable
+            alerting or change precision.
+
+        Args:
+            deployment: Dict of deployment configuration containing:
+                - category_id: UUID of the category
+                - rule_set_id: UUID of the rule set
+                - precision: Precision level either "broad" or "precise"
+                - enabled: Whether the rule set should be enabled
+                - alerting: Whether alerting should be enabled for the rule set
+
+        Returns:
+            Dictionary containing the updated curated rule set deployment
+
+        Raises:
+            APIError: If the API request fails
+            SecOpsError: If the rule set is not found or precision is invalid
+        """
+        return _patch_curated_rule_set_deployment(self, deployment)
 
     def get_curated_rule_set_category(self, category_id: str) -> Dict[str, Any]:
         """Get a curated rule set category by ID.
