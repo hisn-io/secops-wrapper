@@ -67,6 +67,31 @@ def list_curated_rule_sets(
     return rule_sets
 
 
+def get_curated_rule_set(client, rule_set_id: str) -> Dict[str, Any]:
+    """Get a curated rule set by ID
+
+    Args:
+        client: ChronicleClient instance
+        rule_set_id: Unique ID of the curated rule set
+
+    Returns:
+        Dictionary containing the curated rule set
+
+    Raises:
+        APIError: If the API request fails
+    """
+    base_url = (
+        f"{client.base_url}/{client.instance_id}/"
+        f"curatedRuleSetCategories/-/curatedRuleSets/{rule_set_id}"
+    )
+
+    response = client.session.get(base_url)
+    if response.status_code != 200:
+        raise APIError(f"Failed to get rule set: {response.text}")
+
+    return response.json()
+
+
 def list_curated_rule_set_categories(
     client,
     page_size: Optional[str] = None,

@@ -87,7 +87,7 @@ wrapper module and its respective CLI command (if available).
 | cases.countPriorities                                                          | v1alpha |                                                              |                                         |
 | curatedRuleSetCategories.curatedRuleSets.curatedRuleSetDeployments.batchUpdate | v1alpha | chronicle.rule_set.batch_update_curated_rule_set_deployments |                                         |
 | curatedRuleSetCategories.curatedRuleSets.curatedRuleSetDeployments.patch       | v1alpha |                                                              |                                         |
-| curatedRuleSetCategories.curatedRuleSets.get                                   | v1alpha |                                                              |                                         |
+| curatedRuleSetCategories.curatedRuleSets.get                                   | v1alpha | chronicle.rule_set.get_curated_rule_set                      |                                         |
 | curatedRuleSetCategories.curatedRuleSets.list                                  | v1alpha | chronicle.rule_set.list_curated_rule_sets                    |                                         |
 | curatedRuleSetCategories.get                                                   | v1alpha | chronicle.rule_set.get_curated_rule_set_category             |                                         |
 | curatedRuleSetCategories.list                                                  | v1alpha | chronicle.rule_set.list_curated_rule_set_categories          |                                         |
