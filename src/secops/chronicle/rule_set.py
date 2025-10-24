@@ -18,6 +18,62 @@ from typing import Dict, Any, List, Optional
 from secops.exceptions import APIError
 
 
+def _paginated_request(
+    client,
+    path: str,
+    items_key: str,
+    *,
+    page_size: Optional[int] = None,
+    start_page_token: Optional[str] = None,
+    extra_params: Optional[Dict[str, Any]] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Helper to get items from endpoints that use pagination.
+
+    Args:
+        client: ChronicleClient instance
+        path: URL path after {base_url}/{instance_id}/
+        items_key: JSON key holding the array of items (e.g., 'curatedRules')
+        page_size: page size (defaults to API max)
+        start_page_token: if provided, start from this token
+        extra_params: extra query params to include on every request
+
+    Returns:
+        List of items from the paginated collection.
+
+    Raises:
+        APIError: If the HTTP request fails.
+    """
+    url = f"{client.base_url}/{client.instance_id}/{path}"
+    page_token = start_page_token
+
+    results = []
+
+    while True:
+        params = {"pageSize": 1000 if not page_size else page_size}
+        if page_token:
+            params["pageToken"] = page_token
+        if extra_params:
+            params.update(extra_params)
+
+        response = client.session.get(url, params=params)
+        if response.status_code != 200:
+            raise APIError(f"Failed to list {items_key}: {response.text}")
+
+        data = response.json()
+        if not data:
+            return results
+
+        curated_sets = data.get(items_key, [])
+        results.extend(curated_sets)
+
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+
+    return results
+
+
 def list_curated_rule_sets(
     client,
     page_size: Optional[str] = None,
@@ -31,40 +87,18 @@ def list_curated_rule_sets(
         page_token: Token for the page to retrieve
 
     Returns:
-        Dictionary containing the list of curated rule sets
+        List of curated rule sets
 
     Raises:
         APIError: If the API request fails
     """
-
-    base_url = (
-        f"{client.base_url}/{client.instance_id}/"
-        f"curatedRuleSetCategories/-/curatedRuleSets"
+    return _paginated_request(
+        client,
+        path="curatedRuleSetCategories/-/curatedRuleSets",
+        items_key="curatedRuleSets",
+        page_size=page_size,
+        start_page_token=page_token,
     )
-
-    rule_sets = []
-
-    while True:
-        params = {"pageSize": 1000 if not page_size else page_size}
-        if page_token:
-            params["pageToken"] = page_token
-
-        response = client.session.get(base_url, params=params)
-        if response.status_code != 200:
-            raise APIError(f"Failed to list rule sets: {response.text}")
-
-        data = response.json()
-        if not data:
-            return rule_sets
-
-        curated_sets = data.get("curatedRuleSets", [])
-        rule_sets.extend(curated_sets)
-
-        page_token = data.get("nextPageToken")
-        if not page_token:
-            break
-
-    return rule_sets
 
 
 def get_curated_rule_set(client, rule_set_id: str) -> Dict[str, Any]:
@@ -105,41 +139,18 @@ def list_curated_rule_set_categories(
         page_token: Token for the page to retrieve
 
     Returns:
-        Dictionary containing the list of curated rule set categories
+        List of curated rule set categories
 
     Raises:
         APIError: If the API request fails
     """
-
-    base_url = (
-        f"{client.base_url}/{client.instance_id}/" f"curatedRuleSetCategories"
+    return _paginated_request(
+        client,
+        path="curatedRuleSetCategories",
+        items_key="curatedRuleSetCategories",
+        page_size=page_size,
+        start_page_token=page_token,
     )
-
-    rule_set_categories = []
-
-    while True:
-        params = {"pageSize": 1000 if not page_size else page_size}
-        if page_token:
-            params["pageToken"] = page_token
-
-        response = client.session.get(base_url, params=params)
-        if response.status_code != 200:
-            raise APIError(
-                f"Failed to list rule set " f"categories: {response.text}"
-            )
-
-        data = response.json()
-        if not data:
-            return rule_set_categories
-
-        curated_sets = data.get("curatedRuleSetCategories", [])
-        rule_set_categories.extend(curated_sets)
-
-        page_token = data.get("nextPageToken")
-        if not page_token:
-            break
-
-    return rule_set_categories
 
 
 def get_curated_rule_set_category(client, category_id: str) -> Dict[str, Any]:
@@ -182,35 +193,18 @@ def list_curated_rules(
         page_token: Token for the page to retrieve
 
     Returns:
-        Dictionary containing the list of curated rules
+        List of curated rules
 
     Raises:
         APIError: If the API request fails
     """
-    base_url = f"{client.base_url}/{client.instance_id}/" f"curatedRules"
-
-    curated_rules = []
-
-    while True:
-        params = {"pageSize": 1000 if not page_size else page_size}
-        if page_token:
-            params["pageToken"] = page_token
-
-        response = client.session.get(base_url, params=params)
-        if response.status_code != 200:
-            raise APIError(f"Failed to list curated rules: {response.text}")
-
-        data = response.json()
-        if not data:
-            return curated_rules
-
-        curated_rules.extend(data.get("curatedRules", []))
-
-        page_token = data.get("nextPageToken")
-        if not page_token:
-            break
-
-    return curated_rules
+    return _paginated_request(
+        client,
+        path="curatedRules",
+        items_key="curatedRules",
+        page_size=page_size,
+        start_page_token=page_token,
+    )
 
 
 def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
@@ -230,7 +224,9 @@ def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
     Raises:
         APIError: If the API request fails
     """
-    base_url = f"{client.base_url}/{client.instance_id}/" f"curatedRules/{rule_id}"
+    base_url = (
+        f"{client.base_url}/{client.instance_id}/" f"curatedRules/{rule_id}"
+    )
 
     response = client.session.get(base_url)
     if response.status_code != 200:
