@@ -224,6 +224,7 @@ from secops.chronicle.rule_set import (
     batch_update_curated_rule_set_deployments as _batch_update_curated_rule_set_deployments,  # pylint: disable=line-too-long
     list_curated_rule_sets as _list_curated_rule_sets,
     list_curated_rule_set_categories as _list_curated_rule_set_categories,
+    list_curated_rules as _list_curated_rules,
 )
 from secops.chronicle.rule_validation import validate_rule as _validate_rule
 from secops.chronicle.search import search_udm as _search_udm
@@ -1770,6 +1771,25 @@ class ChronicleClient:
             APIError: If the API request fails
         """
         return _list_curated_rule_set_categories(self, page_size, page_token)
+
+    def list_curated_rules(
+        self,
+        page_size: Optional[str] = None,
+        page_token: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        """Get a list of all curated rules.
+
+        Args:
+            page_size: Number of results to return per page
+            page_token: Token for the page to retrieve
+
+        Returns:
+            Dictionary containing the list of curated rules
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _list_curated_rules(self, page_size, page_token)
 
     def validate_rule(self, rule_text: str):
         """Validates a YARA-L2 rule against the Chronicle API.

@@ -117,6 +117,50 @@ def list_curated_rule_set_categories(
     return rule_set_categories
 
 
+def list_curated_rules(
+    client,
+    page_size: Optional[str] = None,
+    page_token: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Get a list of all curated rules
+
+    Args:
+        client: ChronicleClient instance
+        page_size: Number of results to return per page
+        page_token: Token for the page to retrieve
+
+    Returns:
+        Dictionary containing the list of curated rules
+
+    Raises:
+        APIError: If the API request fails
+    """
+    base_url = f"{client.base_url}/{client.instance_id}/" f"curatedRules"
+
+    curated_rules = []
+
+    while True:
+        params = {"pageSize": 1000 if not page_size else page_size}
+        if page_token:
+            params["pageToken"] = page_token
+
+        response = client.session.get(base_url, params=params)
+        if response.status_code != 200:
+            raise APIError(f"Failed to list curated rules: {response.text}")
+
+        data = response.json()
+        if not data:
+            return curated_rules
+
+        curated_rules.extend(data.get("curatedRules", []))
+
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+
+    return curated_rules
+
+
 def batch_update_curated_rule_set_deployments(
     client, deployments: List[Dict[str, Any]]
 ) -> Dict[str, Any]:

@@ -91,7 +91,7 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 |curatedRuleSetCategories.get                                                  |v1alpha|                                                              |                                       |
 |curatedRuleSetCategories.list                                                 |v1alpha|                                                              |                                       |
 |curatedRules.get                                                              |v1alpha|                                                              |                                       |
-|curatedRules.list                                                             |v1alpha|                                                              |                                       |
+|curatedRules.list                                                             |v1alpha| chronicle.rule_set.list_curated_rules                        |                                       |
 |dashboardCharts.batchGet                                                      |v1alpha|                                                              |                                       |
 |dashboardCharts.get                                                |v1alpha| chronicle.dashboard.get_chart                                |secops dashboard get-chart                                       |
 |dashboardQueries.execute                                                      |v1alpha| chronicle.dashboard_query.execute_query                      |secops dashboard-query execute                                       |

@@ -136,6 +136,7 @@ from secops.chronicle.rule_set import (
     batch_update_curated_rule_set_deployments,
     list_curated_rule_sets,
     list_curated_rule_set_categories,
+    list_curated_rules,
 )
 from secops.chronicle.rule_validation import ValidationResult
 from secops.chronicle.search import search_udm
@@ -234,6 +235,7 @@ __all__ = [
     "batch_update_curated_rule_set_deployments",
     "list_curated_rule_sets",
     "list_curated_rule_set_categories",
+    "list_curated_rules",
     # Native Dashboard
     "add_chart",
     "create_dashboard",
