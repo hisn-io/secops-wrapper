@@ -235,6 +235,55 @@ def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
     return response.json()
 
 
+def list_curated_rule_set_deployments(
+    client,
+    page_size: Optional[str] = None,
+    page_token: Optional[str] = None,
+    only_enabled: Optional[bool] = False,
+    only_alerting: Optional[bool] = False,
+) -> List[Dict[str, Any]]:
+    """Get a list of all curated rule set deployments
+
+    Args:
+        client: ChronicleClient instance
+        page_size: Number of results to return per page
+        page_token: Token for the page to retrieve
+        only_enabled: Only return enabled rule set deployments
+        only_alerting: Only return alerting rule set deployments
+
+    Returns:
+        List of curated rule set deployments
+
+    Raises:
+        APIError: If the API request fails
+    """
+    rule_set_deployments = _paginated_request(
+        client,
+        path="curatedRuleSetCategories/-/curatedRuleSets/-/curatedRuleSetDeployments",
+        items_key="curatedRuleSetDeployments",
+        page_size=page_size,
+        start_page_token=page_token,
+    )
+
+    all_rule_sets = list_curated_rule_sets(client)
+    for deployment in rule_set_deployments:
+        rule_set_id = deployment.get("name", "").split("curatedRuleSetDeployment")[0].rstrip("/")
+        for rule_set in all_rule_sets:
+            if rule_set.get("name", "") == rule_set_id:
+                deployment["displayName"] = rule_set.get("displayName", "")
+
+    if only_enabled:
+        rule_set_deployments = [
+            deployment for deployment in rule_set_deployments if deployment.get("enabled", False)
+        ]
+    if only_alerting:
+        rule_set_deployments = [
+            deployment for deployment in rule_set_deployments if deployment.get("alerting", False)
+        ]
+
+    return rule_set_deployments
+
+
 def batch_update_curated_rule_set_deployments(
     client, deployments: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
