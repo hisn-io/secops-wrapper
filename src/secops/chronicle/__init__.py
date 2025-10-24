@@ -142,6 +142,7 @@ from secops.chronicle.rule_set import (
     get_curated_rule_set,
     list_curated_rule_set_deployments,
     get_curated_rule_set_deployment,
+    get_curated_rule_set_deployment_by_name,
 )
 from secops.chronicle.rule_validation import ValidationResult
 from secops.chronicle.search import search_udm
@@ -246,6 +247,7 @@ __all__ = [
     "get_curated_rule_set",
     "list_curated_rule_set_deployments",
     "get_curated_rule_set_deployment",
+    "get_curated_rule_set_deployment_by_name",
     # Native Dashboard
     "add_chart",
     "create_dashboard",

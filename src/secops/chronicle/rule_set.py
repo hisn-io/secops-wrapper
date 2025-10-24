@@ -347,6 +347,47 @@ def get_curated_rule_set_deployment(
     return deployment
 
 
+def get_curated_rule_set_deployment_by_name(
+    client,
+    rule_set_name: str,
+    precision: str = "precise",
+) -> Dict[str, Any]:
+    """Get the deployment status of a curated rule set by its display name
+
+    Args:
+        client: ChronicleClient instance
+        rule_set_name: Display name of the curated rule set (case-insensitive)
+        precision: Precision level ("precise" or "broad")
+
+    Returns:
+        Dictionary containing the curated rule set deployment
+
+    Raises:
+        APIError: If the API request fails
+        SecOpsError: If the rule set is not found or precision is invalid
+    """
+    if precision not in ["precise", "broad"]:
+        raise SecOpsError("Precision must be 'precise' or 'broad'")
+
+    rule_set = None
+    for rs in list_curated_rule_sets(client):
+        # Names normalised as lowercase
+        current_name = rs.get("displayName", "").lower()
+        if current_name == rule_set_name.lower():
+            rule_set = rs
+            break
+
+    if not rule_set:
+        raise SecOpsError(f"Rule set with name '{rule_set_name}' not found")
+
+    # Extract the rule set ID from the resource name
+    name_parts = rule_set["name"].split("/")
+    rule_set_id = name_parts[-1]
+
+    # Get the deployment status using existing function
+    return get_curated_rule_set_deployment(client, rule_set_id, precision)
+
+
 def batch_update_curated_rule_set_deployments(
     client, deployments: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
