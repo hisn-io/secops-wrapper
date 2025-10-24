@@ -225,6 +225,7 @@ from secops.chronicle.rule_set import (
     list_curated_rule_sets as _list_curated_rule_sets,
     list_curated_rule_set_categories as _list_curated_rule_set_categories,
     list_curated_rules as _list_curated_rules,
+    get_curated_rule as _get_curated_rule,
 )
 from secops.chronicle.rule_validation import validate_rule as _validate_rule
 from secops.chronicle.search import search_udm as _search_udm
@@ -1790,6 +1791,20 @@ class ChronicleClient:
             APIError: If the API request fails
         """
         return _list_curated_rules(self, page_size, page_token)
+
+    def get_curated_rule(self, rule_id: str) -> Dict[str, Any]:
+        """Get a curated rule by ID.
+
+        Args:
+            rule_id: ID of the curated rule
+
+        Returns:
+            Dictionary containing the curated rule
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_curated_rule(self, rule_id)
 
     def validate_rule(self, rule_text: str):
         """Validates a YARA-L2 rule against the Chronicle API.

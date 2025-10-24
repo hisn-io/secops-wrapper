@@ -161,6 +161,32 @@ def list_curated_rules(
     return curated_rules
 
 
+def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
+    """Get a curated rule by ID
+
+    Args:
+        client: ChronicleClient instance
+        rule_id: Unique ID of the curated rule to retrieve ("ur_<UUID>"
+            or "ur_<RULE_NAME>).
+            Examples:
+                `ur_ffac5fa0-5b0b-463e-9f92-2443f8f1b6fd`
+                `ur_ttp_GCP_MassSecretDeletion`
+
+    Returns:
+        Dictionary containing the curated rule
+
+    Raises:
+        APIError: If the API request fails
+    """
+    base_url = f"{client.base_url}/{client.instance_id}/" f"curatedRules/{rule_id}"
+
+    response = client.session.get(base_url)
+    if response.status_code != 200:
+        raise APIError(f"Failed to get curated rule: {response.text}")
+
+    return response.json()
+
+
 def batch_update_curated_rule_set_deployments(
     client, deployments: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
