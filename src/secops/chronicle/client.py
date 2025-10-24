@@ -232,7 +232,7 @@ from secops.chronicle.rule_set import (
     get_curated_rule_set_deployment as _get_curated_rule_set_deployment,
     get_curated_rule_set_deployment_by_name as _get_curated_rule_set_deployment_by_name,
     get_curated_rule_by_name as _get_curated_rule_by_name,
-    patch_curated_rule_set_deployment as _patch_curated_rule_set_deployment,
+    update_curated_rule_set_deployment as _update_curated_rule_set_deployment,
 )
 from secops.chronicle.rule_validation import validate_rule as _validate_rule
 from secops.chronicle.search import search_udm as _search_udm
@@ -1915,7 +1915,7 @@ class ChronicleClient:
             APIError: If the API request fails
             SecOpsError: If the rule set is not found or precision is invalid
         """
-        return _patch_curated_rule_set_deployment(self, deployment)
+        return _update_curated_rule_set_deployment(self, deployment)
 
     def get_curated_rule_set_category(self, category_id: str) -> Dict[str, Any]:
         """Get a curated rule set category by ID.
