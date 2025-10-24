@@ -19,9 +19,9 @@ from secops.exceptions import APIError
 
 
 def list_curated_rule_sets(
-        client,
-        page_size: Optional[str] = None,
-        page_token: Optional[str] = None,
+    client,
+    page_size: Optional[str] = None,
+    page_token: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     """Get a list of all curated rule sets
 
@@ -38,7 +38,8 @@ def list_curated_rule_sets(
     """
 
     base_url = (
-        f'{client.base_url}/{client.instance_id}/curatedRuleSetCategories/-/curatedRuleSets'
+        f"{client.base_url}/{client.instance_id}/"
+        f"curatedRuleSetCategories/-/curatedRuleSets"
     )
 
     rule_sets = []
@@ -50,7 +51,7 @@ def list_curated_rule_sets(
 
         response = client.session.get(base_url, params=params)
         if response.status_code != 200:
-            raise APIError(f"Failed to list rules: {response.text}")
+            raise APIError(f"Failed to list rule sets: {response.text}")
 
         data = response.json()
         if not data:
@@ -64,6 +65,56 @@ def list_curated_rule_sets(
             break
 
     return rule_sets
+
+
+def list_curated_rule_set_categories(
+    client,
+    page_size: Optional[str] = None,
+    page_token: Optional[str] = None,
+) -> List[Dict[str, Any]]:
+    """Get a list of all curated rule set categories
+
+    Args:
+        client: ChronicleClient instance
+        page_size: Number of results to return per page
+        page_token: Token for the page to retrieve
+
+    Returns:
+        Dictionary containing the list of curated rule set categories
+
+    Raises:
+        APIError: If the API request fails
+    """
+
+    base_url = (
+        f"{client.base_url}/{client.instance_id}/" f"curatedRuleSetCategories"
+    )
+
+    rule_set_categories = []
+
+    while True:
+        params = {"pageSize": 1000 if not page_size else page_size}
+        if page_token:
+            params["pageToken"] = page_token
+
+        response = client.session.get(base_url, params=params)
+        if response.status_code != 200:
+            raise APIError(
+                f"Failed to list rule set " f"categories: {response.text}"
+            )
+
+        data = response.json()
+        if not data:
+            return rule_set_categories
+
+        curated_sets = data.get("curatedRuleSetCategories", [])
+        rule_set_categories.extend(curated_sets)
+
+        page_token = data.get("nextPageToken")
+        if not page_token:
+            break
+
+    return rule_set_categories
 
 
 def batch_update_curated_rule_set_deployments(

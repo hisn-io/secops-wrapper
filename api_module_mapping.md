@@ -85,9 +85,9 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 |bigQueryExport.provision                                                      |v1alpha|                                                              |                                       |
 |cases.countPriorities                                                         |v1alpha|                                                              |                                       |
 |curatedRuleSetCategories.curatedRuleSets.curatedRuleSetDeployments.batchUpdate|v1alpha| chronicle.rule_set.batch_update_curated_rule_set_deployments |                                       |
-|curatedRuleSetCategories.curatedRuleSets.curatedRuleSetDeployments.patch      |v1alpha| chronicle.rule_set.list_rule_sets                            |                                       |
+|curatedRuleSetCategories.curatedRuleSets.curatedRuleSetDeployments.patch      |v1alpha| chronicle.rule_set.list_curated_rule_sets                    |                                       |
 |curatedRuleSetCategories.curatedRuleSets.get                                  |v1alpha|                                                              |                                       |
-|curatedRuleSetCategories.curatedRuleSets.list                                 |v1alpha|                                                              |                                       |
+|curatedRuleSetCategories.curatedRuleSets.list                                 |v1alpha| chronicle.rule_set.list_curated_rule_set_categories          |                                       |
 |curatedRuleSetCategories.get                                                  |v1alpha|                                                              |                                       |
 |curatedRuleSetCategories.list                                                 |v1alpha|                                                              |                                       |
 |curatedRules.get                                                              |v1alpha|                                                              |                                       |

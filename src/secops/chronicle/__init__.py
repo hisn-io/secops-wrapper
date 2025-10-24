@@ -132,9 +132,10 @@ from secops.chronicle.rule_exclusion import (
     update_rule_exclusion_deployment,
 )
 from secops.chronicle.rule_retrohunt import create_retrohunt, get_retrohunt
-from secops.chronicle.rule_set import  (
+from secops.chronicle.rule_set import (
     batch_update_curated_rule_set_deployments,
     list_curated_rule_sets,
+    list_curated_rule_set_categories,
 )
 from secops.chronicle.rule_validation import ValidationResult
 from secops.chronicle.search import search_udm
@@ -232,6 +233,7 @@ __all__ = [
     # Rule set operations
     "batch_update_curated_rule_set_deployments",
     "list_curated_rule_sets",
+    "list_curated_rule_set_categories",
     # Native Dashboard
     "add_chart",
     "create_dashboard",
