@@ -354,7 +354,7 @@ def get_curated_rule_set_deployment(
         raise SecOpsError(f"Rule set {rule_set_id} not found")
 
     url = (
-        f"{client.base_url}/{rule_set.get("name", "")}/"
+        f"{client.base_url}/{rule_set.get('name', '')}/"
         f"curatedRuleSetDeployments/{precision}"
     )
 
