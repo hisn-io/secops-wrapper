@@ -15,6 +15,7 @@
 """Tests for Chronicle curated rule set functions."""
 
 import pytest
+from typing import Optional
 from unittest.mock import Mock, patch
 from secops.chronicle.client import ChronicleClient
 from secops.chronicle.rule_set import (
@@ -103,7 +104,7 @@ def test_get_curated_rule_error(chronicle_client, mock_error_response):
 # --- helpers ---
 
 
-def _page(items_key: str, items: list[dict], next_token: str | None = None):
+def _page(items_key: str, items: list[dict], next_token: Optional[str] = None):
     """Helper function for paginated 200 OK responses."""
     data = {items_key: items}
     if next_token:
