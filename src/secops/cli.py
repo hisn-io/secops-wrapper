@@ -4902,7 +4902,7 @@ def handle_curated_rules_rules_list_command(args, chronicle):
     try:
         out = chronicle.list_curated_rules()
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(f"Error listing curated rules: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -4916,7 +4916,7 @@ def handle_curated_rules_rules_get_command(args, chronicle):
             # by display name
             out = chronicle.get_curated_rule_by_name(args.name)
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(f"Error getting curated rule: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -4925,7 +4925,7 @@ def handle_curated_rules_rule_set_list_command(args, chronicle):
     try:
         out = chronicle.list_curated_rule_sets()
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(f"Error listing curated rule sets: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -4934,7 +4934,7 @@ def handle_curated_rules_rule_set_get_command(args, chronicle):
     try:
         out = chronicle.get_curated_rule_set(args.id)
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(f"Error getting curated rule set: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -4943,7 +4943,7 @@ def handle_curated_rules_rule_set_category_list_command(args, chronicle):
     try:
         out = chronicle.list_curated_rule_set_categories()
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(
             f"Error listing curated rule set categories: {e}", file=sys.stderr
         )
@@ -4954,7 +4954,7 @@ def handle_curated_rules_rule_set_category_get_command(args, chronicle):
     try:
         out = chronicle.get_curated_rule_set_category(args.id)
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(f"Error getting curated rule set category: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -4966,7 +4966,7 @@ def handle_curated_rules_rule_set_deployment_list_command(args, chronicle):
             only_alerting=bool(args.only_alerting),
         )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(
             f"Error listing curated rule set deployments: {e}", file=sys.stderr
         )
@@ -4984,7 +4984,7 @@ def handle_curated_rules_rule_set_deployment_get_command(args, chronicle):
                 args.id, precision=args.precision
             )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(
             f"Error getting curated rule set deployment: {e}", file=sys.stderr
         )
@@ -5009,7 +5009,7 @@ def handle_curated_rules_rule_set_deployment_update_command(args, chronicle):
             payload["alerting"] = _convert_bool(args.alerting)
         out = chronicle.update_curated_rule_set_deployment(payload)
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         print(
             f"Error updating curated rule set deployment: {e}", file=sys.stderr
         )
