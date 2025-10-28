@@ -1894,7 +1894,7 @@ class ChronicleClient:
         """
         return _get_curated_rule_by_name(self, display_name)
 
-    def patch_curated_rule_set_deployment(
+    def update_curated_rule_set_deployment(
         self, deployment: Dict[str, Any]
     ) -> Dict[str, Any]:
         """Update a curated rule set deployment to enable or disable
