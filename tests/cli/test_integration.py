@@ -6,6 +6,7 @@ import json
 import os
 import tempfile
 import time
+import uuid
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import patch
@@ -2758,3 +2759,99 @@ def test_cli_udm_field_values(cli_env, common_args):
     except json.JSONDecodeError:
         # If not valid JSON, fail the test
         assert False, f"Output is not valid JSON: {result.stdout}"
+
+@pytest.mark.integration
+def test_cli_entity_import(cli_env, common_args):
+    """Test the entity import command using the CLI."""
+    # Get current time for entity metadata
+    current_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    # Create unique entity IDs for this test run
+    entity_id1 = f"test_user_{uuid.uuid4().hex[:8]}"
+    entity_id2 = f"test_user_{uuid.uuid4().hex[:8]}"
+
+    # Create test entities
+    test_entities = [
+        {
+            "metadata": {
+                "collected_timestamp": current_time,
+                "entity_type": "USER",
+                "vendor_name": "CLI Test",
+                "product_name": "Entity Import Test",
+            },
+            "entity": {
+                "user": {
+                    "userid": entity_id1,
+                    "product_object_id": f"test_obj_{uuid.uuid4().hex[:8]}",
+                }
+            },
+        },
+        {
+            "metadata": {
+                "collected_timestamp": current_time,
+                "entity_type": "USER",
+                "vendor_name": "CLI Test",
+                "product_name": "Entity Import Test",
+            },
+            "entity": {
+                "user": {
+                    "userid": entity_id2,
+                    "product_object_id": f"test_obj_{uuid.uuid4().hex[:8]}",
+                }
+            },
+        },
+    ]
+
+    # Create a temporary file for the entities
+    entity_file_path = None
+
+    try:
+        # Write entities to temporary file
+        with tempfile.NamedTemporaryFile(
+            suffix=".json", mode="w+", delete=False
+        ) as temp_file:
+            json.dump(test_entities, temp_file, indent=2)
+            entity_file_path = temp_file.name
+
+        # Execute the entity import CLI command
+        cmd = (
+            [
+                "secops",
+            ]
+            + common_args
+            + [
+                "entity",
+                "import",
+                "--file",
+                entity_file_path,
+                "--type",
+                "OKTA",
+            ]
+        )
+
+        print("\nRunning entity import command")
+        result = subprocess.run(
+            cmd, env=cli_env, capture_output=True, text=True
+        )
+
+        # Check that the command executed successfully
+        assert result.returncode == 0, f"Command failed: {result.stderr}"
+
+        # Check output format - should be JSON
+        try:
+            output = json.loads(result.stdout)
+            print(f"Command output: {output}")
+            # Empty dict response indicates success
+            assert output == {}
+        except json.JSONDecodeError:
+            # If not valid JSON, check for error messages
+            assert "Error:" not in result.stdout
+            assert "Error:" not in result.stderr
+
+        print("Entity import command executed successfully")
+
+    finally:
+        # Clean up the temporary entity file
+        if entity_file_path and os.path.exists(entity_file_path):
+            os.unlink(entity_file_path)
+            print(f"Cleaned up temporary entity file: {entity_file_path}")

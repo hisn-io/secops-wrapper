@@ -218,12 +218,6 @@ Ingest UDM events:
 secops log ingest-udm --file "/path/to/udm_event.json"
 ```
 
-Import entities:
-
-```bash
-secops log import-entities --type "CUSTOM_LOG_TYPE" --file "/path/to/entities.json"
-```
-
 List available log types:
 
 ```bash
@@ -909,6 +903,12 @@ secops search --query "metadata.event_type = \"USER_LOGIN\" AND security_result.
 
 ```bash
 secops entity --value "192.168.1.100" --time-window 72
+```
+
+### Import entities:
+
+```bash
+secops entity import --type "CUSTOM_LOG_TYPE" --file "/path/to/entities.json"
 ```
 
 ### Check for Critical IoCs

@@ -1071,15 +1071,11 @@ def import_entities(
     if not entities:
         raise ValueError("No entities provided")
 
+    if not log_type:
+        raise ValueError("No log type provided")
+
     # Prepare the request
-    parent = (
-        f"projects/{client.project_id}/locations/{client.region}"
-        f"/instances/{client.customer_id}"
-    )
-    url = (
-        f"https://{client.region}-chronicle.googleapis.com/v1alpha/"
-        f"{parent}/entities:import"
-    )
+    url = f"{client.base_url}/{client.instance_id}/entities:import"
 
     # Format the request body
     body = {"inline_source": {"entities": entities, "log_type": log_type}}

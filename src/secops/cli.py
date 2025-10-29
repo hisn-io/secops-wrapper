@@ -691,8 +691,16 @@ def setup_entity_command(subparsers):
     entity_parser = subparsers.add_parser(
         "entity", help="Get entity information"
     )
+
+    # Create a subparser object
+    entity_subparsers = entity_parser.add_subparsers(
+        dest="entity_subcommand", help="Entity subcommands"
+    )
+
+    # Add arguments to the main entity parser
+    # These arguments are now optional since we'll check for them in the handler
     entity_parser.add_argument(
-        "--value", required=True, help="Entity value (IP, domain, hash, etc.)"
+        "--value", help="Entity value (IP, domain, hash, etc.)"
     )
     entity_parser.add_argument(
         "--entity-type",
@@ -703,9 +711,46 @@ def setup_entity_command(subparsers):
     add_time_range_args(entity_parser)
     entity_parser.set_defaults(func=handle_entity_command)
 
+    # Ingest entities command as a subcommand
+    entities_import_parser = entity_subparsers.add_parser(
+        "import", help="Import entities"
+    )
+    entities_import_parser.add_argument(
+        "--file",
+        required=True,
+        help="File containing entity(s) (in JSON format)",
+    )
+    entities_import_parser.add_argument(
+        "--type", required=True, help="Log type"
+    )
+    entities_import_parser.set_defaults(func=handle_import_entities_command)
+
 
 def handle_entity_command(args, chronicle):
-    """Handle the entity command."""
+    """Handle the entity command.
+
+    This function will check if a subcommand is used or if --value is provided
+    when using the entity command directly.
+    """
+    # If a subcommand is specified, this function should not be called.
+    # However, if it is called with a subcommand, we should exit gracefully.
+    if hasattr(args, "entity_subcommand") and args.entity_subcommand:
+        print(
+            "Error: Unexpected command handling for subcommand "
+            f"{args.entity_subcommand}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    # If no subcommand, --value is required
+    if not args.value:
+        print(
+            "Error: --value is required when using the entity "
+            "command without a subcommand",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     start_time, end_time = get_time_range(args)
 
     try:
@@ -846,16 +891,6 @@ def setup_log_command(subparsers):
         "--file", required=True, help="File containing UDM event(s)"
     )
     udm_parser.set_defaults(func=handle_udm_ingest_command)
-
-    # Ingest entities command
-    entities_parser = log_subparsers.add_parser(
-        "import-entities", help="Import entities"
-    )
-    entities_parser.add_argument(
-        "--file", required=True, help="File containing entity(s)"
-    )
-    entities_parser.add_argument("--type", required=True, help="Log type")
-    entities_parser.set_defaults(func=handle_import_entities_command)
 
     # List log types command
     types_parser = log_subparsers.add_parser(
