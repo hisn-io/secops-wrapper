@@ -16,10 +16,10 @@
 #
 """Example demonstrating entity import functionality with Chronicle."""
 
-import uuid
 import argparse
-from datetime import datetime, timezone
-from typing import Dict, Any
+import uuid
+from typing import Any, Dict
+
 from secops import SecOpsClient
 from secops.exceptions import APIError
 
