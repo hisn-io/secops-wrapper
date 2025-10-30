@@ -147,7 +147,7 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 |enrichmentControls.get                                                        |v1alpha|                                                            |                                       |
 |enrichmentControls.list                                                       |v1alpha|                                                            |                                       |
 |entities.get                                                                  |v1alpha|                                                            |                                       |
-|entities.import                                                               |v1alpha|                                                            |                                       |
+|entities.import                                                               |v1alpha|chronicle.log_ingest.import_entities                                                            |secops entity import                                       |
 |entities.modifyEntityRiskScore                                                |v1alpha|                                                            |                                       |
 |entities.queryEntityRiskScoreModifications                                    |v1alpha|                                                            |                                       |
 |entityRiskScores.query                                                        |v1alpha|                                                            |                                       |

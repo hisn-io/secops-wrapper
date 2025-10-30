@@ -66,6 +66,7 @@ from secops.chronicle.log_ingest import (
     extract_forwarder_id,
     get_forwarder,
     get_or_create_forwarder,
+    import_entities,
     ingest_log,
     list_forwarders,
     update_forwarder,
@@ -142,10 +143,8 @@ from secops.chronicle.udm_mapping import (
 )
 from secops.chronicle.udm_search import (
     fetch_udm_search_csv,
-    find_udm_field_values,
-)
-from secops.chronicle.udm_search import (
     fetch_udm_search_view,
+    find_udm_field_values,
 )
 from secops.chronicle.validate import validate_query
 
@@ -164,6 +163,7 @@ __all__ = [
     # Natural Language Search
     "translate_nl_to_udm",
     # Entity
+    "import_entities",
     "summarize_entity",
     # IoC
     "list_iocs",

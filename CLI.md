@@ -905,6 +905,12 @@ secops search --query "metadata.event_type = \"USER_LOGIN\" AND security_result.
 secops entity --value "192.168.1.100" --time-window 72
 ```
 
+### Import entities:
+
+```bash
+secops entity import --type "CUSTOM_LOG_TYPE" --file "/path/to/entities.json"
+```
+
 ### Check for Critical IoCs
 
 ```bash
