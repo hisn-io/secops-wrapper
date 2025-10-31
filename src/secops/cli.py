@@ -4845,6 +4845,18 @@ def setup_curated_rules_command(subparsers):
     rules_sp = rules.add_subparsers(dest="rule_cmd", required=True)
 
     rules_list = rules_sp.add_parser("list", help="List curated rules")
+    rules_list.add_argument(
+        "--page-size",
+        type=int,
+        dest="page_size",
+        help="The number of results to return per page.",
+    )
+    rules_list.add_argument(
+        "--page-token",
+        type=str,
+        dest="page_token",
+        help="A page token, received from a previous `list` call.",
+    )
     rules_list.set_defaults(func=handle_curated_rules_rules_list_command)
 
     rules_get = rules_sp.add_parser("get", help="Get a curated rule")
@@ -4859,6 +4871,18 @@ def setup_curated_rules_command(subparsers):
 
     rule_set_list = rule_set_subparser.add_parser(
         "list", help="List curated rule sets"
+    )
+    rule_set_list.add_argument(
+        "--page-size",
+        type=int,
+        dest="page_size",
+        help="The number of results to return per page.",
+    )
+    rule_set_list.add_argument(
+        "--page-token",
+        type=str,
+        dest="page_token",
+        help="A page token, received from a previous `list` call.",
     )
     rule_set_list.set_defaults(func=handle_curated_rules_rule_set_list_command)
 
@@ -4880,6 +4904,18 @@ def setup_curated_rules_command(subparsers):
 
     rule_set_cat_list = rule_set_cat_subparser.add_parser(
         "list", help="List curated rule set categories"
+    )
+    rule_set_cat_list.add_argument(
+        "--page-size",
+        type=int,
+        dest="page_size",
+        help="The number of results to return per page.",
+    )
+    rule_set_cat_list.add_argument(
+        "--page-token",
+        type=str,
+        dest="page_token",
+        help="A page token, received from a previous `list` call.",
     )
     rule_set_cat_list.set_defaults(
         func=handle_curated_rules_rule_set_category_list_command
@@ -4909,6 +4945,18 @@ def setup_curated_rules_command(subparsers):
     )
     rule_set_deployment_list.add_argument(
         "--only-alerting", dest="only_alerting", action="store_true"
+    )
+    rule_set_deployment_list.add_argument(
+        "--page-size",
+        type=int,
+        dest="page_size",
+        help="The number of results to return per page.",
+    )
+    rule_set_deployment_list.add_argument(
+        "--page-token",
+        type=str,
+        dest="page_token",
+        help="A page token, received from a previous `list` call.",
     )
     rule_set_deployment_list.set_defaults(
         func=handle_curated_rules_rule_set_deployment_list_command
@@ -4960,9 +5008,12 @@ def setup_curated_rules_command(subparsers):
 def handle_curated_rules_rules_list_command(args, chronicle):
     """List curated rules."""
     try:
-        out = chronicle.list_curated_rules()
+        out = chronicle.list_curated_rules(
+            page_size=getattr(args, "page_size", None),
+            page_token=getattr(args, "page_token", None),
+        )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error listing curated rules: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -4976,34 +5027,43 @@ def handle_curated_rules_rules_get_command(args, chronicle):
             # by display name
             out = chronicle.get_curated_rule_by_name(args.name)
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error getting curated rule: {e}", file=sys.stderr)
         sys.exit(1)
 
 
 def handle_curated_rules_rule_set_list_command(args, chronicle):
+    """List all curated rule sets"""
     try:
-        out = chronicle.list_curated_rule_sets()
+        out = chronicle.list_curated_rule_sets(
+            page_size=getattr(args, "page_size", None),
+            page_token=getattr(args, "page_token", None),
+        )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error listing curated rule sets: {e}", file=sys.stderr)
         sys.exit(1)
 
 
 def handle_curated_rules_rule_set_get_command(args, chronicle):
+    """Get curated rule set by ID."""
     try:
         out = chronicle.get_curated_rule_set(args.id)
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error getting curated rule set: {e}", file=sys.stderr)
         sys.exit(1)
 
 
 def handle_curated_rules_rule_set_category_list_command(args, chronicle):
+    """List all curated rule set categories."""
     try:
-        out = chronicle.list_curated_rule_set_categories()
+        out = chronicle.list_curated_rule_set_categories(
+            page_size=getattr(args, "page_size", None),
+            page_token=getattr(args, "page_token", None),
+        )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(
             f"Error listing curated rule set categories: {e}", file=sys.stderr
         )
@@ -5011,10 +5071,11 @@ def handle_curated_rules_rule_set_category_list_command(args, chronicle):
 
 
 def handle_curated_rules_rule_set_category_get_command(args, chronicle):
+    """Get curated rule set category by ID."""
     try:
         out = chronicle.get_curated_rule_set_category(args.id)
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error getting curated rule set category: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -5024,9 +5085,11 @@ def handle_curated_rules_rule_set_deployment_list_command(args, chronicle):
         out = chronicle.list_curated_rule_set_deployments(
             only_enabled=bool(args.only_enabled),
             only_alerting=bool(args.only_alerting),
+            page_size=getattr(args, "page_size", None),
+            page_token=getattr(args, "page_token", None),
         )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(
             f"Error listing curated rule set deployments: {e}", file=sys.stderr
         )
@@ -5044,7 +5107,7 @@ def handle_curated_rules_rule_set_deployment_get_command(args, chronicle):
                 args.id, precision=args.precision
             )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(
             f"Error getting curated rule set deployment: {e}", file=sys.stderr
         )
@@ -5069,7 +5132,7 @@ def handle_curated_rules_rule_set_deployment_update_command(args, chronicle):
             payload["alerting"] = _convert_bool(args.alerting)
         out = chronicle.update_curated_rule_set_deployment(payload)
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(
             f"Error updating curated rule set deployment: {e}", file=sys.stderr
         )
