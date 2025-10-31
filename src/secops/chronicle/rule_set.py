@@ -24,7 +24,7 @@ def _paginated_request(
     items_key: str,
     *,
     page_size: Optional[int] = None,
-    start_page_token: Optional[str] = None,
+    page_token: Optional[str] = None,
     extra_params: Optional[Dict[str, Any]] = None,
 ) -> List[Dict[str, Any]]:
     """
@@ -34,8 +34,8 @@ def _paginated_request(
         client: ChronicleClient instance
         path: URL path after {base_url}/{instance_id}/
         items_key: JSON key holding the array of items (e.g., 'curatedRules')
-        page_size: page size (defaults to API max)
-        start_page_token: if provided, start from this token
+        page_size: Maximum number of rules to return per page.
+        page_token: Token for the next page of results, if available.
         extra_params: extra query params to include on every request
 
     Returns:
@@ -45,30 +45,33 @@ def _paginated_request(
         APIError: If the HTTP request fails.
     """
     url = f"{client.base_url}/{client.instance_id}/{path}"
-    page_token = start_page_token
-
     results = []
+    next_token = page_token
 
     while True:
+        # Build params each loop to prevent stale keys being
+        # included in the next request
         params = {"pageSize": 1000 if not page_size else page_size}
-        if page_token:
-            params["pageToken"] = page_token
+        if next_token:
+            params["pageToken"] = next_token
         if extra_params:
-            params.update(extra_params)
+            # copy to avoid passed dict being mutated
+            params.update(dict(extra_params))
 
         response = client.session.get(url, params=params)
         if response.status_code != 200:
             raise APIError(f"Failed to list {items_key}: {response.text}")
 
         data = response.json()
-        if not data:
-            return results
+        results.extend(data.get(items_key, []))
 
-        curated_sets = data.get(items_key, [])
-        results.extend(curated_sets)
+        # If caller provided page_size, return only this page
+        if page_size is not None:
+            break
 
-        page_token = data.get("nextPageToken")
-        if not page_token:
+        # Otherwise, auto-paginate
+        next_token = data.get("nextPageToken")
+        if not next_token:
             break
 
     return results
@@ -97,7 +100,7 @@ def list_curated_rule_sets(
         path="curatedRuleSetCategories/-/curatedRuleSets",
         items_key="curatedRuleSets",
         page_size=page_size,
-        start_page_token=page_token,
+        page_token=page_token,
     )
 
 
@@ -149,7 +152,7 @@ def list_curated_rule_set_categories(
         path="curatedRuleSetCategories",
         items_key="curatedRuleSetCategories",
         page_size=page_size,
-        start_page_token=page_token,
+        page_token=page_token,
     )
 
 
@@ -203,7 +206,7 @@ def list_curated_rules(
         path="curatedRules",
         items_key="curatedRules",
         page_size=page_size,
-        start_page_token=page_token,
+        page_token=page_token,
     )
 
 
@@ -287,7 +290,7 @@ def list_curated_rule_set_deployments(
         "-/curatedRuleSetDeployments",
         items_key="curatedRuleSetDeployments",
         page_size=page_size,
-        start_page_token=page_token,
+        page_token=page_token,
     )
 
     # Enrich the deployment data with the rule set displayName

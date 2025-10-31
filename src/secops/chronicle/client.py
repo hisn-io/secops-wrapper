@@ -1744,7 +1744,7 @@ class ChronicleClient:
 
     def list_curated_rule_sets(
         self,
-        page_size: Optional[str] = None,
+        page_size: Optional[int] = None,
         page_token: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get a list of all curated rule sets.
@@ -1763,7 +1763,7 @@ class ChronicleClient:
 
     def list_curated_rule_set_categories(
         self,
-        page_size: Optional[str] = None,
+        page_size: Optional[int] = None,
         page_token: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get a list of all curated rule set categories.
@@ -1782,7 +1782,7 @@ class ChronicleClient:
 
     def list_curated_rule_set_deployments(
         self,
-        page_size: Optional[str] = None,
+        page_size: Optional[int] = None,
         page_token: Optional[str] = None,
         only_enabled: Optional[bool] = False,
         only_alerting: Optional[bool] = False,
@@ -1848,7 +1848,7 @@ class ChronicleClient:
 
     def list_curated_rules(
         self,
-        page_size: Optional[str] = None,
+        page_size: Optional[int] = None,
         page_token: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
         """Get a list of all curated rules.

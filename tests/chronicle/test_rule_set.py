@@ -117,33 +117,40 @@ def _page(items_key: str, items: list[dict], next_token: Optional[str] = None):
 
 # --- _paginated_request  tests ---
 
-
-def test_paginated_request_success(chronicle_client):
-    """Test helper function _paginated_request returns a flat list from multiple pages and forwards pageToken."""
+def test_paginated_request_auto_paginates_success(chronicle_client):
     p1 = _page("curatedRules", [{"name": ".../ur_1"}], next_token="t2")
     p2 = _page("curatedRules", [{"name": ".../ur_2"}])
-    with patch.object(
-        chronicle_client.session, "get", side_effect=[p1, p2]
-    ) as mocked_response:
+    with patch.object(chronicle_client.session, "get", side_effect=[p1, p2]) as mocked:
+        result = _paginated_request(
+            chronicle_client,
+            path="curatedRules",
+            items_key="curatedRules",
+            page_size=None,
+        )
+        assert [r["name"] for r in result] == [".../ur_1", ".../ur_2"]
+        base = f"{chronicle_client.base_url}/{chronicle_client.instance_id}/curatedRules"
+        assert mocked.call_args_list[0].args[0] == base
+        assert mocked.call_args_list[0].kwargs["params"] == {"pageSize": 1000}
+        assert mocked.call_args_list[1].kwargs["params"] == {
+            "pageSize": 1000,
+            "pageToken": "t2",
+        }
+
+
+def test_paginated_request_when_page_size_given_success(chronicle_client):
+    p1 = _page("curatedRules", [{"name": ".../ur_1"}], next_token="t2")
+    with patch.object(chronicle_client.session, "get", return_value=p1) as mocked:
         result = _paginated_request(
             chronicle_client,
             path="curatedRules",
             items_key="curatedRules",
             page_size=1000,
         )
-        assert [r["name"] for r in result] == [".../ur_1", ".../ur_2"]
+        assert [r["name"] for r in result] == [".../ur_1"]
+        # Only one call, no follow-up with nextPageToken
+        assert mocked.call_count == 1
+        assert mocked.call_args.kwargs["params"] == {"pageSize": 1000}
 
-        base = f"{chronicle_client.base_url}/{chronicle_client.instance_id}/curatedRules"
-        # first call: only pageSize
-        assert mocked_response.call_args_list[0].args[0] == base
-        assert mocked_response.call_args_list[0].kwargs["params"] == {
-            "pageSize": 1000
-        }
-        # second call includes next token
-        assert mocked_response.call_args_list[1].kwargs["params"] == {
-            "pageSize": 1000,
-            "pageToken": "t2",
-        }
 
 
 def test_paginated_request_error(chronicle_client, mock_error_response):
