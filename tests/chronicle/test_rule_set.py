@@ -370,27 +370,23 @@ def test_list_deployments_success(chronicle_client):
 
 def test_get_ruleset_deployment_success(chronicle_client, mock_response):
     """Test get_curated_rule_set_deployment returns the deployment matching name."""
-    rulesets = _page(
-        "curatedRuleSets",
-        [
-            {
-                "name": f"{chronicle_client.instance_id}/curatedRuleSetCategories/c1/curatedRuleSets/crs_1",
-                "displayName": "My Ruleset",
-            }
-        ],
-    )
+    ruleset = Mock()
+    ruleset.status_code = 200
+    ruleset.json.return_value = {
+        "name": f"{chronicle_client.instance_id}/curatedRuleSetCategories/c1/curatedRuleSets/crs_1",
+        "displayName": "My Ruleset",
+    }
+
     deployment = Mock()
     deployment.status_code = 200
     deployment.json.return_value = {"enabled": True, "alerting": False}
 
     with patch.object(
-        chronicle_client.session, "get", side_effect=[rulesets, deployment]
+        chronicle_client.session, "get", side_effect=[ruleset, deployment]
     ) as mocked_request:
-        out = get_curated_rule_set_deployment(
-            chronicle_client, "crs_1", "precise"
-        )
+        out = get_curated_rule_set_deployment(chronicle_client, "crs_1", "precise")
         assert out["displayName"] == "My Ruleset"
-        # Second GET is the deployment URL
+
         dep_url = (
             f"{chronicle_client.base_url}/"
             f"{chronicle_client.instance_id}/curatedRuleSetCategories/c1/curatedRuleSets/crs_1/"
@@ -406,15 +402,15 @@ def test_get_ruleset_deployment_error_invalid_precision(chronicle_client):
 
 
 def test_get_ruleset_deployment_ruleset_error_not_found(chronicle_client):
-    """Test get_curated_rule_set_deployment failure."""
-    empty_rulesets = _page("curatedRuleSets", [])
-    with patch.object(
-        chronicle_client.session, "get", return_value=empty_rulesets
-    ):
-        with pytest.raises(SecOpsError):
-            get_curated_rule_set_deployment(
-                chronicle_client, "crs_404", "precise"
-            )
+    """Test get_curated_rule_set_deployment failure when ruleset ID doesn't exist."""
+    not_found = Mock()
+    not_found.status_code = 404
+    not_found.text = "Not found"
+
+    with patch.object(chronicle_client.session, "get", return_value=not_found):
+        with pytest.raises(APIError):
+            get_curated_rule_set_deployment(chronicle_client, "crs_404", "precise")
+
 
 
 # --- get_curated_rule_set_deployment_by_name ---

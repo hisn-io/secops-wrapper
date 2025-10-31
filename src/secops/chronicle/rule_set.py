@@ -347,16 +347,7 @@ def get_curated_rule_set_deployment(
         raise SecOpsError("Precision must be 'precise' or 'broad'")
 
     # Get the rule set by ID
-    rule_set = next(
-        (
-            rs
-            for rs in list_curated_rule_sets(client)
-            if rule_set_id in rs.get("name", "")
-        ),
-        None,
-    )
-    if rule_set is None:
-        raise SecOpsError(f"Rule set {rule_set_id} not found")
+    rule_set = get_curated_rule_set(client, rule_set_id)
 
     url = (
         f"{client.base_url}/{rule_set.get('name', '')}/"
