@@ -1831,6 +1831,8 @@ class ChronicleClient:
         precision: str = "precise",
     ) -> Dict[str, Any]:
         """Get a curated rule set deployment by human-readable display name
+            NOTE: This is a linear scan of all curated rules,
+            so it may be inefficient for large rule sets.
 
         Args:
             display_name: Display name of the curated rule set
@@ -1882,6 +1884,8 @@ class ChronicleClient:
 
     def get_curated_rule_by_name(self, display_name: str) -> Dict[str, Any]:
         """Get a curated rule by human-readable display name
+            NOTE: This is a linear scan of all curated rules,
+            so it may be inefficient for large rule sets.
 
         Args:
             display_name: Display name of the curated rule

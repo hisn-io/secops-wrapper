@@ -240,6 +240,8 @@ def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
 
 def get_curated_rule_by_name(client, display_name: str) -> Dict[str, Any]:
     """Get a curated rule by display name
+        NOTE: This is a linear scan of all curated rules,
+        so it may be inefficient for large rule sets.
 
     Args:
         client: ChronicleClient instance
@@ -380,6 +382,8 @@ def get_curated_rule_set_deployment_by_name(
     precision: str = "precise",
 ) -> Dict[str, Any]:
     """Get the deployment status of a curated rule set by its display name
+        NOTE: This is a linear scan of all curated rule sets,
+        so it may be inefficient for large rule sets.
 
     Args:
         client: ChronicleClient instance

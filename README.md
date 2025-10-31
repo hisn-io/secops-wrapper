@@ -1731,6 +1731,7 @@ for rule in rules:
 rule = chronicle.get_curated_rule("ur_ttp_lol_Atbroker")
 
 # Get a curated rule set by display name
+# NOTE: This is a linear scan of all curated rules which may be inefficient for large rule sets.
 rule_set = chronicle.get_curated_rule_by_name("Atbroker.exe Abuse")
 ```
 
@@ -1785,6 +1786,7 @@ for rs_deployment in rule_set_deployments:
 rule_set_deployment = chronicle.get_curated_rule_set_deployment("00ad672e-ebb3-0dd1-2a4d-99bd7c5e5f93")
 
 # Get curated rule set deployment by rule set display name
+# NOTE: This is a linear scan of all curated rules which may be inefficient for large rule sets.
 rule_set_deployment = chronicle.get_curated_rule_set_deployment_by_name("Azure - Network")
     
 # Update multiple curated rule set deployments
