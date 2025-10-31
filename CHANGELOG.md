@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0] - 2025-10-30
+### Added
+- Support for entity import method
+
 ## [0.21.2] - 2025-10-15
 ### Added
 - Support for filter in list rule deployments method

@@ -27,6 +27,7 @@ from secops.chronicle.reference_list import ReferenceListSyntaxType, ReferenceLi
 import json
 import re
 import time
+import uuid
 
 
 @pytest.mark.integration
@@ -1827,4 +1828,82 @@ def test_find_udm_field_values():
         pytest.fail(f"Test failed due to API error: {str(e)}")
     except Exception as e:
         print(f"Unexpected error in find_udm_field_values test: {str(e)}")
+        raise
+
+
+@pytest.mark.integration
+def test_import_entities():
+    """Test entity import method of chronicle."""
+    # Create a SecOps client instance
+    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
+    chronicle = client.chronicle(**CHRONICLE_CONFIG)
+
+    # Get current time for entity metadata
+    current_time = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+    # Create a test entity with a unique identifier
+    entity_id = f"test_user_{uuid.uuid4().hex[:8]}"
+    test_entity = {
+        "metadata": {
+            "collected_timestamp": current_time,
+            "entity_type": "USER",
+            "vendor_name": "SecOps SDK Test",
+            "product_name": "Entity Integration Test",
+        },
+        "entity": {
+            "user": {
+                "userid": entity_id,
+                "product_object_id": f"test_object_{uuid.uuid4().hex[:8]}",
+            }
+        },
+    }
+
+    try:
+        # Import the entity
+        print(f"\nImporting test entity with ID: {entity_id}")
+        result = chronicle.import_entities(
+            entities=test_entity, log_type="OKTA"
+        )
+
+        # Verify response
+        assert result is not None
+        assert result == {}
+        # An empty dict response indicates success
+        print(f"Import response: {result}")
+
+        # Test with multiple entities
+        entity_id2 = f"test_user_{uuid.uuid4().hex[:8]}"
+        test_entity2 = {
+            "metadata": {
+                "collected_timestamp": current_time,
+                "entity_type": "USER",
+                "vendor_name": "SecOps SDK Test",
+                "product_name": "Entity Integration Test",
+            },
+            "entity": {
+                "user": {
+                    "userid": entity_id2,
+                    "product_object_id": f"test_object_{uuid.uuid4().hex[:8]}",
+                }
+            },
+        }
+
+        # Import multiple entities
+        print(
+            f"\nImporting multiple test entities: {entity_id} and {entity_id2}"
+        )
+        multi_result = chronicle.import_entities(
+            entities=[test_entity, test_entity2], log_type="OKTA"
+        )
+
+        # Verify multiple entity response
+        assert multi_result is not None
+        assert multi_result == {}
+        print(f"Multiple entity import response: {multi_result}")
+
+    except APIError as e:
+        print(f"\nAPI Error details: {str(e)}")
+        # Skip the test rather than fail if permissions are not available
+        if "permission" in str(e).lower() or "not authorized" in str(e).lower():
+            pytest.skip("Insufficient permissions to import entities")
         raise
