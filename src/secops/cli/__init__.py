@@ -33,12 +33,8 @@ from secops.cli.commands.forwarder import setup_forwarder_command
 from secops.cli.utils.common_args import (
     add_common_args,
     add_chronicle_args,
-    add_time_range_args,
 )
-from secops.cli.utils.time_utils import parse_datetime, get_time_range
-from secops.cli.utils.formatters import output_formatter
-from secops.cli.utils.config_utils import load_config, save_config
-from secops.cli.constants import CONFIG_DIR, CONFIG_FILE
+from secops.cli.utils.config_utils import load_config
 from secops.exceptions import AuthenticationError, SecOpsError
 
 
