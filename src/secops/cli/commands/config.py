@@ -17,6 +17,7 @@
 from secops.cli.constants import CONFIG_FILE
 from secops.cli.utils.config_utils import load_config, save_config
 
+
 def setup_config_command(subparsers):
     """Set up the config command parser.
 

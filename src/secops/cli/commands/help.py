@@ -14,6 +14,7 @@
 #
 """Google SecOps CLI help commands"""
 
+
 def setup_help_command(subparsers):
     """Set up the help command parser.
 
