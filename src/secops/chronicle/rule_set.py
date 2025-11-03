@@ -227,9 +227,7 @@ def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
     Raises:
         APIError: If the API request fails
     """
-    base_url = (
-        f"{client.base_url}/{client.instance_id}/" f"curatedRules/{rule_id}"
-    )
+    base_url = f"{client.base_url}/{client.instance_id}/curatedRules/{rule_id}"
 
     response = client.session.get(base_url)
     if response.status_code != 200:

@@ -1,5 +1,3 @@
-from docutils.nodes import description
-
 # Google SecOps SDK for Python
 
 [![PyPI version](https://img.shields.io/pypi/v/secops.svg)](https://pypi.org/project/secops/)
