@@ -6,16 +6,10 @@ import sys
 from pathlib import Path
 import tempfile
 
-from secops.cli import (
-    main,
-    parse_datetime,
-    setup_client,
-    get_time_range,
-    output_formatter,
-    load_config,
-    save_config,
-)
-
+from secops.cli import main, setup_client
+from secops.cli.utils.time_utils import parse_datetime, get_time_range
+from secops.cli.utils.config_utils import load_config, save_config
+from secops.cli.utils.formatters import output_formatter
 
 def test_parse_datetime():
     """Test datetime parsing."""
@@ -157,7 +151,7 @@ def test_time_config():
         }
 
         # Save config
-        with patch("secops.cli.CONFIG_FILE", config_file):
+        with patch("secops.cli.constants.CONFIG_FILE", config_file):
             save_config(test_config)
 
             # Load config
