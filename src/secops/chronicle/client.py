@@ -78,6 +78,9 @@ from secops.chronicle.data_table import (
     replace_data_table_rows as _replace_data_table_rows,
 )
 from secops.chronicle.data_table import update_data_table as _update_data_table
+from secops.chronicle.data_table import (
+    update_data_table_rows as _update_data_table_rows,
+)
 from secops.chronicle.entity import _detect_value_type_for_query
 from secops.chronicle.entity import summarize_entity as _summarize_entity
 from secops.chronicle.feeds import CreateFeedModel, UpdateFeedModel
@@ -2815,6 +2818,62 @@ class ChronicleClient:
         return _update_data_table(
             self, name, description, row_time_to_live, update_mask
         )
+
+    def update_data_table_rows(
+        self,
+        name: str,
+        row_updates: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
+        """Update multiple data table rows in bulk.
+
+        This method updates existing rows in a data table using their
+        full resource names. It supports chunking to handle large batches
+        and respects API limits (max 1000 rows or 2MB per request).
+
+        Args:
+            name: The name of the data table
+            row_updates: List of row update specifications.
+                Each dict must contain:
+                - 'name': str - Full resource name of the row to update
+                  (format: projects/{project}/locations/{location}/
+                  instances/{instance}/dataTables/{table}/
+                  dataTableRows/{row_id})
+                - 'values': List[str] - The new values for the row
+                - 'update_mask': str (optional) - Comma-separated list
+                  of fields to update (e.g., 'values'). If not specified,
+                  all fields are updated.
+
+        Returns:
+            List of response dictionaries from the API, one per chunk
+
+        Raises:
+            APIError: If the API request fails
+            SecOpsError: If a row is too large or validation fails
+
+        Example:
+            ```python
+            # First, get the rows to obtain their full resource names
+            rows = chronicle.list_data_table_rows('my_table')
+            
+            # Update multiple rows
+            updates = [
+                {
+                    'name': rows[0]['name'],
+                    'values': ['new-val1', 'new-val2', 'new-val3']
+                },
+                {
+                    'name': rows[1]['name'],
+                    'values': ['updated-val1', 'updated-val2', 'updated-val3'],
+                    'update_mask': 'values'
+                }
+            ]
+            responses = chronicle.update_data_table_rows(
+                'my_table',
+                updates
+            )
+            ```
+        """
+        return _update_data_table_rows(self, name, row_updates)
 
     # Rule Exclusion methods
 
