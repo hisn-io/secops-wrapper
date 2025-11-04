@@ -17,10 +17,13 @@
 import json
 import sys
 
-from secops.cli.utils.common_args import add_time_range_args
+from secops.exceptions import APIError
 from secops.cli.utils.time_utils import get_time_range
 from secops.cli.utils.formatters import output_formatter
-from secops.exceptions import APIError
+from secops.cli.utils.common_args import (
+    add_time_range_args,
+    add_pagination_args,
+)
 
 
 def setup_rule_command(subparsers):
@@ -32,20 +35,7 @@ def setup_rule_command(subparsers):
 
     # List rules command
     list_parser = rule_subparsers.add_parser("list", help="List rules")
-    list_parser.add_argument(
-        "--page-size",
-        "--page_size",
-        dest="page_size",
-        type=int,
-        help="Page size for results",
-    )
-    list_parser.add_argument(
-        "--page-token",
-        "--page_token",
-        dest="page_token",
-        type=str,
-        help="A page token, received from a previous `list` call.",
-    )
+    add_pagination_args(list_parser)
     list_parser.add_argument(
         "--view",
         type=str,
@@ -160,20 +150,7 @@ def setup_rule_command(subparsers):
     list_dep_parser = rule_subparsers.add_parser(
         "list-deployments", help="List rule deployments"
     )
-    list_dep_parser.add_argument(
-        "--page-size",
-        "--page_size",
-        dest="page_size",
-        type=int,
-        help="Page size for results",
-    )
-    list_dep_parser.add_argument(
-        "--page-token",
-        "--page_token",
-        dest="page_token",
-        type=str,
-        help="A page token, received from a previous `list` call.",
-    )
+    add_pagination_args(list_dep_parser)
     list_dep_parser.add_argument(
         "--filter",
         dest="filter_query",
@@ -227,12 +204,7 @@ def setup_rule_command(subparsers):
     detection_parser.add_argument(
         "--alert-state", "--alert_state", required=False, help="Alert state"
     )
-    detection_parser.add_argument(
-        "--page-size", "--page_size", required=False, help="Page size"
-    )
-    detection_parser.add_argument(
-        "--page-token", "--page_token", required=False, help="Alert state"
-    )
+    add_pagination_args(detection_parser)
     add_time_range_args(detection_parser)
 
 

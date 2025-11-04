@@ -19,6 +19,7 @@ import sys
 
 from secops.cli.utils.formatters import output_formatter
 from secops.exceptions import APIError, SecOpsError
+from secops.cli.utils.common_args import add_pagination_args
 
 
 def setup_dashboard_command(subparsers):
@@ -36,15 +37,7 @@ def setup_dashboard_command(subparsers):
     list_parser = dashboard_subparsers.add_parser(
         "list", help="List dashboards"
     )
-    list_parser.add_argument(
-        "--page-size",
-        "--page_size",
-        type=int,
-        help="Maximum number of dashboards to return",
-    )
-    list_parser.add_argument(
-        "--page-token", "--page_token", help="Page token for pagination"
-    )
+    add_pagination_args(list_parser)
     list_parser.set_defaults(func=handle_dashboard_list_command)
 
     # Get dashboard

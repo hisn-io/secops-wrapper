@@ -16,9 +16,12 @@
 
 import sys
 
-from secops.cli.utils.common_args import add_time_range_args
 from secops.cli.utils.time_utils import get_time_range
 from secops.cli.utils.formatters import output_formatter
+from secops.cli.utils.common_args import (
+    add_time_range_args,
+    add_pagination_args,
+)
 
 
 def setup_rule_exclusion_command(subparsers):
@@ -56,20 +59,7 @@ def setup_rule_exclusion_command(subparsers):
 
     # List rule exclusions command
     list_parser = re_subparsers.add_parser("list", help="List rule exclusions")
-    list_parser.add_argument(
-        "--page-size",
-        "--page_size",
-        dest="page_size",
-        type=int,
-        default=100,
-        help="Number of results in each page",
-    )
-    list_parser.add_argument(
-        "--page-token",
-        "--page_token",
-        dest="page_token",
-        help="Page token from a previous response",
-    )
+    add_pagination_args(list_parser)
     list_parser.set_defaults(func=handle_rule_exclusion_list_command)
 
     # Update rule exclusion command

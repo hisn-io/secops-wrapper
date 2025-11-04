@@ -17,6 +17,7 @@
 import sys
 
 from secops.cli.utils.formatters import output_formatter
+from secops.cli.utils.common_args import add_pagination_args
 
 
 def setup_curated_rules_command(subparsers):
@@ -31,18 +32,7 @@ def setup_curated_rules_command(subparsers):
     rules_sp = rules.add_subparsers(dest="rule_cmd", required=True)
 
     rules_list = rules_sp.add_parser("list", help="List curated rules")
-    rules_list.add_argument(
-        "--page-size",
-        type=int,
-        dest="page_size",
-        help="The number of results to return per page.",
-    )
-    rules_list.add_argument(
-        "--page-token",
-        type=str,
-        dest="page_token",
-        help="A page token, received from a previous `list` call.",
-    )
+    add_pagination_args(rules_list)
     rules_list.set_defaults(func=handle_curated_rules_rules_list_command)
 
     rules_get = rules_sp.add_parser("get", help="Get a curated rule")
@@ -58,18 +48,7 @@ def setup_curated_rules_command(subparsers):
     rule_set_list = rule_set_subparser.add_parser(
         "list", help="List curated rule sets"
     )
-    rule_set_list.add_argument(
-        "--page-size",
-        type=int,
-        dest="page_size",
-        help="The number of results to return per page.",
-    )
-    rule_set_list.add_argument(
-        "--page-token",
-        type=str,
-        dest="page_token",
-        help="A page token, received from a previous `list` call.",
-    )
+    add_pagination_args(rule_set_list)
     rule_set_list.set_defaults(func=handle_curated_rules_rule_set_list_command)
 
     rule_set_get = rule_set_subparser.add_parser(
@@ -91,18 +70,7 @@ def setup_curated_rules_command(subparsers):
     rule_set_cat_list = rule_set_cat_subparser.add_parser(
         "list", help="List curated rule set categories"
     )
-    rule_set_cat_list.add_argument(
-        "--page-size",
-        type=int,
-        dest="page_size",
-        help="The number of results to return per page.",
-    )
-    rule_set_cat_list.add_argument(
-        "--page-token",
-        type=str,
-        dest="page_token",
-        help="A page token, received from a previous `list` call.",
-    )
+    add_pagination_args(rule_set_cat_list)
     rule_set_cat_list.set_defaults(
         func=handle_curated_rules_rule_set_category_list_command
     )
@@ -132,18 +100,7 @@ def setup_curated_rules_command(subparsers):
     rule_set_deployment_list.add_argument(
         "--only-alerting", dest="only_alerting", action="store_true"
     )
-    rule_set_deployment_list.add_argument(
-        "--page-size",
-        type=int,
-        dest="page_size",
-        help="The number of results to return per page.",
-    )
-    rule_set_deployment_list.add_argument(
-        "--page-token",
-        type=str,
-        dest="page_token",
-        help="A page token, received from a previous `list` call.",
-    )
+    add_pagination_args(rule_set_deployment_list)
     rule_set_deployment_list.set_defaults(
         func=handle_curated_rules_rule_set_deployment_list_command
     )

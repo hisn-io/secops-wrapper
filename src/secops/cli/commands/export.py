@@ -16,9 +16,12 @@
 
 import sys
 
-from secops.cli.utils.common_args import add_time_range_args
 from secops.cli.utils.time_utils import get_time_range
 from secops.cli.utils.formatters import output_formatter
+from secops.cli.utils.common_args import (
+    add_time_range_args,
+    add_pagination_args,
+)
 
 
 def setup_export_command(subparsers):
@@ -33,14 +36,7 @@ def setup_export_command(subparsers):
         "log-types", help="List available log types for export"
     )
     add_time_range_args(log_types_parser)
-    log_types_parser.add_argument(
-        "--page-size",
-        "--page_size",
-        dest="page_size",
-        type=int,
-        default=100,
-        help="Page size for results",
-    )
+    add_pagination_args(log_types_parser)
     log_types_parser.set_defaults(func=handle_export_log_types_command)
 
     # Create export command
@@ -81,19 +77,7 @@ def setup_export_command(subparsers):
     list_parser.add_argument(
         "--filter", dest="filters", help="Filter string for listing exports"
     )
-    list_parser.add_argument(
-        "--page-size",
-        "--page_size",
-        dest="page_size",
-        type=int,
-        help="Page size for results",
-    )
-    list_parser.add_argument(
-        "--page-token",
-        "--page_token",
-        dest="page_token",
-        help="Page token for pagination",
-    )
+    add_pagination_args(list_parser)
     list_parser.set_defaults(func=handle_export_list_command)
 
     # Update export command

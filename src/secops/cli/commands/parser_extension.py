@@ -17,8 +17,9 @@
 import sys
 from typing import Any
 
-from secops.cli.utils.formatters import output_formatter
 from secops.exceptions import APIError
+from secops.cli.utils.formatters import output_formatter
+from secops.cli.utils.common_args import add_pagination_args
 
 
 def setup_parser_extension_command(subparsers: Any) -> None:
@@ -113,15 +114,7 @@ def setup_parser_extension_command(subparsers: Any) -> None:
         required=True,
         help="Log type to list parser extensions for",
     )
-    list_cmd.add_argument(
-        "--page-size",
-        type=int,
-        help="Maximum number of results to return",
-    )
-    list_cmd.add_argument(
-        "--page-token",
-        help="Page token for pagination",
-    )
+    add_pagination_args(list_cmd)
     list_cmd.set_defaults(func=handle_parser_extension_list_command)
 
     # Activate parser extension

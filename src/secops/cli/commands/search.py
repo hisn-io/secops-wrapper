@@ -16,9 +16,12 @@
 
 import sys
 
-from secops.cli.utils.common_args import add_time_range_args
 from secops.cli.utils.time_utils import get_time_range
 from secops.cli.utils.formatters import output_formatter
+from secops.cli.utils.common_args import (
+    add_time_range_args,
+    add_pagination_args,
+)
 
 
 def setup_search_command(subparsers):
@@ -62,13 +65,7 @@ def setup_search_command(subparsers):
     udm_field_value_search_parser.add_argument(
         "--query", required=True, help="UDM query string"
     )
-    udm_field_value_search_parser.add_argument(
-        "--page-size",
-        "--page_size",
-        dest="page_size",
-        type=int,
-        help="Maximum page size to return",
-    )
+    add_pagination_args(udm_field_value_search_parser)
     udm_field_value_search_parser.set_defaults(
         func=handle_find_udm_field_values_command
     )

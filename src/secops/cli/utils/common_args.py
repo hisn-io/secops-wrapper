@@ -101,3 +101,25 @@ def add_time_range_args(parser: argparse.ArgumentParser) -> None:
         default=config.get("time_window", 24),
         help="Time window in hours (alternative to start/end time)",
     )
+
+
+def add_pagination_args(parser: argparse.ArgumentParser) -> None:
+    """Add pagination arguments to a parser.
+
+    Args:
+        parser: Parser to add arguments to
+    """
+    parser.add_argument(
+        "--page-size",
+        "--page_size",
+        type=int,
+        dest="page_size",
+        help="The number of results to return per page.",
+    )
+    parser.add_argument(
+        "--page-token",
+        "--page_token",
+        type=str,
+        dest="page_token",
+        help="A page token, received from a previous `list` call.",
+    )

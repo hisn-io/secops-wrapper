@@ -16,6 +16,11 @@
 
 from secops.cli.constants import CONFIG_FILE
 from secops.cli.utils.config_utils import load_config, save_config
+from secops.cli.utils.common_args import (
+    add_chronicle_args,
+    add_common_args,
+    add_time_range_args,
+)
 
 
 def setup_config_command(subparsers):
@@ -35,41 +40,9 @@ def setup_config_command(subparsers):
     set_parser = config_subparsers.add_parser(
         "set", help="Set configuration values"
     )
-    set_parser.add_argument(
-        "--customer-id",
-        "--customer_id",
-        dest="customer_id",
-        help="Chronicle instance ID",
-    )
-    set_parser.add_argument(
-        "--project-id", "--project_id", dest="project_id", help="GCP project ID"
-    )
-    set_parser.add_argument("--region", help="Chronicle API region")
-    set_parser.add_argument(
-        "--service-account",
-        "--service_account",
-        dest="service_account",
-        help="Path to service account JSON file",
-    )
-    set_parser.add_argument(
-        "--start-time",
-        "--start_time",
-        dest="start_time",
-        help="Default start time in ISO format (YYYY-MM-DDTHH:MM:SSZ)",
-    )
-    set_parser.add_argument(
-        "--end-time",
-        "--end_time",
-        dest="end_time",
-        help="Default end time in ISO format (YYYY-MM-DDTHH:MM:SSZ)",
-    )
-    set_parser.add_argument(
-        "--time-window",
-        "--time_window",
-        dest="time_window",
-        type=int,
-        help="Default time window in hours",
-    )
+    add_chronicle_args(set_parser)
+    add_common_args(set_parser)
+    add_time_range_args(set_parser)
     set_parser.set_defaults(func=handle_config_set_command)
 
     # View config command

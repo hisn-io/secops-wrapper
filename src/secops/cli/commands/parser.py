@@ -7,6 +7,7 @@ import base64
 import sys
 
 from secops.cli.utils.formatters import output_formatter
+from secops.cli.utils.common_args import add_pagination_args
 from secops.exceptions import APIError, SecOpsError
 
 
@@ -133,17 +134,7 @@ def setup_parser_command(subparsers):
         default="-",
         help="Log type to filter by (default: '-' for all).",
     )
-    list_parsers_sub.add_argument(
-        "--page-size",
-        type=int,
-        default=100,
-        help="The maximum number of parsers to return per page.",
-    )
-    list_parsers_sub.add_argument(
-        "--page-token",
-        type=str,
-        help="A page token, received from a previous `list` call.",
-    )
+    add_pagination_args(list_parsers_sub)
     list_parsers_sub.add_argument(
         "--filter",
         type=str,

@@ -18,6 +18,7 @@ import json
 import sys
 
 from secops.exceptions import APIError
+from secops.cli.utils.common_args import add_pagination_args
 
 
 def setup_forwarder_command(subparsers):
@@ -149,20 +150,7 @@ def setup_forwarder_command(subparsers):
     list_parser = forwarder_subparsers.add_parser(
         "list", help="List all forwarders"
     )
-    list_parser.add_argument(
-        "--page-size",
-        "--page_size",
-        dest="page_size",
-        type=int,
-        help="Maximum number of forwarders to return (1-1000)",
-    )
-    list_parser.add_argument(
-        "--page-token",
-        "--page_token",
-        dest="page_token",
-        type=str,
-        help="Page token for pagination",
-    )
+    add_pagination_args(list_parser)
     list_parser.set_defaults(func=handle_forwarder_list_command)
 
     # Get forwarder command
