@@ -29,7 +29,7 @@ from secops.cli.commands.parser_extension import setup_parser_extension_command
 from secops.cli.commands.dashboard import setup_dashboard_command
 from secops.cli.commands.dashboard_query import setup_dashboard_query_command
 from secops.cli.commands.forwarder import setup_forwarder_command
-
+from secops.cli.commands.curated_rule import setup_curated_rules_command
 from secops.cli.utils.common_args import (
     add_common_args,
     add_chronicle_args,
@@ -148,10 +148,11 @@ def main() -> None:
     setup_case_command(subparsers)
     setup_export_command(subparsers)
     setup_gemini_command(subparsers)
-    setup_data_table_command(subparsers)  # Add data table command
-    setup_reference_list_command(subparsers)  # Add reference list command
-    setup_rule_exclusion_command(subparsers)  # Add rule exclusion command
-    setup_forwarder_command(subparsers)  # Add forwarder command
+    setup_data_table_command(subparsers)
+    setup_reference_list_command(subparsers)
+    setup_rule_exclusion_command(subparsers)
+    setup_forwarder_command(subparsers)
+    setup_curated_rules_command(subparsers)
     setup_config_command(subparsers)
     setup_help_command(subparsers)
     setup_dashboard_command(subparsers)
@@ -182,6 +183,7 @@ def main() -> None:
         "export",
         "gemini",
         "rule-exclusion",
+        "curated-rule",
         "forwarder",
         "dashboard",
     ]
