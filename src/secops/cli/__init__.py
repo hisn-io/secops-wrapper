@@ -14,6 +14,6 @@
 #
 """Google SecOps CLI"""
 
-from .cli_client import main
+from .cli_client import main, setup_client
 
-main()
+__all__ = ["main", "setup_client"]
