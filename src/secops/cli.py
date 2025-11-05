@@ -2745,6 +2745,37 @@ def setup_data_table_command(subparsers):
     )
     replace_rows_parser.set_defaults(func=handle_dt_replace_rows_command)
 
+    # Update rows command
+    update_rows_parser = dt_subparsers.add_parser(
+        "update-rows", help="Update existing rows in a data table"
+    )
+    update_rows_parser.add_argument(
+        "--name", required=True, help="Data table name"
+    )
+    update_rows_group = update_rows_parser.add_mutually_exclusive_group(
+        required=True
+    )
+    update_rows_group.add_argument(
+        "--rows",
+        help=(
+            "Row updates as a JSON array of objects. Each object must have "
+            "'name' (full resource name) and 'values' (array of strings). "
+            "Optional: 'update_mask' (comma-separated fields). Example: "
+            '[{"name":"projects/.../dataTableRows/row1",'
+            '"values":["val1","val2"],"update_mask":"values"}]'
+        ),
+    )
+    update_rows_group.add_argument(
+        "--rows-file",
+        "--rows_file",
+        dest="rows_file",
+        help=(
+            "Path to a JSON file containing row updates as an array "
+            "of objects"
+        ),
+    )
+    update_rows_parser.set_defaults(func=handle_dt_update_rows_command)
+
 
 def setup_reference_list_command(subparsers):
     """Set up the reference list command parser."""
@@ -3024,6 +3055,59 @@ def handle_dt_update_command(args, chronicle):
             description=args.description,
             row_time_to_live=args.row_time_to_live,
             update_mask=update_mask,
+        )
+        output_formatter(result, args.output)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def handle_dt_update_rows_command(args, chronicle):
+    """Handle data table update rows command.
+
+    Updates existing rows in a data table using their full resource names.
+
+    Args:
+        args: Command line arguments
+        chronicle: Chronicle client
+    """
+    try:
+        # Parse row updates from either JSON string or file
+        row_updates = None
+        if args.rows:
+            try:
+                row_updates = json.loads(args.rows)
+            except json.JSONDecodeError as e:
+                print(f"Error parsing row updates: {e}", file=sys.stderr)
+                print(
+                    "Row updates should be a JSON array of objects.",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+        elif args.rows_file:
+            try:
+                with open(args.rows_file, "r", encoding="utf-8") as f:
+                    row_updates = json.load(f)
+            except (json.JSONDecodeError, IOError) as e:
+                print(f"Error reading from file: {e}", file=sys.stderr)
+                sys.exit(1)
+        else:
+            print(
+                "Error: Either --rows or --rows-file " "must be specified",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        # Validate row updates structure
+        if not isinstance(row_updates, list):
+            print(
+                "Error: Row updates must be an array of objects",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+        result = chronicle.update_data_table_rows(
+            name=args.name, row_updates=row_updates
         )
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught

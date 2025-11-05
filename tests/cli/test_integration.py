@@ -2304,6 +2304,191 @@ def test_cli_update_data_table(cli_env, common_args):
 
 
 @pytest.mark.integration
+def test_cli_update_data_table_rows(cli_env, common_args):
+    """Test the data-table update-rows command.
+    
+    This test creates a data table with initial rows, updates specific rows
+    via CLI, verifies the changes, and then cleans up by deleting the data
+    table.
+    """
+    # Generate unique name for data table using timestamp
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    table_name = f"test_update_rows_{timestamp}"
+    
+    try:
+        # 1. Create a data table with initial rows
+        print("\n>>> Creating data table with initial rows")
+        header = json.dumps(
+            {
+                "hostname": "STRING",
+                "ip_address": "STRING",
+                "status": "STRING",
+            }
+        )
+        initial_rows = json.dumps(
+            [
+                ["server1.example.com", "10.0.0.1", "active"],
+                ["server2.example.com", "10.0.0.2", "active"],
+                ["server3.example.com", "10.0.0.3", "inactive"],
+            ]
+        )
+        
+        create_cmd = (
+            ["secops"]
+            + common_args
+            + [
+                "data-table",
+                "create",
+                "--name",
+                table_name,
+                "--description",
+                "CLI Test for Update Rows",
+                "--header",
+                header,
+                "--rows",
+                initial_rows,
+            ]
+        )
+        
+        create_result = subprocess.run(
+            create_cmd, env=cli_env, capture_output=True, text=True
+        )
+        
+        # Check that creation was successful
+        assert (
+            create_result.returncode == 0
+        ), f"Creation failed: {create_result.stderr}"
+        print("Data table created successfully")
+        
+        # 2. List rows to get their resource names
+        print("Listing rows to get resource names")
+        list_rows_cmd = (
+            ["secops"]
+            + common_args
+            + ["data-table", "list-rows", "--name", table_name]
+        )
+        
+        list_rows_result = subprocess.run(
+            list_rows_cmd, env=cli_env, capture_output=True, text=True
+        )
+        
+        assert list_rows_result.returncode == 0
+        initial_rows_data = json.loads(list_rows_result.stdout)
+        assert (
+            len(initial_rows_data) == 3
+        ), f"Expected 3 initial rows, got {len(initial_rows_data)}"
+        print(f"Retrieved {len(initial_rows_data)} rows")
+
+        for row in initial_rows_data:
+            if "server1" in row["values"][0]:
+                row_1_name = row["name"]
+            elif "server2" in row["values"][0]:
+                row_2_name = row["name"]
+        
+        # 3. Prepare row updates
+        row_updates = [
+            {
+                "name": row_1_name,
+                "values": [
+                    "server1-updated.example.com",
+                    "192.168.1.1",
+                    "maintenance",
+                ],
+            },
+            {
+                "name": row_2_name,
+                "values": [
+                    "server2-updated.example.com",
+                    "192.168.1.2",
+                    "maintenance",
+                ],
+            },
+        ]
+        row_updates_json = json.dumps(row_updates)
+        
+        # 4. Update rows via CLI
+        print("\n>>> Updating 2 rows via CLI")
+        update_rows_cmd = (
+            ["secops"]
+            + common_args
+            + [
+                "data-table",
+                "update-rows",
+                "--name",
+                table_name,
+                "--rows",
+                row_updates_json,
+            ]
+        )
+        
+        update_result = subprocess.run(
+            update_rows_cmd, env=cli_env, capture_output=True, text=True
+        )
+        
+        # Check that update was successful
+        assert (
+            update_result.returncode == 0
+        ), f"Update failed: {update_result.stderr}"
+        print("Rows updated successfully")
+        
+        # 5. List rows again to verify updates
+        print("Verifying updated rows")
+        list_rows_result = subprocess.run(
+            list_rows_cmd, env=cli_env, capture_output=True, text=True
+        )
+        
+        assert list_rows_result.returncode == 0
+        updated_rows_data = json.loads(list_rows_result.stdout)
+        assert (
+            len(updated_rows_data) == 3
+        ), f"Expected 3 rows after update, got {len(updated_rows_data)}"
+        print(f"Verified {len(updated_rows_data)} rows")
+        
+        # Verify the updated content
+        updated_hostnames = set(
+            row["values"][0]
+            for row in updated_rows_data
+            if "updated" in row["values"][0]
+        )
+        assert len(updated_hostnames) == 2, (
+            f"Expected 2 updated hostnames, got {len(updated_hostnames)}"
+        )
+        assert "server1-updated.example.com" in updated_hostnames
+        assert "server2-updated.example.com" in updated_hostnames
+        
+        # Verify the third row remains unchanged
+        unchanged_rows = [
+            row
+            for row in updated_rows_data
+            if "server3" in row["values"][0]
+        ]
+        assert len(unchanged_rows) == 1
+        assert unchanged_rows[0]["values"][2] == "inactive"
+        
+        print("Row content verified successfully")
+        
+    except Exception as e:
+        # Clean up in case of test failure
+        pytest.fail(f"Update rows CLI test failed: {e}")
+        
+    finally:
+        # Clean up the data table
+        try:
+            subprocess.run(
+                ["secops"]
+                + common_args
+                + ["data-table", "delete", "--name", table_name, "--force"],
+                env=cli_env,
+                capture_output=True,
+            )
+        except Exception as cleanup_error:
+            print(
+                f"Warning: Failed to clean up data table {table_name}: "
+                f"{cleanup_error}"
+            )
+
+
+@pytest.mark.integration
 def test_cli_reference_lists(cli_env, common_args):
     """Test the reference-list command lifecycle."""
     # Generate unique name for reference list using timestamp
