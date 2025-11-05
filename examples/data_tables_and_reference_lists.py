@@ -10,8 +10,8 @@ from secops.chronicle.reference_list import ReferenceListSyntaxType, ReferenceLi
 from secops.exceptions import APIError, SecOpsError
 
 # Replace these with your actual values
-PROJECT_ID = "725716774503"
-CUSTOMER_ID = "c3c6260c1c9340dcbbb802603bbf9636"
+PROJECT_ID = "your-project-id"
+CUSTOMER_ID = "your-customer-id"
 REGION = "us"  # or "eu", etc.
 
 # Optional: Path to service account key file
