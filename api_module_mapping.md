@@ -124,9 +124,9 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 |dataTables.dataTableRows.bulkCreate                                           |v1alpha|chronicle.data_table.create_data_table_rows                 |secops data-table add-rows             |
 |dataTables.dataTableRows.bulkCreateAsync                                      |v1alpha|                                                            |                                       |
 |dataTables.dataTableRows.bulkGet                                              |v1alpha|                                                            |                                       |
-|dataTables.dataTableRows.bulkReplace                                          |v1alpha|                                                            |                                       |
+|dataTables.dataTableRows.bulkReplace                                          |v1alpha|chronicle.data_export.replace_data_table_rows                                                            |secops data-table replace-rows                                       |
 |dataTables.dataTableRows.bulkReplaceAsync                                     |v1alpha|                                                            |                                       |
-|dataTables.dataTableRows.bulkUpdate                                           |v1alpha|                                                            |                                       |
+|dataTables.dataTableRows.bulkUpdate                                           |v1alpha|chronicle.data_export.update_data_table_rows                                                            |secops data-table update-rows                                       |
 |dataTables.dataTableRows.bulkUpdateAsync                                      |v1alpha|                                                            |                                       |
 |dataTables.dataTableRows.create                                               |v1alpha|                                                            |                                       |
 |dataTables.dataTableRows.delete                                               |v1alpha|chronicle.data_table.delete_data_table_rows                 |secops data-table delete-rows          |
