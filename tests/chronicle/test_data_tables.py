@@ -956,6 +956,330 @@ class TestReferenceLists:
             with pytest.raises(SecOpsError, match="Single row is too large to process"):
                 replace_data_table_rows(mock_chronicle_client, dt_name, oversized_row)
 
+
+    def test_update_data_table_rows_success(
+        self, mock_chronicle_client: Mock
+    ) -> None:
+        """Test successful update of data table rows."""
+        # Mock response for API call
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "dataTableRows": [
+                {
+                    "name": "projects/test/locations/us/instances/"
+                    "test-customer/dataTables/dt1/dataTableRows/row1",
+                    "values": ["updated1", "updated2"],
+                },
+                {
+                    "name": "projects/test/locations/us/instances/"
+                    "test-customer/dataTables/dt1/dataTableRows/row2",
+                    "values": ["updated3", "updated4"],
+                },
+            ]
+        }
+        mock_chronicle_client.session.post.return_value = mock_response
+
+        dt_name = "dt1"
+        row_updates = [
+            {
+                "name": "projects/test/locations/us/instances/"
+                "test-customer/dataTables/dt1/dataTableRows/row1",
+                "values": ["updated1", "updated2"],
+            },
+            {
+                "name": "projects/test/locations/us/instances/"
+                "test-customer/dataTables/dt1/dataTableRows/row2",
+                "values": ["updated3", "updated4"],
+            },
+        ]
+
+        # Patch row size estimation to return small values
+        with patch(
+            "secops.chronicle.data_table._estimate_row_json_size",
+            return_value=1000,
+        ):
+            result = update_data_table_rows(
+                mock_chronicle_client, dt_name, row_updates
+            )
+
+            # Verify API was called correctly
+            mock_chronicle_client.session.post.assert_called_once()
+            call_args = mock_chronicle_client.session.post.call_args
+            assert "bulkUpdate" in call_args[0][0]
+
+            # Verify payload structure
+            requests = call_args[1]["json"]["requests"]
+            assert len(requests) == 2
+            assert requests[0]["dataTableRow"]["name"] == row_updates[0]["name"]
+            assert requests[0]["dataTableRow"]["values"] == row_updates[0][
+                "values"
+            ]
+
+            # Verify response
+            assert len(result) == 1
+            assert result[0] == mock_response.json.return_value
+
+    def test_update_data_table_rows_with_update_mask(
+        self, mock_chronicle_client: Mock
+    ) -> None:
+        """Test update with update_mask parameter."""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "dataTableRows": [
+                {
+                    "name": "projects/test/locations/us/instances/"
+                    "test-customer/dataTables/dt1/dataTableRows/row1",
+                    "values": ["val1", "val2"],
+                }
+            ]
+        }
+        mock_chronicle_client.session.post.return_value = mock_response
+
+        dt_name = "dt1"
+        row_updates = [
+            {
+                "name": "projects/test/locations/us/instances/"
+                "test-customer/dataTables/dt1/dataTableRows/row1",
+                "values": ["val1", "val2"],
+                "update_mask": "values",
+            }
+        ]
+
+        with patch(
+            "secops.chronicle.data_table._estimate_row_json_size",
+            return_value=1000,
+        ):
+            result = update_data_table_rows(
+                mock_chronicle_client, dt_name, row_updates
+            )
+
+            # Verify update mask is included in request
+            call_args = mock_chronicle_client.session.post.call_args
+            requests = call_args[1]["json"]["requests"]
+            assert "updateMask" in requests[0]
+            assert requests[0]["updateMask"] == "values"
+
+            # Verify response
+            assert len(result) == 1
+
+    @patch("secops.chronicle.data_table._estimate_row_json_size")
+    def test_update_data_table_rows_chunking_1000_rows(
+        self, mock_estimate_size: Mock, mock_chronicle_client: Mock
+    ) -> None:
+        """Test chunking when updating more than 1000 rows."""
+        # Mock response for API calls
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "dataTableRows": [{"name": "row_updated"}]
+        }
+        mock_chronicle_client.session.post.return_value = mock_response
+
+        # Mock small row sizes
+        mock_estimate_size.return_value = 1000
+
+        dt_name = "dt_chunking"
+        # Create 1500 row updates to test chunking
+        row_updates = [
+            {
+                "name": f"projects/test/locations/us/instances/"
+                f"test-customer/dataTables/dt_chunking/"
+                f"dataTableRows/row{i}",
+                "values": [f"val{i}"],
+            }
+            for i in range(1500)
+        ]
+
+        result = update_data_table_rows(
+            mock_chronicle_client, dt_name, row_updates
+        )
+
+        # Verify API was called twice (1000 + 500)
+        assert mock_chronicle_client.session.post.call_count == 2
+
+        # Verify first call has 1000 rows
+        first_call = mock_chronicle_client.session.post.call_args_list[0]
+        first_requests = first_call[1]["json"]["requests"]
+        assert len(first_requests) == 1000
+
+        # Verify second call has 500 rows
+        second_call = mock_chronicle_client.session.post.call_args_list[1]
+        second_requests = second_call[1]["json"]["requests"]
+        assert len(second_requests) == 500
+
+        # Verify we got 2 responses
+        assert len(result) == 2
+
+    @patch("secops.chronicle.data_table._estimate_row_json_size")
+    def test_update_data_table_rows_size_based_chunking(
+        self, mock_estimate_size: Mock, mock_chronicle_client: Mock
+    ) -> None:
+        """Test size-based chunking when rows approach 2MB limit."""
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "dataTableRows": [{"name": "row_updated"}]
+        }
+        mock_chronicle_client.session.post.return_value = mock_response
+
+        dt_name = "dt_size_chunking"
+        # Create test data with varying sizes
+        row_updates = [
+            {
+                "name": f"projects/test/locations/us/instances/"
+                f"test-customer/dataTables/dt_size_chunking/"
+                f"dataTableRows/row{i}",
+                "values": [f"val{i}"],
+            }
+            for i in range(100)
+        ]
+
+        # Mock size estimation: first 10 rows are large
+        def estimate_size_side_effect(row):
+            if row and len(row) > 0 and row[0].startswith("val"):
+                idx = int(row[0][3:])
+                if idx < 10:
+                    return 250000  # 250KB each (10 rows = 2.5MB)
+                return 10000  # Small size for other rows
+
+        mock_estimate_size.side_effect = estimate_size_side_effect
+
+        result = update_data_table_rows(
+            mock_chronicle_client, dt_name, row_updates
+        )
+
+        # Should have multiple chunks due to size constraints
+        assert mock_chronicle_client.session.post.call_count >= 2
+        assert len(result) >= 2
+
+    def test_update_data_table_rows_empty_list(
+        self, mock_chronicle_client: Mock
+    ) -> None:
+        """Test updating with empty row_updates list."""
+        dt_name = "dt_empty"
+        row_updates = []
+
+        with patch(
+            "secops.chronicle.data_table._estimate_row_json_size",
+            return_value=1000,
+        ):
+            result = update_data_table_rows(
+                mock_chronicle_client, dt_name, row_updates
+            )
+
+            # Should not make any API calls
+            mock_chronicle_client.session.post.assert_not_called()
+            # Should return empty list
+            assert result == []
+
+    def test_update_data_table_rows_api_error(
+        self, mock_chronicle_client: Mock
+    ) -> None:
+        """Test API error handling in update_data_table_rows."""
+        # Mock API error response
+        error_response = Mock()
+        error_response.status_code = 400
+        error_response.text = "Invalid row data"
+        mock_chronicle_client.session.post.return_value = error_response
+
+        dt_name = "dt_error"
+        row_updates = [
+            {
+                "name": "projects/test/locations/us/instances/"
+                "test-customer/dataTables/dt_error/dataTableRows/row1",
+                "values": ["bad_data"],
+            }
+        ]
+
+        with patch(
+            "secops.chronicle.data_table._estimate_row_json_size",
+            return_value=1000,
+        ):
+            with pytest.raises(
+                APIError,
+                match="Failed to update data table rows for 'dt_error': "
+                "400 Invalid row data",
+            ):
+                update_data_table_rows(
+                    mock_chronicle_client, dt_name, row_updates
+                )
+
+    def test_update_data_table_rows_missing_name_field(
+        self, mock_chronicle_client: Mock
+    ) -> None:
+        """Test validation error when 'name' field is missing."""
+        dt_name = "dt_missing_name"
+        row_updates = [
+            {
+                # Missing 'name' field
+                "values": ["val1", "val2"],
+            }
+        ]
+
+        with patch(
+            "secops.chronicle.data_table._estimate_row_json_size",
+            return_value=1000,
+        ):
+            with pytest.raises(
+                SecOpsError, match="Each row update must contain 'name'"
+            ):
+                update_data_table_rows(
+                    mock_chronicle_client, dt_name, row_updates
+                )
+
+    def test_update_data_table_rows_missing_values_field(
+        self, mock_chronicle_client: Mock
+    ) -> None:
+        """Test validation error when 'values' field is missing."""
+        dt_name = "dt_missing_values"
+        row_updates = [
+            {
+                "name": "projects/test/locations/us/instances/"
+                "test-customer/dataTables/dt_missing_values/"
+                "dataTableRows/row1",
+                # Missing 'values' field
+            }
+        ]
+
+        with patch(
+            "secops.chronicle.data_table._estimate_row_json_size",
+            return_value=1000,
+        ):
+            with pytest.raises(
+                SecOpsError, match="Each row update must contain 'values'"
+            ):
+                update_data_table_rows(
+                    mock_chronicle_client, dt_name, row_updates
+                )
+
+    def test_update_data_table_rows_single_oversized_row(
+        self, mock_chronicle_client: Mock
+    ) -> None:
+        """Test handling of a single oversized row in update operation."""
+        dt_name = "dt_oversized"
+        row_updates = [
+            {
+                "name": "projects/test/locations/us/instances/"
+                "test-customer/dataTables/dt_oversized/"
+                "dataTableRows/row1",
+                "values": ["*" * 1000000],  # Very large value
+            }
+        ]
+
+        # Mock size estimation to return value > 2MB
+        with patch(
+            "secops.chronicle.data_table._estimate_row_json_size",
+            return_value=3000000,
+        ):
+            with pytest.raises(
+                SecOpsError, match="Single row is too large to process"
+            ):
+                update_data_table_rows(
+                    mock_chronicle_client, dt_name, row_updates
+                )
+
     # TODO: Add more unit tests for:
     # - APIError scenarios for each function (e.g., 404 Not Found, 500 Server Error)
     # - Pagination in list_data_tables and list_data_table_rows, list_reference_lists

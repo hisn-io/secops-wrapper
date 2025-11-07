@@ -51,6 +51,7 @@ from secops.chronicle.data_table import (
     DataTableColumnType,
     replace_data_table_rows,
     update_data_table,
+    update_data_table_rows,
 )
 from secops.chronicle.entity import summarize_entity
 from secops.chronicle.gemini import (
@@ -297,5 +298,6 @@ __all__ = [
     "ReferenceListSyntaxType",
     "ReferenceListView",
     "update_data_table",
+    "update_data_table_rows",
     "replace_data_table_rows",
 ]

@@ -891,6 +891,38 @@ secops data-table replace-rows \
   --rows-file "/path/to/rows.json"
 ```
 
+#### Bulk update rows in a data table:
+
+```bash
+# Update rows using JSON with full resource names
+secops data-table update-rows \
+  --name "suspicious_ips" \
+  --rows '[{"name":"projects/my-project/locations/us/instances/my-instance/dataTables/suspicious_ips/dataTableRows/row123","values":["192.168.100.1","Critical","Updated scanning info"]},{"name":"projects/my-project/locations/us/instances/my-instance/dataTables/suspicious_ips/dataTableRows/row456","values":["10.1.1.5","High","Updated brute force info"],"update_mask":"values"}]'
+
+# Update rows from a JSON file
+# File format: array of objects with 'name', 'values', and
+# optional 'update_mask'
+secops data-table update-rows \
+  --name "suspicious_ips" \
+  --rows-file "/path/to/row_updates.json"
+```
+
+Example `row_updates.json` file:
+
+```json
+[
+  {
+    "name": "projects/.../dataTables/suspicious_ips/dataTableRows/row1",
+    "values": ["192.168.100.1", "Critical", "Updated info"]
+  },
+  {
+    "name": "projects/.../dataTables/suspicious_ips/dataTableRows/row2",
+    "values": ["10.1.1.5", "High", "Updated brute force info"],
+    "update_mask": "values"
+  }
+]
+```
+
 #### Delete a data table:
 
 ```bash

@@ -660,3 +660,126 @@ def replace_data_table_rows(
         all_responses.extend(create_responses)
 
     return all_responses
+
+
+def update_data_table_rows(
+    client: "Any",
+    name: str,
+    row_updates: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """Update data table rows in bulk, chunking if necessary.
+
+    Args:
+        client: ChronicleClient instance
+        name: The name of the data table
+        row_updates: List of row update specifications. Each dict must contain:
+            - 'name': str - Full resource name of the row to update
+            - 'values': List[str] - The new values for the row
+            - 'update_mask': str (optional) - Comma-separated field mask
+
+    Returns:
+        List of responses containing the updated data table rows
+
+    Raises:
+        APIError: If the API request fails
+        SecOpsError: If a row is too large to process or validation fails
+    """
+    responses = []
+    row_iter = iter(row_updates)
+
+    # Process rows in chunks of up to 1000 rows or 2MB
+    while chunk := list(islice(row_iter, 1000)):
+        # Estimate chunk size
+        current_chunk_size_bytes = sum(
+            _estimate_row_json_size(row.get("values", [])) for row in chunk
+        )
+
+        # If chunk is too large, split it
+        while current_chunk_size_bytes > 2000000 and len(chunk) > 1:
+            half_len = len(chunk) // 2
+            if half_len == 0:  # Should not happen if len(chunk) > 1
+                break
+
+            temp_chunk_for_next_iter = chunk[half_len:]
+            chunk = chunk[:half_len]
+            row_iter = iter(temp_chunk_for_next_iter + list(row_iter))
+            current_chunk_size_bytes = sum(
+                _estimate_row_json_size(row.get("values", [])) for row in chunk
+            )
+
+        if not chunk:  # If chunk became empty
+            continue
+
+        # If a single row is too large
+        if current_chunk_size_bytes > 2000000 and len(chunk) == 1:
+            row_preview = repr(chunk[0].get("values", [])[:50])
+            raise SecOpsError(
+                "Single row is too large to process "
+                f"(>{current_chunk_size_bytes} bytes): {row_preview}..."
+            )
+
+        responses.append(_update_data_table_rows(client, name, chunk))
+
+    return responses
+
+
+def _update_data_table_rows(
+    client: "Any",
+    name: str,
+    row_updates: List[Dict[str, Any]],
+) -> Dict[str, Any]:
+    """Update a batch of data table rows.
+
+    Args:
+        client: ChronicleClient instance
+        name: The name of the data table
+        row_updates: List of row update specifications. Each dict must contain:
+            - 'name': str - Full resource name of the row to update
+            - 'values': List[str] - The new values for the row
+            - 'update_mask': str (optional) - Comma-separated field mask
+
+    Returns:
+        Dictionary containing the updated data table rows
+
+    Raises:
+        APIError: If the API request fails
+        SecOpsError: If validation fails
+    """
+    url = (
+        f"{client.base_url}/{client.instance_id}/dataTables/{name}"
+        "/dataTableRows:bulkUpdate"
+    )
+
+    # Build request payload
+    requests = []
+    for row_update in row_updates:
+        if "name" not in row_update:
+            raise SecOpsError("Each row update must contain 'name'")
+        if "values" not in row_update:
+            raise SecOpsError("Each row update must contain 'values'")
+
+        request_item = {
+            "dataTableRow": {
+                "name": row_update["name"],
+                "values": row_update["values"],
+            }
+        }
+
+        # Add update mask if provided
+        if row_update.get("update_mask"):
+            request_item["updateMask"] = row_update["update_mask"]
+
+        requests.append(request_item)
+
+    response = client.session.post(
+        url,
+        json={"requests": requests},
+    )
+
+    if response.status_code != 200:
+        raise APIError(
+            f"Failed to update data table rows for '{name}': "
+            f"{response.status_code} {response.text}"
+        )
+
+    return response.json()

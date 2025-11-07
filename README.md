@@ -2018,6 +2018,25 @@ chronicle.replace_data_table_rows(
     ]
 )
 
+# Bulk update rows in a data table
+row_updates = [
+    {
+        "name": "projects/my-project/locations/us/instances/my-instance/dataTables/suspicious_ips/dataTableRows/row123",  # Full resource name
+        "values": ["192.168.100.1", "Critical", "Updated description"]
+    },
+    {
+        "name": "projects/my-project/locations/us/instances/my-instance/dataTables/suspicious_ips/dataTableRows/row456",  # Full resource name
+        "values": ["10.1.1.5", "High", "Updated brute force info"],
+        "update_mask": "values"  # Optional: only update values field
+    }
+]
+
+# Execute bulk update
+chronicle.update_data_table_rows(
+    name="suspicious_ips",
+    row_updates=row_updates
+)
+
 # Delete a data table
 chronicle.delete_data_table("suspicious_ips", force=True)  # force=True deletes even if it has rows
 ```
