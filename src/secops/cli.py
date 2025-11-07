@@ -1027,8 +1027,7 @@ def handle_log_types_command(args, chronicle):
         else:
             result = chronicle.get_all_log_types(force_static=force_static)
 
-        result = print_log_types(result)
-        output_formatter(result, args.output)
+        print_log_types(result)
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

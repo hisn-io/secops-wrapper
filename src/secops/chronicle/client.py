@@ -2325,9 +2325,7 @@ class ChronicleClient:
         """
         return _get_or_create_forwarder(self, display_name=display_name)
 
-    def get_all_log_types(
-        self, force_static: bool = False
-    ) -> List[LogType]:
+    def get_all_log_types(self, force_static: bool = False) -> List[LogType]:
         """Get all available Chronicle log types.
 
         By default, fetches from API with fallback to static data.

@@ -2334,11 +2334,12 @@ def load_log_types(
         _LOG_TYPES_CACHE = _load_static_log_types()
         return _LOG_TYPES_CACHE
 
-    # Try API first
     try:
         _LOG_TYPES_CACHE = _fetch_log_types_from_api(client)
         return _LOG_TYPES_CACHE
-    except Exception as e:
+
+    # Catching general exception to fallback to static list for any failure
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(
             f"Warning: API fetch failed ({type(e).__name__}: {e}), "
             f"falling back to static log type list"
