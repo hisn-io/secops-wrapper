@@ -230,8 +230,12 @@ secops log types --search "windows"
 # Force use of static list (skip API call, useful for offline mode)
 secops log types --force-static
 
-# Search with static list only
-secops log types --search "firewall" --force-static
+
+# Fetch specific page using token
+secops log types --page-size 50 --page-token "next_page_token"
+
+# Search for log types
+secops log types --search "firewall"
 ```
 
 **Note:** By default, the CLI fetches the latest log types from the 

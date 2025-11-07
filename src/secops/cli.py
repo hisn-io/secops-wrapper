@@ -905,6 +905,19 @@ def setup_log_command(subparsers):
         action="store_true",
         help="Force use of static log type list (skip API fetch)",
     )
+    types_parser.add_argument(
+        "--page-size",
+        "--page_size",
+        dest="page_size",
+        type=int,
+        help="Number of results per page (fetches single page only)",
+    )
+    types_parser.add_argument(
+        "--page-token",
+        "--page_token",
+        dest="page_token",
+        help="Page token for pagination",
+    )
     types_parser.set_defaults(func=handle_log_types_command)
 
     generate_udm_mapping_parser = log_subparsers.add_parser(
@@ -1019,13 +1032,26 @@ def handle_log_types_command(args, chronicle):
     """Handle listing log types command."""
     try:
         force_static = getattr(args, "force_static", False)
+        page_size = getattr(args, "page_size", None)
+        page_token = getattr(args, "page_token", None)
 
         if args.search:
+            # Search always fetches all log types for complete results
+            if page_size or page_token:
+                print(
+                    "Warning: Pagination params are ignored for search. "
+                    "Search operates on all log types.",
+                    file=sys.stderr,
+                )
             result = chronicle.search_log_types(
                 args.search, force_static=force_static
             )
         else:
-            result = chronicle.get_all_log_types(force_static=force_static)
+            result = chronicle.get_all_log_types(
+                force_static=force_static,
+                page_size=page_size,
+                page_token=page_token,
+            )
 
         print_log_types(result)
     except Exception as e:  # pylint: disable=broad-exception-caught

@@ -332,6 +332,15 @@ for lt in log_types[:5]:  # Show first 5
 
 # Force use of static list (useful for offline environments)
 log_types_static = chronicle.get_all_log_types(force_static=True)
+
+# Fetch only first 50 log types (single page)
+log_types_page = chronicle.get_all_log_types(page_size=50)
+
+# Fetch specific page using token
+log_types_next = chronicle.get_all_log_types(
+    page_size=50, 
+    page_token="next_page_token"
+)
 ```
 
 2. Search for specific log types:

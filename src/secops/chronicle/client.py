@@ -2325,18 +2325,30 @@ class ChronicleClient:
         """
         return _get_or_create_forwarder(self, display_name=display_name)
 
-    def get_all_log_types(self, force_static: bool = False) -> List[LogType]:
+    def get_all_log_types(
+        self,
+        force_static: bool = False,
+        page_size: Optional[int] = None,
+        page_token: Optional[str] = None,
+    ) -> List[LogType]:
         """Get all available Chronicle log types.
 
         By default, fetches from API with fallback to static data.
 
         Args:
             force_static: Force use of static data (for offline/testing)
+            page_size: Number of results per page (fetches single page)
+            page_token: Page token for pagination
 
         Returns:
             List of LogType objects representing all available log types
         """
-        return _get_all_log_types(client=self, force_static=force_static)
+        return _get_all_log_types(
+            client=self,
+            force_static=force_static,
+            page_size=page_size,
+            page_token=page_token,
+        )
 
     def is_valid_log_type(
         self, log_type_id: str, force_static: bool = False

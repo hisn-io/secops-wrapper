@@ -2306,6 +2306,8 @@ def _load_static_log_types() -> Dict[str, LogType]:
 def load_log_types(
     client: Optional["ChronicleClient"] = None,
     force_static: bool = False,
+    page_size: Optional[int] = None,
+    page_token: Optional[str] = None,
 ) -> Dict[str, LogType]:
     """Load and cache log types.
 
@@ -2315,6 +2317,8 @@ def load_log_types(
     Args:
         client: Optional ChronicleClient for API fetch
         force_static: Force use of static data (for offline/testing)
+        page_size: Number of results per page (fetches single page)
+        page_token: Page token for pagination
 
     Returns:
         Dictionary mapping log type IDs to LogType objects
@@ -2325,8 +2329,8 @@ def load_log_types(
     if "pytest" in sys.modules:
         force_static = True
 
-    # Return cached data if available
-    if _LOG_TYPES_CACHE is not None:
+    # Return cached data if available (skip cache if pagination params)
+    if _LOG_TYPES_CACHE is not None and not page_size and not page_token:
         return _LOG_TYPES_CACHE
 
     # Force static mode or no client provided
@@ -2335,8 +2339,13 @@ def load_log_types(
         return _LOG_TYPES_CACHE
 
     try:
-        _LOG_TYPES_CACHE = _fetch_log_types_from_api(client)
-        return _LOG_TYPES_CACHE
+        result = _fetch_log_types_from_api(
+            client, page_size=page_size, page_token=page_token
+        )
+        # Only cache if fetching all (no pagination params)
+        if not page_size and not page_token:
+            _LOG_TYPES_CACHE = result
+        return result
 
     # Catching general exception to fallback to static list for any failure
     except Exception as e:  # pylint: disable=broad-exception-caught
@@ -2351,6 +2360,8 @@ def load_log_types(
 def get_all_log_types(
     client: Optional["ChronicleClient"] = None,
     force_static: bool = False,
+    page_size: Optional[int] = None,
+    page_token: Optional[str] = None,
 ) -> List[LogType]:
     """Get all available Chronicle log types.
 
@@ -2359,11 +2370,18 @@ def get_all_log_types(
     Args:
         client: Optional ChronicleClient for API fetch
         force_static: Force use of static data (for offline/testing)
+        page_size: Number of results per page (fetches single page)
+        page_token: Page token for pagination
 
     Returns:
         List of LogType objects representing all available log types
     """
-    log_types = load_log_types(client=client, force_static=force_static)
+    log_types = load_log_types(
+        client=client,
+        force_static=force_static,
+        page_size=page_size,
+        page_token=page_token,
+    )
     return list(log_types.values())
 
 
