@@ -766,7 +766,7 @@ def _update_data_table_rows(
         }
 
         # Add update mask if provided
-        if "update_mask" in row_update and row_update["update_mask"]:
+        if row_update.get("update_mask"):
             request_item["updateMask"] = row_update["update_mask"]
 
         requests.append(request_item)
