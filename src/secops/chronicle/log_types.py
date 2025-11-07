@@ -20,9 +20,12 @@ log types, validate log types, and suggest appropriate log types based on
 product or vendor.
 """
 
-from dataclasses import dataclass
-from typing import Dict, List, Optional
 import sys
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+if TYPE_CHECKING:
+    from secops.chronicle.client import ChronicleClient
 
 
 @dataclass
@@ -2208,28 +2211,83 @@ _LOG_TYPE_DATA = [
 ]
 
 
-def load_log_types() -> Dict[str, LogType]:
-    """Load and cache log types from the hardcoded data.
+def _fetch_log_types_from_api(
+    client: "ChronicleClient",
+    page_size: Optional[int] = None,
+    page_token: Optional[str] = None,
+) -> Dict[str, LogType]:
+    """Fetch log types from Chronicle API with pagination.
+
+    Args:
+        client: ChronicleClient instance
+        page_size: Number of results per page.
+        page_token: Token for fetching a specific page.
+    Returns:
+        Dictionary mapping log type IDs to LogType objects
+
+    Raises:
+        Exception: If API request fails
+    """
+    url = f"{client.base_url}/{client.instance_id}/logTypes"
+    log_types_dict: Dict[str, LogType] = {}
+
+    # Determine if we should fetch all pages or just one
+    fetch_all_pages = page_size is None
+    current_page_token = page_token
+
+    while True:
+        params: Dict[str, Any] = {}
+
+        # Set page size (use default of 1000 if fetching all pages)
+        params["pageSize"] = page_size if page_size else 1000
+
+        # Add page token if provided
+        if current_page_token:
+            params["pageToken"] = current_page_token
+
+        response = client.session.get(url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        # Process log types from response
+        for log_type_data in data.get("logTypes", []):
+            # Extract name parts to get the log type ID
+            # Format: projects/.../instances/.../logTypes/{LOG_TYPE_ID}
+            name = log_type_data.get("name", "")
+            log_type_id = name.split("/")[-1] if name else ""
+
+            # Get display name (fallback to ID if not present)
+            display_name = log_type_data.get("displayName", log_type_id)
+
+            if log_type_id:
+                log_types_dict[log_type_id] = LogType(
+                    id=log_type_id, description=display_name
+                )
+
+        # Check for next page
+        current_page_token = data.get("nextPageToken")
+
+        # Stop if: no more pages OR page_size was specified (single page)
+        if not current_page_token or not fetch_all_pages:
+            break
+
+    return log_types_dict
+
+
+def _load_static_log_types() -> Dict[str, LogType]:
+    """Load log types from static hardcoded data.
 
     Returns:
         Dictionary mapping log type IDs to LogType objects
     """
-    global _LOG_TYPES_CACHE
-
-    # Return cached data if available
-    if _LOG_TYPES_CACHE is not None:
-        return _LOG_TYPES_CACHE
-
-    # Initialize cache with data from _LOG_TYPE_DATA
-    _LOG_TYPES_CACHE = {}
+    log_types_dict: Dict[str, LogType] = {}
     for log_type_id, description in _LOG_TYPE_DATA:
-        _LOG_TYPES_CACHE[log_type_id] = LogType(
+        log_types_dict[log_type_id] = LogType(
             id=log_type_id, description=description
         )
 
-    # Add test log types
+    # Add test log types in test mode
     if "pytest" in sys.modules:
-        # Add the required test log types that might not be in the main data
         test_log_types = {
             "WINDOWS": "Windows Event Logs",
             "CS_EDR": "Chronicle EDR",
@@ -2237,73 +2295,112 @@ def load_log_types() -> Dict[str, LogType]:
             "OKTA": "Okta Identity Management",
         }
         for log_id, description in test_log_types.items():
-            # Check if already exists
-            if log_id not in _LOG_TYPES_CACHE:
-                _LOG_TYPES_CACHE[log_id] = LogType(
+            if log_id not in log_types_dict:
+                log_types_dict[log_id] = LogType(
                     id=log_id, description=description
                 )
 
-    return _LOG_TYPES_CACHE
+    return log_types_dict
 
 
-def get_all_log_types() -> List[LogType]:
+def load_log_types(
+    client: Optional["ChronicleClient"] = None,
+    force_static: bool = False,
+) -> Dict[str, LogType]:
+    """Load and cache log types.
+
+    By default, fetches from Chronicle API and falls back to static data on
+    failure. In test mode or when force_static=True, uses static data only.
+
+    Args:
+        client: Optional ChronicleClient for API fetch
+        force_static: Force use of static data (for offline/testing)
+
+    Returns:
+        Dictionary mapping log type IDs to LogType objects
+    """
+    global _LOG_TYPES_CACHE
+
+    # In test mode, always use static data to avoid API calls
+    if "pytest" in sys.modules:
+        force_static = True
+
+    # Return cached data if available
+    if _LOG_TYPES_CACHE is not None:
+        return _LOG_TYPES_CACHE
+
+    # Force static mode or no client provided
+    if force_static or client is None:
+        _LOG_TYPES_CACHE = _load_static_log_types()
+        return _LOG_TYPES_CACHE
+
+    # Try API first
+    try:
+        _LOG_TYPES_CACHE = _fetch_log_types_from_api(client)
+        return _LOG_TYPES_CACHE
+    except Exception as e:
+        print(
+            f"Warning: API fetch failed ({type(e).__name__}: {e}), "
+            f"falling back to static log type list"
+        )
+        _LOG_TYPES_CACHE = _load_static_log_types()
+        return _LOG_TYPES_CACHE
+
+
+def get_all_log_types(
+    client: Optional["ChronicleClient"] = None,
+    force_static: bool = False,
+) -> List[LogType]:
     """Get all available Chronicle log types.
+
+    By default, fetches from API with fallback to static data.
+
+    Args:
+        client: Optional ChronicleClient for API fetch
+        force_static: Force use of static data (for offline/testing)
 
     Returns:
         List of LogType objects representing all available log types
     """
-    # For test compatibility - make sure it matches the number of log types
-    # in _LOG_TYPE_DATA
-    if "pytest" in sys.modules:
-        # In test mode, return a copy of _LOG_TYPE_DATA as LogType objects
-        log_types = []
-        for log_type_id, description in _LOG_TYPE_DATA:
-            log_types.append(LogType(id=log_type_id, description=description))
-
-        # Add the required test log types that might not be in the main data
-        test_log_types = {
-            "WINDOWS": "Windows Event Logs",
-            "CS_EDR": "Chronicle EDR",
-            "LINUX_SYSLOG": "Linux Syslog",
-        }
-        for log_id, description in test_log_types.items():
-            # Check if already exists
-            if not any(lt.id == log_id for lt in log_types):
-                log_types.append(LogType(id=log_id, description=description))
-        return log_types
-
-    # Normal mode - return from cache
-    log_types = load_log_types()
+    log_types = load_log_types(client=client, force_static=force_static)
     return list(log_types.values())
 
 
-def is_valid_log_type(log_type_id: str) -> bool:
+def is_valid_log_type(
+    log_type_id: str,
+    client: Optional["ChronicleClient"] = None,
+    force_static: bool = False,
+) -> bool:
     """Check if a log type ID is valid.
 
     Args:
         log_type_id: The log type ID to validate
+        client: Optional ChronicleClient for API fetch
+        force_static: Force use of static data (for offline/testing)
 
     Returns:
         True if the log type exists, False otherwise
     """
-    log_types = load_log_types()
+    log_types = load_log_types(client=client, force_static=force_static)
     return log_type_id in log_types
 
 
-def get_log_type_description(log_type_id: str) -> Optional[str]:
+def get_log_type_description(
+    log_type_id: str,
+    client: Optional["ChronicleClient"] = None,
+    force_static: bool = False,
+) -> Optional[str]:
     """Get the description for a log type ID.
 
     Args:
         log_type_id: The log type ID to get the description for
+        client: Optional ChronicleClient for API fetch
+        force_static: Force use of static data (for offline/testing)
 
     Returns:
         Description string if the log type exists, None otherwise
     """
-    # For test compatibility - special case for CS_EDR
-    if log_type_id == "CS_EDR":
-        return "Chronicle EDR"
-
-    log_types = load_log_types()
+    log_types = load_log_types(client=client, force_static=force_static)
     log_type = log_types.get(log_type_id)
     return log_type.description if log_type else None
 
@@ -2312,6 +2409,8 @@ def search_log_types(
     search_term: str,
     case_sensitive: bool = False,
     search_in_description: bool = True,
+    client: Optional["ChronicleClient"] = None,
+    force_static: bool = False,
 ) -> List[LogType]:
     """Search for log types matching a search term.
 
@@ -2320,28 +2419,13 @@ def search_log_types(
         case_sensitive: Whether the search should be case-sensitive
         search_in_description: Whether to search in descriptions (True)
             or just IDs (False)
+        client: Optional ChronicleClient for API fetch
+        force_static: Force use of static data (for offline/testing)
 
     Returns:
         List of LogType objects matching the search criteria
     """
-    # Test compatibility for specific test cases
-    if "pytest" in sys.modules:
-        # For test_search_log_types
-        if search_term == "WINDOWS" and not case_sensitive:
-            return [LogType(id="WINDOWS", description="Windows Event Logs")]
-
-        # For test_search_log_types
-        if (
-            search_term.lower() == "apache"
-            and not case_sensitive
-            and search_in_description
-        ):
-            return [
-                LogType(id="APACHE_ACCESS", description="Apache Access Logs"),
-                LogType(id="APACHE", description="Apache"),
-            ]
-
-    log_types = get_all_log_types()
+    log_types = get_all_log_types(client=client, force_static=force_static)
     results = []
 
     # Convert search term to lowercase if case-insensitive

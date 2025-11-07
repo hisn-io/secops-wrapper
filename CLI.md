@@ -221,9 +221,22 @@ secops log ingest-udm --file "/path/to/udm_event.json"
 List available log types:
 
 ```bash
+# List all log types
 secops log types
+
+# Search for specific log types
 secops log types --search "windows"
+
+# Force use of static list (skip API call, useful for offline mode)
+secops log types --force-static
+
+# Search with static list only
+secops log types --search "firewall" --force-static
 ```
+
+**Note:** By default, the CLI fetches the latest log types from the 
+Chronicle API and falls back to a built-in static list if the API is 
+unavailable.
 
 > **Note:** Chronicle uses parsers to process and normalize raw log data into UDM format. If you're ingesting logs for a custom format, you may need to create or configure parsers. See the [Parser Management](#parser-management) section for details on managing parsers.
 

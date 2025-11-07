@@ -2325,55 +2325,80 @@ class ChronicleClient:
         """
         return _get_or_create_forwarder(self, display_name=display_name)
 
-    def get_all_log_types(self) -> List[LogType]:
+    def get_all_log_types(
+        self, force_static: bool = False
+    ) -> List[LogType]:
         """Get all available Chronicle log types.
+
+        By default, fetches from API with fallback to static data.
+
+        Args:
+            force_static: Force use of static data (for offline/testing)
 
         Returns:
             List of LogType objects representing all available log types
         """
-        return _get_all_log_types()
+        return _get_all_log_types(client=self, force_static=force_static)
 
-    def is_valid_log_type(self, log_type_id: str) -> bool:
+    def is_valid_log_type(
+        self, log_type_id: str, force_static: bool = False
+    ) -> bool:
         """Check if a log type ID is valid.
 
         Args:
             log_type_id: The log type ID to validate
+            force_static: Force use of static data (for offline/testing)
 
         Returns:
             True if the log type exists, False otherwise
         """
-        return _is_valid_log_type(log_type_id)
+        return _is_valid_log_type(
+            log_type_id, client=self, force_static=force_static
+        )
 
-    def get_log_type_description(self, log_type_id: str) -> Optional[str]:
+    def get_log_type_description(
+        self, log_type_id: str, force_static: bool = False
+    ) -> Optional[str]:
         """Get the description for a log type ID.
 
         Args:
             log_type_id: The log type ID to get the description for
+            force_static: Force use of static data (for offline/testing)
 
         Returns:
             Description string if the log type exists, None otherwise
         """
-        return _get_log_type_description(log_type_id)
+        return _get_log_type_description(
+            log_type_id, client=self, force_static=force_static
+        )
 
     def search_log_types(
         self,
         search_term: str,
         case_sensitive: bool = False,
         search_in_description: bool = True,
+        force_static: bool = False,
     ) -> List[LogType]:
         """Search log types by ID or description.
+
+        By default, searches API data with fallback to static data.
 
         Args:
             search_term: Term to search for
             case_sensitive: Whether the search should be case sensitive
             search_in_description: Whether to search in descriptions
                 as well as IDs
+            force_static: Force use of static data (for offline/testing)
 
         Returns:
             List of matching LogType objects
         """
         return _search_log_types(
-            search_term, case_sensitive, search_in_description
+            search_term,
+            case_sensitive,
+            search_in_description,
+            client=self,
+            force_static=force_static,
         )
 
     def ingest_udm(

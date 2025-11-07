@@ -12,6 +12,7 @@ from typing import Any, Dict, Tuple
 
 from secops import SecOpsClient
 from secops.chronicle.data_table import DataTableColumnType
+from secops.chronicle.log_types import print_log_types
 from secops.chronicle.reference_list import (
     ReferenceListSyntaxType,
     ReferenceListView,
@@ -897,6 +898,13 @@ def setup_log_command(subparsers):
         "types", help="List available log types"
     )
     types_parser.add_argument("--search", help="Search term for log types")
+    types_parser.add_argument(
+        "--force-static",
+        "--force_static",
+        dest="force_static",
+        action="store_true",
+        help="Force use of static log type list (skip API fetch)",
+    )
     types_parser.set_defaults(func=handle_log_types_command)
 
     generate_udm_mapping_parser = log_subparsers.add_parser(
@@ -1010,11 +1018,16 @@ def handle_import_entities_command(args, chronicle):
 def handle_log_types_command(args, chronicle):
     """Handle listing log types command."""
     try:
-        if args.search:
-            result = chronicle.search_log_types(args.search)
-        else:
-            result = chronicle.get_all_log_types()
+        force_static = getattr(args, "force_static", False)
 
+        if args.search:
+            result = chronicle.search_log_types(
+                args.search, force_static=force_static
+            )
+        else:
+            result = chronicle.get_all_log_types(force_static=force_static)
+
+        result = print_log_types(result)
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error: {e}", file=sys.stderr)
