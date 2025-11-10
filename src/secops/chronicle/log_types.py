@@ -2325,10 +2325,6 @@ def load_log_types(
     """
     global _LOG_TYPES_CACHE
 
-    # In test mode, always use static data to avoid API calls
-    if "pytest" in sys.modules:
-        force_static = True
-
     # Return cached data if available (skip cache if pagination params)
     if _LOG_TYPES_CACHE is not None and not page_size and not page_token:
         return _LOG_TYPES_CACHE
