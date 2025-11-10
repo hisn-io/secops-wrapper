@@ -921,6 +921,36 @@ def test_cli_log_types(cli_env, common_args):
     assert result.stdout.strip() != ""
     assert "Error:" not in result.stderr
 
+    # Store output for comparison
+    all_log_types_output = result.stdout
+
+    # Search for specific log types
+    search_cmd = (
+        [
+            "secops",
+        ]
+        + common_args
+        + ["log", "types", "--search", "okta"]
+    )
+
+    search_result = subprocess.run(
+        search_cmd, env=cli_env, capture_output=True, text=True
+    )
+
+    # Check that search executed successfully
+    assert search_result.returncode == 0
+    assert search_result.stdout.strip() != ""
+    assert "Error:" not in search_result.stderr
+
+    # Search results should be subset of all results
+    # (or equal if the instance only has matching log types)
+    search_lines = len(search_result.stdout.strip().split('\n'))
+    all_lines = len(all_log_types_output.strip().split('\n'))
+    assert search_lines <= all_lines
+
+    print(f"\nAll log types: {all_lines} lines")
+    print(f"Search results for 'okta': {search_lines} lines")
+
 
 @pytest.mark.integration
 def test_cli_rule_get(cli_env, common_args):

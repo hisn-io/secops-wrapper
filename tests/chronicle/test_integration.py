@@ -2037,3 +2037,171 @@ def test_import_entities():
         if "permission" in str(e).lower() or "not authorized" in str(e).lower():
             pytest.skip("Insufficient permissions to import entities")
         raise
+
+
+@pytest.mark.integration
+def test_chronicle_log_types_api_fetch():
+    """Test fetching log types from Chronicle API."""
+    if (
+        not CHRONICLE_CONFIG["customer_id"]
+        or not CHRONICLE_CONFIG["project_id"]
+    ):
+        pytest.skip("Chronicle configuration not available")
+
+    try:
+        client = SecOpsClient()
+        chronicle = client.chronicle(**CHRONICLE_CONFIG)
+
+        # Test fetching all log types (without pagination params)
+        all_log_types = chronicle.get_all_log_types()
+
+        # Verify response structure
+        assert isinstance(all_log_types, list)
+        assert len(all_log_types) > 0, "Should return at least some log types"
+
+        # Verify each log type has required attributes
+        for log_type in all_log_types[:5]:  # Check first 5
+            assert hasattr(log_type, "id")
+            assert hasattr(log_type, "description")
+            assert isinstance(log_type.id, str)
+            assert isinstance(log_type.description, str)
+
+        print(f"\nFetched {len(all_log_types)} log types from API")
+
+        # Test with pagination
+        paginated_result = chronicle.get_all_log_types(page_size=10)
+        assert isinstance(paginated_result, list)
+        assert len(paginated_result) <= 10, (
+            "Should respect page_size limit"
+        )
+
+        print(f"Fetched {len(paginated_result)} log types with page_size=10")
+
+    except APIError as e:
+        print(f"\nAPI Error details: {str(e)}")
+        pytest.fail(f"API Error during log types fetch test: {e}")
+
+
+@pytest.mark.integration
+def test_chronicle_log_types_validation():
+    """Test log type validation using API data."""
+    if (
+        not CHRONICLE_CONFIG["customer_id"]
+        or not CHRONICLE_CONFIG["project_id"]
+    ):
+        pytest.skip("Chronicle configuration not available")
+
+    try:
+        client = SecOpsClient()
+        chronicle = client.chronicle(**CHRONICLE_CONFIG)
+
+        # Test validating common log types
+        common_log_types = ["OKTA", "AWS_CLOUDTRAIL", "WINDOWS"]
+
+        for log_type_id in common_log_types:
+            is_valid = chronicle.is_valid_log_type(log_type_id)
+            print(f"\n{log_type_id} is valid: {is_valid}")
+            # Note: Don't assert True because some instances
+            # may not have all log types
+            assert isinstance(is_valid, bool)
+
+        # Test with invalid log type
+        invalid_result = chronicle.is_valid_log_type("INVALID_LOG_TYPE_XYZ")
+        assert isinstance(invalid_result, bool)
+        print(f"\nINVALID_LOG_TYPE_XYZ is valid: {invalid_result}")
+
+    except APIError as e:
+        print(f"\nAPI Error details: {str(e)}")
+        pytest.fail(f"API Error during log type validation test: {e}")
+
+
+@pytest.mark.integration
+def test_chronicle_log_types_search():
+    """Test searching log types using API data."""
+    if (
+        not CHRONICLE_CONFIG["customer_id"]
+        or not CHRONICLE_CONFIG["project_id"]
+    ):
+        pytest.skip("Chronicle configuration not available")
+
+    try:
+        client = SecOpsClient()
+        chronicle = client.chronicle(**CHRONICLE_CONFIG)
+
+        # Test case-insensitive search
+        search_results = chronicle.search_log_types("okta")
+        assert isinstance(search_results, list)
+        print(f"\nFound {len(search_results)} results for 'okta'")
+
+        # Test search in description
+        description_results = chronicle.search_log_types(
+            "windows", search_in_description=True
+        )
+        assert isinstance(description_results, list)
+        print(f"Found {len(description_results)} results for 'windows'")
+
+        # Test case-sensitive search
+        case_sensitive_results = chronicle.search_log_types(
+            "OKTA", case_sensitive=True
+        )
+        assert isinstance(case_sensitive_results, list)
+        print(
+            f"Found {len(case_sensitive_results)} results for 'OKTA' "
+            f"(case-sensitive)"
+        )
+
+        # Test search without description
+        id_only_results = chronicle.search_log_types(
+            "AWS", search_in_description=False
+        )
+        assert isinstance(id_only_results, list)
+        print(
+            f"Found {len(id_only_results)} results for 'AWS' "
+            f"(ID only search)"
+        )
+
+    except APIError as e:
+        print(f"\nAPI Error details: {str(e)}")
+        pytest.fail(f"API Error during log types search test: {e}")
+
+
+@pytest.mark.integration
+def test_chronicle_log_types_description():
+    """Test getting log type descriptions using API data."""
+    if (
+        not CHRONICLE_CONFIG["customer_id"]
+        or not CHRONICLE_CONFIG["project_id"]
+    ):
+        pytest.skip("Chronicle configuration not available")
+
+    try:
+        client = SecOpsClient()
+        chronicle = client.chronicle(**CHRONICLE_CONFIG)
+
+        # Get all log types first
+        all_log_types = chronicle.get_all_log_types(page_size=5)
+
+        if len(all_log_types) > 0:
+            # Test getting description for first log type
+            log_type = all_log_types[0]
+            description = chronicle.get_log_type_description(log_type.id)
+
+            assert description is not None
+            assert isinstance(description, str)
+            assert description == log_type.description
+
+            print(
+                f"\nLog type: {log_type.id}, "
+                f"Description: {description}"
+            )
+
+        # Test with non-existent log type
+        invalid_description = chronicle.get_log_type_description(
+            "INVALID_LOG_TYPE_XYZ"
+        )
+        assert invalid_description is None
+        print("\nINVALID_LOG_TYPE_XYZ description: None (as expected)")
+
+    except APIError as e:
+        print(f"\nAPI Error details: {str(e)}")
+        pytest.fail(f"API Error during log type description test: {e}")
