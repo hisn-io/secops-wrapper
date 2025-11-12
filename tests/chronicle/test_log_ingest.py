@@ -271,7 +271,9 @@ def test_create_forwarder_with_config(
 def test_list_forwarders(chronicle_client, mock_forwarders_list_response):
     """Test listing forwarders."""
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_forwarders_list_response
+        chronicle_client.session,
+        "get",
+        return_value=mock_forwarders_list_response,
     ):
         result = list_forwarders(client=chronicle_client)
 
@@ -285,7 +287,9 @@ def test_list_forwarders_error(chronicle_client):
     error_response.status_code = 400
     error_response.text = "Invalid request"
 
-    with patch.object(chronicle_client.session, "get", return_value=error_response):
+    with patch.object(
+        chronicle_client.session, "get", return_value=error_response
+    ):
         with pytest.raises(APIError, match="Failed to list forwarders"):
             list_forwarders(client=chronicle_client)
 
@@ -295,7 +299,9 @@ def test_get_or_create_forwarder_existing(
 ):
     """Test getting an existing forwarder."""
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_forwarders_list_response
+        chronicle_client.session,
+        "get",
+        return_value=mock_forwarders_list_response,
     ):
         result = get_or_create_forwarder(
             client=chronicle_client, display_name="Wrapper-SDK-Forwarder"
@@ -332,14 +338,18 @@ def test_ingest_log_basic(
     test_log = {"test": "log", "message": "Test message"}
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_forwarders_list_response
+        chronicle_client.session,
+        "get",
+        return_value=mock_forwarders_list_response,
     ), patch.object(
         chronicle_client.session, "post", return_value=mock_ingest_response
     ), patch(
         "secops.chronicle.log_ingest.is_valid_log_type", return_value=True
     ):
         result = ingest_log(
-            client=chronicle_client, log_type="OKTA", log_message=json.dumps(test_log)
+            client=chronicle_client,
+            log_type="OKTA",
+            log_message=json.dumps(test_log),
         )
 
         assert "operation" in result
@@ -358,7 +368,9 @@ def test_ingest_log_with_timestamps(
     collection_time = datetime.now(timezone.utc)
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_forwarders_list_response
+        chronicle_client.session,
+        "get",
+        return_value=mock_forwarders_list_response,
     ), patch.object(
         chronicle_client.session, "post", return_value=mock_ingest_response
     ), patch(
@@ -385,6 +397,8 @@ def test_ingest_log_invalid_timestamps(chronicle_client):
 
     with pytest.raises(
         ValueError, match="Collection time must be same or after log entry time"
+    ), patch(
+        "secops.chronicle.log_ingest.is_valid_log_type", return_value=True
     ):
         ingest_log(
             client=chronicle_client,
@@ -399,7 +413,9 @@ def test_ingest_log_invalid_log_type(chronicle_client):
     """Test log ingestion with invalid log type."""
     test_log = {"test": "log", "message": "Test message"}
 
-    with patch("secops.chronicle.log_ingest.is_valid_log_type", return_value=False):
+    with patch(
+        "secops.chronicle.log_ingest.is_valid_log_type", return_value=False
+    ):
         with pytest.raises(ValueError, match="Invalid log type"):
             ingest_log(
                 client=chronicle_client,
@@ -415,7 +431,9 @@ def test_ingest_log_force_log_type(
     test_log = {"test": "log", "message": "Test message"}
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_forwarders_list_response
+        chronicle_client.session,
+        "get",
+        return_value=mock_forwarders_list_response,
     ), patch.object(
         chronicle_client.session, "post", return_value=mock_ingest_response
     ), patch(
@@ -431,13 +449,17 @@ def test_ingest_log_force_log_type(
         assert "operation" in result
 
 
-def test_ingest_log_with_custom_forwarder(chronicle_client, mock_ingest_response):
+def test_ingest_log_with_custom_forwarder(
+    chronicle_client, mock_ingest_response
+):
     """Test log ingestion with a custom forwarder ID."""
     test_log = {"test": "log", "message": "Test message"}
 
     with patch.object(
         chronicle_client.session, "post", return_value=mock_ingest_response
-    ), patch("secops.chronicle.log_ingest.is_valid_log_type", return_value=True):
+    ), patch(
+        "secops.chronicle.log_ingest.is_valid_log_type", return_value=True
+    ):
         result = ingest_log(
             client=chronicle_client,
             log_type="OKTA",
@@ -466,14 +488,18 @@ def test_ingest_xml_log(
 </Event>"""
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_forwarders_list_response
+        chronicle_client.session,
+        "get",
+        return_value=mock_forwarders_list_response,
     ), patch.object(
         chronicle_client.session, "post", return_value=mock_ingest_response
     ), patch(
         "secops.chronicle.log_ingest.is_valid_log_type", return_value=True
     ):
         result = ingest_log(
-            client=chronicle_client, log_type="WINEVTLOG_XML", log_message=xml_log
+            client=chronicle_client,
+            log_type="WINEVTLOG_XML",
+            log_message=xml_log,
         )
 
         assert "operation" in result
@@ -483,9 +509,13 @@ def test_ingest_xml_log(
         )
 
 
-def test_ingest_udm_single_event(chronicle_client, mock_udm_event, mock_udm_response):
+def test_ingest_udm_single_event(
+    chronicle_client, mock_udm_event, mock_udm_response
+):
     """Test ingesting a single UDM event."""
-    with patch.object(chronicle_client.session, "post", return_value=mock_udm_response):
+    with patch.object(
+        chronicle_client.session, "post", return_value=mock_udm_response
+    ):
         result = ingest_udm(client=chronicle_client, udm_events=mock_udm_event)
 
         # Check that the request was made correctly
@@ -526,12 +556,17 @@ def test_ingest_udm_multiple_events(
             "product_name": "Test Product",
             "id": "test-event-id-2",
         },
-        "principal": {"hostname": "host1", "process": {"command_line": "./test.exe"}},
+        "principal": {
+            "hostname": "host1",
+            "process": {"command_line": "./test.exe"},
+        },
     }
 
     events = [event1, event2]
 
-    with patch.object(chronicle_client.session, "post", return_value=mock_udm_response):
+    with patch.object(
+        chronicle_client.session, "post", return_value=mock_udm_response
+    ):
         result = ingest_udm(client=chronicle_client, udm_events=events)
 
         # Check that the request was made correctly
@@ -542,7 +577,8 @@ def test_ingest_udm_multiple_events(
         payload = call_args[1]["json"]
         assert len(payload["inline_source"]["events"]) == 2
         event_ids = [
-            e["udm"]["metadata"]["id"] for e in payload["inline_source"]["events"]
+            e["udm"]["metadata"]["id"]
+            for e in payload["inline_source"]["events"]
         ]
         assert "test-event-id" in event_ids
         assert "test-event-id-2" in event_ids
@@ -559,13 +595,17 @@ def test_ingest_udm_adds_missing_id(chronicle_client, mock_udm_response):
         "principal": {"ip": "192.168.1.100"},
     }
 
-    with patch.object(chronicle_client.session, "post", return_value=mock_udm_response):
+    with patch.object(
+        chronicle_client.session, "post", return_value=mock_udm_response
+    ):
         ingest_udm(client=chronicle_client, udm_events=event)
 
         # Verify ID was added
         call_args = chronicle_client.session.post.call_args
         payload = call_args[1]["json"]
-        event_metadata = payload["inline_source"]["events"][0]["udm"]["metadata"]
+        event_metadata = payload["inline_source"]["events"][0]["udm"][
+            "metadata"
+        ]
         assert "id" in event_metadata
         assert event_metadata["id"]  # ID is not empty
 
@@ -582,13 +622,17 @@ def test_ingest_udm_adds_missing_timestamp(chronicle_client, mock_udm_response):
         "principal": {"ip": "192.168.1.100"},
     }
 
-    with patch.object(chronicle_client.session, "post", return_value=mock_udm_response):
+    with patch.object(
+        chronicle_client.session, "post", return_value=mock_udm_response
+    ):
         ingest_udm(client=chronicle_client, udm_events=event)
 
         # Verify timestamp was added
         call_args = chronicle_client.session.post.call_args
         payload = call_args[1]["json"]
-        event_metadata = payload["inline_source"]["events"][0]["udm"]["metadata"]
+        event_metadata = payload["inline_source"]["events"][0]["udm"][
+            "metadata"
+        ]
         assert "event_timestamp" in event_metadata
         assert event_metadata["event_timestamp"]  # Timestamp is not empty
 
@@ -621,14 +665,19 @@ def test_ingest_udm_validation_error_empty_events(chronicle_client):
 def test_ingest_udm_api_error(chronicle_client):
     """Test error handling when the API request fails."""
     event = {
-        "metadata": {"event_type": "NETWORK_CONNECTION", "product_name": "Test Product"}
+        "metadata": {
+            "event_type": "NETWORK_CONNECTION",
+            "product_name": "Test Product",
+        }
     }
 
     error_response = Mock()
     error_response.status_code = 400
     error_response.text = "Invalid request"
 
-    with patch.object(chronicle_client.session, "post", return_value=error_response):
+    with patch.object(
+        chronicle_client.session, "post", return_value=error_response
+    ):
         with pytest.raises(APIError, match="Failed to ingest UDM events"):
             ingest_udm(client=chronicle_client, udm_events=event)
 
@@ -644,7 +693,9 @@ def test_ingest_log_batch(
     ]
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_forwarders_list_response
+        chronicle_client.session,
+        "get",
+        return_value=mock_forwarders_list_response,
     ), patch.object(
         chronicle_client.session, "post", return_value=mock_ingest_response
     ), patch(
@@ -678,7 +729,9 @@ def test_ingest_log_backward_compatibility(
     test_log = json.dumps({"test": "log", "message": "Test message"})
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_forwarders_list_response
+        chronicle_client.session,
+        "get",
+        return_value=mock_forwarders_list_response,
     ), patch.object(
         chronicle_client.session, "post", return_value=mock_ingest_response
     ), patch(
@@ -703,7 +756,10 @@ def test_ingest_log_backward_compatibility(
         log_entry = payload["inline_source"]["logs"][0]
         assert "data" in log_entry
         decoded_data = base64.b64decode(log_entry["data"]).decode("utf-8")
-        assert json.loads(decoded_data) == {"test": "log", "message": "Test message"}
+        assert json.loads(decoded_data) == {
+            "test": "log",
+            "message": "Test message",
+        }
 
 
 def test_patch_forwarder(chronicle_client, mock_patch_forwarder_response):
@@ -939,20 +995,25 @@ def test_auto_generated_update_mask_multiple_fields(
             payload["config"]["serverSettings"]["httpSettings"] == http_settings
         )
 
+
 def test_delete_forwarder(chronicle_client, mock_delete_forwarder_response):
     """Test deleting a forwarder."""
     with patch.object(
-        chronicle_client.session, "delete", return_value=mock_delete_forwarder_response
+        chronicle_client.session,
+        "delete",
+        return_value=mock_delete_forwarder_response,
     ):
-        result = delete_forwarder(client=chronicle_client, forwarder_id="test-forwarder-id")
-        
+        result = delete_forwarder(
+            client=chronicle_client, forwarder_id="test-forwarder-id"
+        )
+
         # Verify the result (should be empty for delete operations)
         assert result == {}
-        
+
         # Verify the request was made with the correct URL
         call_args = chronicle_client.session.delete.call_args
         assert call_args is not None
-        
+
         # Check URL format contains the forwarder ID
         url = call_args[0][0]
         assert (
@@ -966,10 +1027,14 @@ def test_delete_forwarder_error(chronicle_client):
     error_response = Mock()
     error_response.status_code = 400
     error_response.text = "Invalid request"
-    
-    with patch.object(chronicle_client.session, "delete", return_value=error_response):
+
+    with patch.object(
+        chronicle_client.session, "delete", return_value=error_response
+    ):
         with pytest.raises(APIError, match="Failed to delete forwarder"):
-            delete_forwarder(client=chronicle_client, forwarder_id="test-forwarder-id")
+            delete_forwarder(
+                client=chronicle_client, forwarder_id="test-forwarder-id"
+            )
 
 
 @pytest.fixture
@@ -1005,10 +1070,14 @@ def test_import_entities_single_entity(
 ):
     """Test importing a single entity."""
     with patch.object(
-        chronicle_client.session, "post", return_value=mock_import_entities_response
+        chronicle_client.session,
+        "post",
+        return_value=mock_import_entities_response,
     ):
         result = import_entities(
-            client=chronicle_client, entities=mock_entity, log_type="TEST_LOG_TYPE"
+            client=chronicle_client,
+            entities=mock_entity,
+            log_type="TEST_LOG_TYPE",
         )
 
         call_args = chronicle_client.session.post.call_args
@@ -1053,7 +1122,9 @@ def test_import_entities_multiple_entities(
     entities = [mock_entity, entity2]
 
     with patch.object(
-        chronicle_client.session, "post", return_value=mock_import_entities_response
+        chronicle_client.session,
+        "post",
+        return_value=mock_import_entities_response,
     ):
         import_entities(
             client=chronicle_client, entities=entities, log_type="TEST_LOG_TYPE"
@@ -1072,7 +1143,9 @@ def test_import_entities_api_error(chronicle_client, mock_entity):
     error_response.status_code = 400
     error_response.text = "Invalid request"
 
-    with patch.object(chronicle_client.session, "post", return_value=error_response):
+    with patch.object(
+        chronicle_client.session, "post", return_value=error_response
+    ):
         with pytest.raises(APIError, match="Failed to import entities"):
             import_entities(
                 client=chronicle_client,
@@ -1084,4 +1157,6 @@ def test_import_entities_api_error(chronicle_client, mock_entity):
 def test_import_entities_validation_error_empty_entities(chronicle_client):
     """Test validation error when no entities are provided."""
     with pytest.raises(ValueError, match="No entities provided"):
-        import_entities(client=chronicle_client, entities=[], log_type="TEST_LOG_TYPE")
+        import_entities(
+            client=chronicle_client, entities=[], log_type="TEST_LOG_TYPE"
+        )

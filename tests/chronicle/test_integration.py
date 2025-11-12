@@ -2059,12 +2059,15 @@ def test_chronicle_log_types_api_fetch():
         assert isinstance(all_log_types, list)
         assert len(all_log_types) > 0, "Should return at least some log types"
 
-        # Verify each log type has required attributes
-        for log_type in all_log_types[:5]:  # Check first 5
-            assert hasattr(log_type, "id")
-            assert hasattr(log_type, "description")
-            assert isinstance(log_type.id, str)
-            assert isinstance(log_type.description, str)
+        # Verify each item is a raw dict with API fields
+        for log_type_data in all_log_types[:5]:  # Check first 5
+            assert isinstance(log_type_data, dict)
+            assert "name" in log_type_data
+            assert "displayName" in log_type_data
+            # Extract ID from resource name
+            log_type_id = log_type_data["name"].split("/")[-1]
+            assert isinstance(log_type_id, str)
+            assert isinstance(log_type_data["displayName"], str)
 
         print(f"\nFetched {len(all_log_types)} log types from API")
 
@@ -2183,15 +2186,16 @@ def test_chronicle_log_types_description():
 
         if len(all_log_types) > 0:
             # Test getting description for first log type
-            log_type = all_log_types[0]
-            description = chronicle.get_log_type_description(log_type.id)
+            log_type_data = all_log_types[0]
+            log_type_id = log_type_data["name"].split("/")[-1]
+            description = chronicle.get_log_type_description(log_type_id)
 
             assert description is not None
             assert isinstance(description, str)
-            assert description == log_type.description
+            assert description == log_type_data["displayName"]
 
             print(
-                f"\nLog type: {log_type.id}, "
+                f"\nLog type: {log_type_id}, "
                 f"Description: {description}"
             )
 
