@@ -194,7 +194,6 @@ __all__ = [
     "extract_forwarder_id",
     "update_forwarder",
     # Log Types
-    "LogType",
     "get_all_log_types",
     "is_valid_log_type",
     "get_log_type_description",
