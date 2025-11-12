@@ -820,7 +820,7 @@ def ingest_log(
         APIError: If the API request fails
     """
     # Validate log type
-    if not is_valid_log_type(log_type) and not force_log_type:
+    if not is_valid_log_type(client, log_type) and not force_log_type:
         raise ValueError(
             f"Invalid log type: {log_type}. "
             "Use force_log_type=True to override."

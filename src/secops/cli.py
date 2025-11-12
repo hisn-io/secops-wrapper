@@ -12,7 +12,6 @@ from typing import Any, Dict, Tuple
 
 from secops import SecOpsClient
 from secops.chronicle.data_table import DataTableColumnType
-from secops.chronicle.log_types import print_log_types
 from secops.chronicle.reference_list import (
     ReferenceListSyntaxType,
     ReferenceListView,
@@ -895,16 +894,9 @@ def setup_log_command(subparsers):
 
     # List log types command
     types_parser = log_subparsers.add_parser(
-        "types", help="List available log types"
+        "types", help="List available log types from API"
     )
     types_parser.add_argument("--search", help="Search term for log types")
-    types_parser.add_argument(
-        "--force-static",
-        "--force_static",
-        dest="force_static",
-        action="store_true",
-        help="Force use of static log type list (skip API fetch)",
-    )
     types_parser.add_argument(
         "--page-size",
         "--page_size",
@@ -1031,7 +1023,6 @@ def handle_import_entities_command(args, chronicle):
 def handle_log_types_command(args, chronicle):
     """Handle listing log types command."""
     try:
-        force_static = getattr(args, "force_static", False)
         page_size = getattr(args, "page_size", None)
         page_token = getattr(args, "page_token", None)
 
@@ -1043,17 +1034,14 @@ def handle_log_types_command(args, chronicle):
                     "Search operates on all log types.",
                     file=sys.stderr,
                 )
-            result = chronicle.search_log_types(
-                args.search, force_static=force_static
-            )
+            result = chronicle.search_log_types(args.search)
         else:
             result = chronicle.get_all_log_types(
-                force_static=force_static,
                 page_size=page_size,
                 page_token=page_token,
             )
 
-        print_log_types(result)
+        output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
