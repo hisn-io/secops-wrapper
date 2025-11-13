@@ -2356,11 +2356,9 @@ class ChronicleClient:
         Returns:
             True if the log type exists, False otherwise
         """
-        return _is_valid_log_type(log_type_id, client=self)
+        return _is_valid_log_type(client=self, log_type_id=log_type_id)
 
-    def get_log_type_description(
-        self, log_type_id: str
-    ) -> Optional[str]:
+    def get_log_type_description(self, log_type_id: str) -> Optional[str]:
         """Get the display name for a log type ID from API.
 
         Args:
@@ -2870,7 +2868,7 @@ class ChronicleClient:
             ```python
             # First, get the rows to obtain their full resource names
             rows = chronicle.list_data_table_rows('my_table')
-            
+
             # Update multiple rows
             updates = [
                 {

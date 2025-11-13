@@ -278,11 +278,15 @@ def test_is_valid_log_type_from_api(mock_chronicle_client, mock_api_response):
     mock_response.json.return_value = mock_api_response
     mock_chronicle_client.session.get.return_value = mock_response
 
-    assert is_valid_log_type("OKTA", client=mock_chronicle_client)
+    assert is_valid_log_type(client=mock_chronicle_client, log_type_id="OKTA")
     # Second call uses cached data
-    assert is_valid_log_type("AWS_CLOUDTRAIL", client=mock_chronicle_client)
+    assert is_valid_log_type(
+        client=mock_chronicle_client, log_type_id="AWS_CLOUDTRAIL"
+    )
     # Invalid type
-    assert not is_valid_log_type("INVALID_TYPE", client=mock_chronicle_client)
+    assert not is_valid_log_type(
+        client=mock_chronicle_client, log_type_id="INVALID_TYPE"
+    )
 
 
 def test_get_log_type_description_from_api(

@@ -102,7 +102,7 @@ def load_log_types(
     """
     global _LOG_TYPES_CACHE
 
-    if client is None:
+    if not client:
         raise ValueError(
             "ChronicleClient is required to fetch log types. "
             "Static log types are no longer supported."
@@ -149,8 +149,8 @@ def get_all_log_types(
 
 
 def is_valid_log_type(
-    log_type_id: str,
     client: "ChronicleClient",
+    log_type_id: str,
 ) -> bool:
     """Check if a log type ID is valid by querying the API.
 
