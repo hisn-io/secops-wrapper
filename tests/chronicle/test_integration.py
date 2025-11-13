@@ -1605,6 +1605,136 @@ def test_update_data_table():
 
 
 @pytest.mark.integration
+def test_update_data_table_rows():
+    """Test update_data_table_rows functionality with real API.
+    
+    This test creates a data table with initial rows, updates specific rows
+    using their full resource names, verifies the updates, and then cleans
+    up by deleting the data table.
+    """
+    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
+    chronicle = client.chronicle(**CHRONICLE_CONFIG)
+    
+    # Create a unique data table name for this test using timestamp
+    dt_name = f"update_rows_test_{int(time.time())}"
+    
+    try:
+        print(f"\n>>> Testing update_data_table_rows for: {dt_name}")
+        
+        # Create a data table with initial rows
+        created_dt = chronicle.create_data_table(
+            name=dt_name,
+            description="Test Data Table for Update Rows",
+            header={
+                "hostname": DataTableColumnType.STRING,
+                "ip_address": DataTableColumnType.STRING,
+                "status": DataTableColumnType.STRING,
+            },
+            rows=[
+                ["server1.example.com", "10.0.0.1", "active"],
+                ["server2.example.com", "10.0.0.2", "active"],
+                ["server3.example.com", "10.0.0.3", "inactive"],
+            ],
+        )
+        
+        print(f"Created data table: {dt_name} with 3 initial rows")
+        assert created_dt.get("name").endswith(dt_name)
+        
+        # List rows to get their full resource names
+        initial_rows = chronicle.list_data_table_rows(dt_name)
+        assert len(initial_rows) == 3, (
+            f"Expected 3 initial rows, got {len(initial_rows)}"
+        )
+        
+        print(f"Retrieved {len(initial_rows)} rows with resource names")
+        
+        for row in initial_rows:
+            if "server1" in row["values"][0]:
+                row_1_name = row["name"]
+            elif "server2" in row["values"][0]:
+                row_2_name = row["name"]
+
+        # Prepare updates for the first two rows
+        row_updates = [
+            {
+                "name": row_1_name,
+                "values": [
+                    "server1-updated.example.com",
+                    "192.168.1.1",
+                    "maintenance",
+                ],
+            },
+            {
+                "name": row_2_name,
+                "values": [
+                    "server2-updated.example.com",
+                    "192.168.1.2",
+                    "maintenance",
+                ],
+            },
+        ]
+        
+        print(f"Updating 2 rows in data table: {dt_name}")
+        # Update the rows
+        update_results = chronicle.update_data_table_rows(
+            name=dt_name, row_updates=row_updates
+        )
+        
+        # Verify update response
+        assert len(update_results) == 1, (
+            "Expected single response for batch update"
+        )
+        assert "dataTableRows" in update_results[0], (
+            "Response should contain dataTableRows"
+        )
+        
+        print("Updates successful, verifying changes...")
+        
+        # Verify rows after update
+        updated_rows = chronicle.list_data_table_rows(dt_name)
+        assert len(updated_rows) == 3, (
+            f"Expected 3 rows after update, got {len(updated_rows)}"
+        )
+        
+        # Find the updated rows by their new values
+        updated_hostnames = set(
+            row["values"][0]
+            for row in updated_rows
+            if "updated" in row["values"][0]
+        )
+        assert len(updated_hostnames) == 2, (
+            f"Expected 2 updated hostnames, got {len(updated_hostnames)}"
+        )
+        assert "server1-updated.example.com" in updated_hostnames
+        assert "server2-updated.example.com" in updated_hostnames
+        
+        # Verify the third row remains unchanged
+        unchanged_row = [
+            row for row in updated_rows if "server3" in row["values"][0]
+        ]
+        assert len(unchanged_row) == 1
+        assert unchanged_row[0]["values"][2] == "inactive"
+        
+        print("All update_data_table_rows tests passed successfully")
+        
+    except Exception as e:
+        print(f"Error in test_update_data_table_rows: {str(e)}")
+        pytest.fail(f"Update data table rows test failed: {e}")
+        
+    finally:
+        # Clean up - delete the test data table
+        try:
+            print(f"Cleaning up - deleting data table: {dt_name}")
+            chronicle.delete_data_table(dt_name, force=True)
+            print("Data table deleted successfully")
+        except Exception as cleanup_error:
+            print(
+                f"Warning: Failed to clean up data table {dt_name}: "
+                f"{cleanup_error}"
+            )
+
+
+@pytest.mark.integration
 def test_chronicle_reference_lists():
     """Test Chronicle reference list functionality with real API."""
     client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)

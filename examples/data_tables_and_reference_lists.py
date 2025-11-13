@@ -295,6 +295,125 @@ def main():
         except Exception as cleanup_error:
             print(f"Error during cleanup: {cleanup_error}")
 
+    # Example 5: Bulk update data table rows
+    dt_update_name = f"example_dt_update_{timestamp}"
+    print(f"\nCreating data table for bulk update example: {dt_update_name}")
+
+    try:
+        # Create a data table with initial rows
+        dt_update = chronicle.create_data_table(
+            name=dt_update_name,
+            description="Example data table for bulk update demonstration",
+            header={
+                "hostname": DataTableColumnType.STRING,
+                "ip_address": DataTableColumnType.STRING,
+                "status": DataTableColumnType.STRING,
+                "description": DataTableColumnType.STRING,
+            },
+            rows=[
+                [
+                    "server1.example.com",
+                    "192.168.1.10",
+                    "active",
+                    "Primary web server",
+                ],
+                [
+                    "server2.example.com",
+                    "192.168.1.11",
+                    "active",
+                    "Backup web server",
+                ],
+                [
+                    "server3.example.com",
+                    "192.168.1.12",
+                    "inactive",
+                    "Development server",
+                ],
+                [
+                    "server4.example.com",
+                    "192.168.1.13",
+                    "active",
+                    "Testing server",
+                ],
+                [
+                    "server5.example.com",
+                    "192.168.1.14",
+                    "inactive",
+                    "Staging server",
+                ],
+            ],
+        )
+        print(f"Created data table: {dt_update['name']}")
+
+        # List the initial rows and display them
+        initial_rows = chronicle.list_data_table_rows(dt_update_name)
+        print(f"\nData table initially has {len(initial_rows)} rows:")
+        for i, row in enumerate(initial_rows):
+            row_id = row["name"].split("/")[-1]
+            values = row.get("values", [])
+            print(
+                f"  {i+1}. [ID: {row_id[:8]}...] "
+                f"{values[0]} | {values[1]} | {values[2]} | {values[3]}"
+            )
+
+        # Prepare bulk updates - update status of inactive servers
+        print("\n--- Preparing bulk updates ---")
+        row_updates = []
+
+        for row in initial_rows:
+            row_name = row["name"]
+            values = row.get("values", [])
+
+            # Check if this is an inactive server
+            if len(values) >= 3 and values[2] == "inactive":
+                # Update status to maintenance and modify description
+                new_values = [
+                    values[0],  # hostname stays the same
+                    values[1],  # ip_address stays the same
+                    "maintenance",  # Change status
+                    f"{values[3]} - Under maintenance",  # Update desc
+                ]
+
+                row_updates.append({"name": row_name, "values": new_values})
+                print(
+                    f"  Preparing update for {values[0]}: "
+                    f"inactive -> maintenance"
+                )
+
+        # Execute bulk update
+        if row_updates:
+            print(f"\nUpdating {len(row_updates)} rows using bulk update...")
+            update_responses = chronicle.update_data_table_rows(
+                dt_update_name, row_updates
+            )
+            print(
+                f"Bulk update completed: {len(update_responses)} response(s)"
+            )
+
+            # Verify the updates
+            updated_rows = chronicle.list_data_table_rows(dt_update_name)
+            print(f"\nData table now has {len(updated_rows)} rows:")
+            for i, row in enumerate(updated_rows):
+                row_id = row["name"].split("/")[-1]
+                values = row.get("values", [])
+                print(
+                    f"  {i+1}. [ID: {row_id[:8]}...] "
+                    f"{values[0]} | {values[1]} | {values[2]} | {values[3]}"
+                )
+        else:
+            print("\nNo rows to update (no inactive servers found)")
+
+    except (APIError, SecOpsError) as e:
+        print(f"Error in bulk update example: {e}")
+    finally:
+        # Clean up - delete the data table
+        try:
+            print(f"\nCleaning up - deleting data table: {dt_update_name}")
+            chronicle.delete_data_table(dt_update_name, force=True)
+            print("Data table deleted successfully")
+        except Exception as cleanup_error:
+            print(f"Error during cleanup: {cleanup_error}")
+
     # ---- Reference List Examples ----
     print("\n=== Reference List Examples ===\n")
 
