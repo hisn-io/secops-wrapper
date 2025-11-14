@@ -114,12 +114,6 @@ def reset_cache():
     log_types._LOG_TYPES_CACHE = None
 
 
-def test_load_log_types_no_client():
-    """Test that load_log_types requires a client."""
-    with pytest.raises(ValueError, match="ChronicleClient is required"):
-        load_log_types(client=None)
-
-
 def test_load_log_types_from_api(mock_chronicle_client, mock_api_response):
     """Test loading log types from API."""
     # Mock the API response

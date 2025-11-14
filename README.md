@@ -330,8 +330,6 @@ log_types = chronicle.get_all_log_types()
 for lt in log_types[:5]:  # Show first 5
     print(f"{lt.id}: {lt.description}")
 
-# Force use of static list (useful for offline environments)
-log_types_static = chronicle.get_all_log_types(force_static=True)
 
 # Fetch only first 50 log types (single page)
 log_types_page = chronicle.get_all_log_types(page_size=50)
@@ -349,12 +347,6 @@ log_types_next = chronicle.get_all_log_types(
 firewall_types = chronicle.search_log_types("firewall")
 for lt in firewall_types:
     print(f"{lt.id}: {lt.description}")
-
-# Search using static list only
-firewall_types_static = chronicle.search_log_types(
-    "firewall", 
-    force_static=True
-)
 ```
 
 3. Validate log types:
@@ -364,14 +356,7 @@ if chronicle.is_valid_log_type("OKTA"):
     print("Valid log type")
 else:
     print("Invalid log type")
-
-# Validate using static list
-if chronicle.is_valid_log_type("OKTA", force_static=True):
-    print("Valid in static list")
 ```
-
-**Notes:**
-- By default, the SDK fetches the latest log types from the Chronicle API, automatically falling back to a built-in static list if the API is unavailable.
 
 4. Use custom forwarders:
 ```python

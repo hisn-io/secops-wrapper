@@ -2332,14 +2332,14 @@ class ChronicleClient:
         page_size: Optional[int] = None,
         page_token: Optional[str] = None,
     ) -> List[Dict[str, Any]]:
-        """Get all available Chronicle log types from API.
+        """Get all available Chronicle log types.
 
         Args:
             page_size: Number of results per page (fetches single page)
             page_token: Page token for pagination
 
         Returns:
-            List of raw API response dicts for log types
+            List of log types
         """
         return _get_all_log_types(
             client=self,
@@ -2348,7 +2348,7 @@ class ChronicleClient:
         )
 
     def is_valid_log_type(self, log_type_id: str) -> bool:
-        """Check if a log type ID is valid by querying the API.
+        """Check if a log type ID is valid by querying.
 
         Args:
             log_type_id: The log type ID to validate
@@ -2359,7 +2359,7 @@ class ChronicleClient:
         return _is_valid_log_type(client=self, log_type_id=log_type_id)
 
     def get_log_type_description(self, log_type_id: str) -> Optional[str]:
-        """Get the display name for a log type ID from API.
+        """Get the display name for a log type ID.
 
         Args:
             log_type_id: The log type ID to get the description for
@@ -2375,7 +2375,7 @@ class ChronicleClient:
         case_sensitive: bool = False,
         search_in_description: bool = True,
     ) -> List[Dict[str, Any]]:
-        """Search log types by ID or description from API.
+        """Search log types by ID or description.
 
         Args:
             search_term: Term to search for
@@ -2384,7 +2384,7 @@ class ChronicleClient:
                 as well as IDs
 
         Returns:
-            List of matching raw API response dicts
+            List of matching log types
         """
         return _search_log_types(
             search_term,

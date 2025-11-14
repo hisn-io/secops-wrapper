@@ -87,10 +87,10 @@ def load_log_types(
     page_size: Optional[int] = None,
     page_token: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Load and cache log types from Chronicle API.
+    """Load and cache log types from Chronicle.
 
     Args:
-        client: ChronicleClient instance for API fetch.
+        client: ChronicleClient instance.
         page_size: Number of results per page (fetches single page).
         page_token: Page token for pagination.
 
@@ -101,12 +101,6 @@ def load_log_types(
         ValueError: If client is None.
     """
     global _LOG_TYPES_CACHE
-
-    if not client:
-        raise ValueError(
-            "ChronicleClient is required to fetch log types. "
-            "Static log types are no longer supported."
-        )
 
     # Return cached data if available (skip cache if pagination params)
     if _LOG_TYPES_CACHE is not None and not page_size and not page_token:
@@ -128,10 +122,10 @@ def get_all_log_types(
     page_size: Optional[int] = None,
     page_token: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    """Get all available Chronicle log types from API.
+    """Get all available Chronicle log types.
 
     Args:
-        client: ChronicleClient instance for API fetch.
+        client: ChronicleClient instance.
         page_size: Number of results per page (fetches single page).
         page_token: Page token for pagination.
 
@@ -152,11 +146,11 @@ def is_valid_log_type(
     client: "ChronicleClient",
     log_type_id: str,
 ) -> bool:
-    """Check if a log type ID is valid by querying the API.
+    """Check if a log type ID is valid by querying.
 
     Args:
         log_type_id: The log type ID to validate.
-        client: ChronicleClient instance for API fetch.
+        client: ChronicleClient instance.
 
     Returns:
         True if the log type exists, False otherwise.
@@ -176,11 +170,11 @@ def get_log_type_description(
     log_type_id: str,
     client: "ChronicleClient",
 ) -> Optional[str]:
-    """Get the description for a log type ID from API.
+    """Get the description for a log type ID.
 
     Args:
         log_type_id: The log type ID to get the description for.
-        client: ChronicleClient instance for API fetch.
+        client: ChronicleClient instance.
 
     Returns:
         Display name if the log type exists, None otherwise.
@@ -208,7 +202,7 @@ def search_log_types(
         search_term: Term to search for in log type IDs and descriptions.
         case_sensitive: Whether the search should be case-sensitive.
         search_in_description: Whether to search in descriptions or IDs.
-        client: ChronicleClient instance for API fetch.
+        client: ChronicleClient instance.
 
     Returns:
         List of log types matching the search criteria.

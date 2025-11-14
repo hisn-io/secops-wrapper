@@ -894,7 +894,7 @@ def setup_log_command(subparsers):
 
     # List log types command
     types_parser = log_subparsers.add_parser(
-        "types", help="List available log types from API"
+        "types", help="List available log types"
     )
     types_parser.add_argument("--search", help="Search term for log types")
     types_parser.add_argument(
