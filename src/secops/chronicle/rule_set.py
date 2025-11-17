@@ -348,7 +348,7 @@ def get_curated_rule_set_deployment(
     rule_set = get_curated_rule_set(client, rule_set_id)
 
     url = (
-        f"{client.base_url}/{rule_set.get('name', '')}/"
+        f'{client.base_url}/{rule_set.get("name", "")}/'
         f"curatedRuleSetDeployments/{precision}"
     )
 

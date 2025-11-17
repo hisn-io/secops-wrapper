@@ -73,7 +73,6 @@ from secops.chronicle.log_ingest import (
     update_forwarder,
 )
 from secops.chronicle.log_types import (
-    LogType,
     get_all_log_types,
     get_log_type_description,
     is_valid_log_type,
@@ -195,7 +194,6 @@ __all__ = [
     "extract_forwarder_id",
     "update_forwarder",
     # Log Types
-    "LogType",
     "get_all_log_types",
     "is_valid_log_type",
     "get_log_type_description",

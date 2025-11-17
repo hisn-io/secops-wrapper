@@ -385,6 +385,8 @@ def test_ingest_log_invalid_timestamps(chronicle_client):
 
     with pytest.raises(
         ValueError, match="Collection time must be same or after log entry time"
+    ), patch(
+        "secops.chronicle.log_ingest.is_valid_log_type", return_value=True
     ):
         ingest_log(
             client=chronicle_client,
@@ -399,7 +401,9 @@ def test_ingest_log_invalid_log_type(chronicle_client):
     """Test log ingestion with invalid log type."""
     test_log = {"test": "log", "message": "Test message"}
 
-    with patch("secops.chronicle.log_ingest.is_valid_log_type", return_value=False):
+    with patch(
+        "secops.chronicle.log_ingest.is_valid_log_type", return_value=False
+    ):
         with pytest.raises(ValueError, match="Invalid log type"):
             ingest_log(
                 client=chronicle_client,
