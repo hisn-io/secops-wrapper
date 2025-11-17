@@ -107,7 +107,6 @@ from secops.chronicle.log_ingest import ingest_udm as _ingest_udm
 from secops.chronicle.log_ingest import import_entities as _import_entities
 from secops.chronicle.log_ingest import list_forwarders as _list_forwarders
 from secops.chronicle.log_ingest import update_forwarder as _update_forwarder
-from secops.chronicle.log_types import LogType
 from secops.chronicle.log_types import get_all_log_types as _get_all_log_types
 from secops.chronicle.log_types import (
     get_log_type_description as _get_log_type_description,
@@ -2328,16 +2327,28 @@ class ChronicleClient:
         """
         return _get_or_create_forwarder(self, display_name=display_name)
 
-    def get_all_log_types(self) -> List[LogType]:
+    def get_all_log_types(
+        self,
+        page_size: Optional[int] = None,
+        page_token: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         """Get all available Chronicle log types.
 
+        Args:
+            page_size: Number of results per page (fetches single page)
+            page_token: Page token for pagination
+
         Returns:
-            List of LogType objects representing all available log types
+            List of log types
         """
-        return _get_all_log_types()
+        return _get_all_log_types(
+            client=self,
+            page_size=page_size,
+            page_token=page_token,
+        )
 
     def is_valid_log_type(self, log_type_id: str) -> bool:
-        """Check if a log type ID is valid.
+        """Check if a log type ID is valid by querying.
 
         Args:
             log_type_id: The log type ID to validate
@@ -2345,25 +2356,25 @@ class ChronicleClient:
         Returns:
             True if the log type exists, False otherwise
         """
-        return _is_valid_log_type(log_type_id)
+        return _is_valid_log_type(client=self, log_type_id=log_type_id)
 
     def get_log_type_description(self, log_type_id: str) -> Optional[str]:
-        """Get the description for a log type ID.
+        """Get the display name for a log type ID.
 
         Args:
             log_type_id: The log type ID to get the description for
 
         Returns:
-            Description string if the log type exists, None otherwise
+            Display name if the log type exists, None otherwise
         """
-        return _get_log_type_description(log_type_id)
+        return _get_log_type_description(log_type_id, client=self)
 
     def search_log_types(
         self,
         search_term: str,
         case_sensitive: bool = False,
         search_in_description: bool = True,
-    ) -> List[LogType]:
+    ) -> List[Dict[str, Any]]:
         """Search log types by ID or description.
 
         Args:
@@ -2373,10 +2384,13 @@ class ChronicleClient:
                 as well as IDs
 
         Returns:
-            List of matching LogType objects
+            List of matching log types
         """
         return _search_log_types(
-            search_term, case_sensitive, search_in_description
+            search_term,
+            case_sensitive,
+            search_in_description,
+            client=self,
         )
 
     def ingest_udm(
@@ -2854,7 +2868,7 @@ class ChronicleClient:
             ```python
             # First, get the rows to obtain their full resource names
             rows = chronicle.list_data_table_rows('my_table')
-            
+
             # Update multiple rows
             updates = [
                 {

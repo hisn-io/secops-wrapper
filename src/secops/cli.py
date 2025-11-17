@@ -897,6 +897,19 @@ def setup_log_command(subparsers):
         "types", help="List available log types"
     )
     types_parser.add_argument("--search", help="Search term for log types")
+    types_parser.add_argument(
+        "--page-size",
+        "--page_size",
+        dest="page_size",
+        type=int,
+        help="Number of results per page (fetches single page only)",
+    )
+    types_parser.add_argument(
+        "--page-token",
+        "--page_token",
+        dest="page_token",
+        help="Page token for pagination",
+    )
     types_parser.set_defaults(func=handle_log_types_command)
 
     generate_udm_mapping_parser = log_subparsers.add_parser(
@@ -1010,10 +1023,23 @@ def handle_import_entities_command(args, chronicle):
 def handle_log_types_command(args, chronicle):
     """Handle listing log types command."""
     try:
+        page_size = getattr(args, "page_size", None)
+        page_token = getattr(args, "page_token", None)
+
         if args.search:
+            # Search always fetches all log types for complete results
+            if page_size or page_token:
+                print(
+                    "Warning: Pagination params are ignored for search. "
+                    "Search operates on all log types.",
+                    file=sys.stderr,
+                )
             result = chronicle.search_log_types(args.search)
         else:
-            result = chronicle.get_all_log_types()
+            result = chronicle.get_all_log_types(
+                page_size=page_size,
+                page_token=page_token,
+            )
 
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
