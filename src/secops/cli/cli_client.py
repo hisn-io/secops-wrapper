@@ -66,6 +66,25 @@ def _print_help_instructions():
 
 def setup_client(
     args: argparse.Namespace,
+) -> tuple[SecOpsClient, ChronicleClient]:
+    """Backwards-compatible wrapper used by tests and external code.
+
+    Args:
+        args: Command line arguments
+
+    Returns:
+        Tuple of (SecOpsClient, Chronicle client)
+    """
+    client_kwargs = {}
+    if getattr(args, "service_account", None):
+        client_kwargs["service_account_path"] = args.service_account
+    client = SecOpsClient(**client_kwargs)
+    config = load_config() or {}
+    return _setup_client_core(args, client, config)
+
+
+def _setup_client_core(
+    args: argparse.Namespace,
     client: SecOpsClient,
     config: Dict[str, str],
 ) -> Tuple[SecOpsClient, ChronicleClient]:
@@ -166,16 +185,6 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         args: Command line arguments
         parser: Argument parser
     """
-    # Authentication setup
-    client_kwargs = {}
-    if args.service_account:
-        client_kwargs["service_account_path"] = args.service_account
-
-    client = SecOpsClient(**client_kwargs)
-
-    # Initialize Chronicle client
-    config = load_config()
-
     if not args.command:
         parser.print_help()
         sys.exit(1)
@@ -186,9 +195,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         return
 
     # Set up client
-    client, chronicle = setup_client(
-        args, client, config
-    )  # pylint: disable=unused-variable
+    client, chronicle = setup_client(args)  # pylint: disable=unused-variable
 
     # Execute command
     args.func(args, chronicle)
