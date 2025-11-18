@@ -4,9 +4,10 @@ Command line entrypoint for SecOps CLI
 
 import argparse
 import sys
-from typing import Any, Tuple
+from typing import Tuple, Dict
 
 from secops import SecOpsClient
+from secops.chronicle import ChronicleClient
 from secops.cli.commands.config import setup_config_command
 from secops.cli.commands.search import setup_search_command
 from secops.cli.commands.udm_search import setup_udm_search_view_command
@@ -38,79 +39,76 @@ from secops.cli.utils.config_utils import load_config
 from secops.exceptions import AuthenticationError, SecOpsError
 
 
-def setup_client(args: argparse.Namespace) -> Tuple[SecOpsClient, Any]:
-    """Set up and return SecOpsClient and Chronicle client based on args.
+def _print_help_instructions():
+    """Print help instructions to CLI for missing configuration."""
+    print(
+        "\nPlease run the config command to set up your configuration:",
+        file=sys.stderr,
+    )
+    print(
+        "  secops config set --customer-id YOUR_CUSTOMER_ID "
+        "--project-id YOUR_PROJECT_ID",
+        file=sys.stderr,
+    )
+    print(
+        "\nOr provide them as command-line options:",
+        file=sys.stderr,
+    )
+    print(
+        "  secops --customer-id YOUR_CUSTOMER_ID --project-id "
+        "YOUR_PROJECT_ID [command]",
+        file=sys.stderr,
+    )
+    print("\nFor help finding these values, run:", file=sys.stderr)
+    print("  secops help --topic customer-id", file=sys.stderr)
+    print("  secops help --topic project-id", file=sys.stderr)
+
+
+def setup_client(
+    args: argparse.Namespace,
+    client: SecOpsClient,
+    config: Dict[str, str],
+) -> Tuple[SecOpsClient, ChronicleClient]:
+    """Set up and return SecOpsClient and Chronicle client based on args or
+    config file. Args take precedence over config file.
 
     Args:
         args: Command line arguments
+        client: SecOpsClient instance
+        config: Configuration dictionary
 
     Returns:
         Tuple of (SecOpsClient, Chronicle client)
     """
-    # Authentication setup
-    client_kwargs = {}
-    if args.service_account:
-        client_kwargs["service_account_path"] = args.service_account
-
-    # Create client
     try:
-        client = SecOpsClient(**client_kwargs)
+        # Define required arguments for Chronicle client
+        required_args = ["customer_id", "project_id"]
+        chronicle_kwargs = {}
 
-        # Initialize Chronicle client if required
-        if (
-            hasattr(args, "customer_id")
-            or hasattr(args, "project_id")
-            or hasattr(args, "region")
-        ):
-            chronicle_kwargs = {}
-            if hasattr(args, "customer_id") and args.customer_id:
-                chronicle_kwargs["customer_id"] = args.customer_id
-            if hasattr(args, "project_id") and args.project_id:
-                chronicle_kwargs["project_id"] = args.project_id
-            if hasattr(args, "region") and args.region:
-                chronicle_kwargs["region"] = args.region
+        # Build kwargs with precedence: CLI args > config file > None
+        for arg in required_args + ["region"]:  # region is optional
+            # Check CLI args first
+            if hasattr(args, arg) and getattr(args, arg):
+                chronicle_kwargs[arg] = getattr(args, arg)
+            # Fall back to config if not in args
+            elif arg in config:
+                chronicle_kwargs[arg] = config[arg]
 
-            # Check if required args for Chronicle client are present
-            missing_args = []
-            if not chronicle_kwargs.get("customer_id"):
-                missing_args.append("customer_id")
-            if not chronicle_kwargs.get("project_id"):
-                missing_args.append("project_id")
+        # Check for missing required arguments
+        missing = [
+            arg for arg in required_args if not chronicle_kwargs.get(arg)
+        ]
+        if missing:
+            print(
+                "Error: Missing required configuration parameters:",
+                ", ".join(missing),
+                file=sys.stderr,
+            )
+            _print_help_instructions()
+            sys.exit(1)
 
-            if missing_args:
-                print(
-                    "Error: Missing required configuration parameters:",
-                    ", ".join(missing_args),
-                    file=sys.stderr,
-                )
-                print(
-                    "\nPlease run the config command to set up your "
-                    "configuration:",
-                    file=sys.stderr,
-                )
-                print(
-                    "  secops config set --customer-id YOUR_CUSTOMER_ID "
-                    "--project-id YOUR_PROJECT_ID",
-                    file=sys.stderr,
-                )
-                print(
-                    "\nOr provide them as command-line options:",
-                    file=sys.stderr,
-                )
-                print(
-                    "  secops --customer-id YOUR_CUSTOMER_ID --project-id "
-                    "YOUR_PROJECT_ID [command]",
-                    file=sys.stderr,
-                )
-                print("\nFor help finding these values, run:", file=sys.stderr)
-                print("  secops help --topic customer-id", file=sys.stderr)
-                print("  secops help --topic project-id", file=sys.stderr)
-                sys.exit(1)
-
-            chronicle = client.chronicle(**chronicle_kwargs)
-            return client, chronicle
-
-        return client, None
+        chronicle = client.chronicle(**chronicle_kwargs)
+        return client, chronicle
     except (AuthenticationError, SecOpsError) as e:
         print(f"Authentication error: {e}", file=sys.stderr)
         print("\nFor authentication using ADC, run:", file=sys.stderr)
@@ -120,8 +118,8 @@ def setup_client(args: argparse.Namespace) -> Tuple[SecOpsClient, Any]:
         sys.exit(1)
 
 
-def main() -> None:
-    """Main entry point for the CLI."""
+def build_parser() -> argparse.ArgumentParser:
+    """Build the parser."""
     parser = argparse.ArgumentParser(description="Google SecOps CLI")
 
     # Global arguments
@@ -158,8 +156,25 @@ def main() -> None:
     setup_dashboard_command(subparsers)
     setup_dashboard_query_command(subparsers)
 
-    # Parse arguments
-    args = parser.parse_args()
+    return parser
+
+
+def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
+    """Run the CLI
+
+    Args:
+        args: Command line arguments
+        parser: Argument parser
+    """
+    # Authentication setup
+    client_kwargs = {}
+    if args.service_account:
+        client_kwargs["service_account_path"] = args.service_account
+
+    client = SecOpsClient(**client_kwargs)
+
+    # Initialize Chronicle client
+    config = load_config()
 
     if not args.command:
         parser.print_help()
@@ -170,80 +185,22 @@ def main() -> None:
         args.func(args)
         return
 
-    # Check if this is a Chronicle-related command that requires configuration
-    chronicle_commands = [
-        "search",
-        "udm-search-view",
-        "stats",
-        "entity",
-        "iocs",
-        "rule",
-        "alert",
-        "case",
-        "export",
-        "gemini",
-        "rule-exclusion",
-        "curated-rule",
-        "forwarder",
-        "dashboard",
-    ]
-    requires_chronicle = any(cmd in args.command for cmd in chronicle_commands)
-
-    if requires_chronicle:
-        # Check for required configuration before attempting to
-        # create the client
-        config = load_config()
-        customer_id = args.customer_id or config.get("customer_id")
-        project_id = args.project_id or config.get("project_id")
-
-        if not customer_id or not project_id:
-            missing = []
-            if not customer_id:
-                missing.append("customer_id")
-            if not project_id:
-                missing.append("project_id")
-
-            print(
-                f'Error: Missing required configuration: {", ".join(missing)}',
-                file=sys.stderr,
-            )
-            print("\nPlease set up your configuration first:", file=sys.stderr)
-            print(
-                "  secops config set --customer-id YOUR_CUSTOMER_ID "
-                "--project-id YOUR_PROJECT_ID --region YOUR_REGION",
-                file=sys.stderr,
-            )
-            print(
-                "\nOr provide them directly on the command line:",
-                file=sys.stderr,
-            )
-            print(
-                "  secops --customer-id YOUR_CUSTOMER_ID --project-id "
-                f"YOUR_PROJECT_ID --region YOUR_REGION {args.command}",
-                file=sys.stderr,
-            )
-            print("\nNeed help finding these values?", file=sys.stderr)
-            print("  secops help --topic customer-id", file=sys.stderr)
-            print("  secops help --topic project-id", file=sys.stderr)
-            print("\nFor general configuration help:", file=sys.stderr)
-            print("  secops help --topic config", file=sys.stderr)
-            sys.exit(1)
-
     # Set up client
-    client, chronicle = setup_client(args)  # pylint: disable=unused-variable
+    client, chronicle = setup_client(
+        args, client, config
+    )  # pylint: disable=unused-variable
 
     # Execute command
-    if hasattr(args, "func"):
-        if not requires_chronicle or chronicle is not None:
-            args.func(args, chronicle)
-        else:
-            print(
-                "Error: Chronicle client required for this command",
-                file=sys.stderr,
-            )
-            print("\nFor help with configuration:", file=sys.stderr)
-            print("  secops help --topic config", file=sys.stderr)
-            sys.exit(1)
+    args.func(args, chronicle)
+
+
+def main() -> None:
+    """Main entry point for the CLI."""
+
+    parser = build_parser()
+    args = parser.parse_args()
+
+    run(args, parser)
 
 
 if __name__ == "__main__":
