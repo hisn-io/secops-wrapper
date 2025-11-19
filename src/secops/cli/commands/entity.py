@@ -14,11 +14,12 @@
 #
 """Google SecOps CLI entity commands"""
 
+import json
 import sys
 
 from secops.cli.utils.common_args import add_time_range_args
-from secops.cli.utils.time_utils import get_time_range
 from secops.cli.utils.formatters import output_formatter
+from secops.cli.utils.time_utils import get_time_range
 
 
 def setup_entity_command(subparsers):
@@ -26,8 +27,14 @@ def setup_entity_command(subparsers):
     entity_parser = subparsers.add_parser(
         "entity", help="Get entity information"
     )
+
+    # A subparser object
+    entity_subparsers = entity_parser.add_subparsers(
+        dest="entity_subcommand", help="Entity subcommands"
+    )
+
     entity_parser.add_argument(
-        "--value", required=True, help="Entity value (IP, domain, hash, etc.)"
+        "--value", help="Entity value (IP, domain, hash, etc.)"
     )
     entity_parser.add_argument(
         "--entity-type",
@@ -38,9 +45,43 @@ def setup_entity_command(subparsers):
     add_time_range_args(entity_parser)
     entity_parser.set_defaults(func=handle_entity_command)
 
+    # Ingest entities command as a subcommand
+    entities_import_parser = entity_subparsers.add_parser(
+        "import", help="Import entities"
+    )
+    entities_import_parser.add_argument(
+        "--file",
+        required=True,
+        help="File containing entity(s) (in JSON format)",
+    )
+    entities_import_parser.add_argument(
+        "--type", required=True, help="Log type"
+    )
+    entities_import_parser.set_defaults(func=handle_import_entities_command)
+
 
 def handle_entity_command(args, chronicle):
     """Handle the entity command."""
+
+    # If a subcommand is specified, this function should not be called.
+    # However, if it is called with a subcommand, we should exit gracefully.
+    if hasattr(args, "entity_subcommand") and args.entity_subcommand:
+        print(
+            "Error: Unexpected command handling for subcommand "
+            f"{args.entity_subcommand}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    # If no subcommand, --value is required
+    if not args.value:
+        print(
+            "Error: --value is required when using the entity "
+            "command without a subcommand",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
     start_time, end_time = get_time_range(args)
 
     try:
@@ -100,4 +141,19 @@ def handle_entity_command(args, chronicle):
             )
         else:
             print(f"Error: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def handle_import_entities_command(args, chronicle):
+    """Handle import entities command."""
+    try:
+        with open(args.file, "r", encoding="utf-8") as f:
+            entities = json.load(f)
+
+        result = chronicle.import_entities(
+            entities=entities, log_type=args.type
+        )
+        output_formatter(result, args.output)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)

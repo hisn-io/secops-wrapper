@@ -1734,8 +1734,8 @@ def test_cli_config_lifecycle(cli_env):
     # Create temp directory for config file
     with tempfile.TemporaryDirectory() as temp_dir:
         # Override the CONFIG_DIR and CONFIG_FILE with temp directory
-        with patch("secops.cli.CONFIG_DIR", Path(temp_dir)), patch(
-            "secops.cli.CONFIG_FILE", Path(temp_dir) / "config.json"
+        with patch("secops.cli.constants.CONFIG_DIR", Path(temp_dir)), patch(
+            "secops.cli.constants.CONFIG_FILE", Path(temp_dir) / "config.json"
         ):
 
             # 1. Set configuration - standard parameters

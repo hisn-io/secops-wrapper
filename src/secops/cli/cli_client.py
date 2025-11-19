@@ -195,7 +195,7 @@ def run(args: argparse.Namespace, parser: argparse.ArgumentParser) -> None:
         return
 
     # Set up client
-    client, chronicle = setup_client(args)  # pylint: disable=unused-variable
+    _, chronicle = setup_client(args)
 
     # Execute command
     args.func(args, chronicle)
