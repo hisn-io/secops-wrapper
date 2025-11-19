@@ -669,7 +669,7 @@ secops rule-exclusion create \
 
 Update rule exclusion
 ```bash
-secops rule-exclusion patch \
+secops rule-exclusion update \
   --id "exclusion-id" \
   --display-name "Updated Exclusion" \
   --query '(domain="googl.com")' \
@@ -691,7 +691,7 @@ secops rule-exclusion update-deployment \
 ```
 Compute rule exclusion activity for specific exclusion
 ```bash
-secops rule-exclusion activity \
+secops rule-exclusion compute-activity \
   --id "exclusion-id" \
   --time-window 168
 ```
