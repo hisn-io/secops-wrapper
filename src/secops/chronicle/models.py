@@ -22,6 +22,28 @@ from typing import Any, Dict, List, Optional, Union
 from secops.exceptions import SecOpsError
 
 
+class AlertState(str, Enum):
+    """Alert state for filtering detections.
+
+    The type of alerting set up for a security result.
+    """
+
+    UNSPECIFIED = "UNSPECIFIED"
+    NOT_ALERTING = "NOT_ALERTING"
+    ALERTING = "ALERTING"
+
+
+class ListBasis(str, Enum):
+    """List basis for determining time filter application.
+
+    Type of timestamp to use for listing detections.
+    """
+
+    LIST_BASIS_UNSPECIFIED = "LIST_BASIS_UNSPECIFIED"
+    DETECTION_TIME = "DETECTION_TIME"
+    CREATED_TIME = "CREATED_TIME"
+
+
 @dataclass
 class TimeInterval:
     """Time interval with start and end times."""
