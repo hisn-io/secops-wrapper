@@ -129,10 +129,14 @@ class LogRetry(Retry):
         if response:
             print(
                 f"Retrying {method} {url} for {response.status} "
-                f"status code...."
+                f"status code....",
+                file=sys.stderr,
             )
         else:
-            print(f"Retrying {method} {url} due to error: {error}")
+            print(
+                f"Retrying {method} {url} due to error: {error}",
+                file=sys.stderr,
+            )
 
         return super().increment(
             method, url, response, error, _pool, _stacktrace
