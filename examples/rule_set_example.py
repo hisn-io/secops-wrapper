@@ -50,8 +50,15 @@ def example_list_curated_rule_sets(chronicle):
     print("\n=== List Curated Rule Sets ===")
 
     try:
-        rule_sets = chronicle.list_curated_rule_sets(page_size=10)
+        result = chronicle.list_curated_rule_sets(page_size=10)
+        rule_sets = (
+            result.get("curatedRuleSets", [])
+            if isinstance(result, dict)
+            else result
+        )
         print(f"\nFound {len(rule_sets)} curated rule sets")
+        if isinstance(result, dict) and result.get("nextPageToken"):
+            print("More results available (nextPageToken present)")
 
         # Return the first few rule sets for use in other examples
         results = []
@@ -117,8 +124,15 @@ def example_list_curated_rule_set_categories(chronicle):
     print("\n=== List Curated Rule Set Categories ===")
 
     try:
-        categories = chronicle.list_curated_rule_set_categories(page_size=10)
+        result = chronicle.list_curated_rule_set_categories(page_size=10)
+        categories = (
+            result.get("curatedRuleSetCategories", [])
+            if isinstance(result, dict)
+            else result
+        )
         print(f"\nFound {len(categories)} curated rule set categories")
+        if isinstance(result, dict) and result.get("nextPageToken"):
+            print("More results available (nextPageToken present)")
 
         results = []
         for i, category in enumerate(categories[:5]):
@@ -176,8 +190,15 @@ def example_list_curated_rules(chronicle):
     print("\n=== List Curated Rules ===")
 
     try:
-        rules = chronicle.list_curated_rules(page_size=10)
+        result = chronicle.list_curated_rules(page_size=10)
+        rules = (
+            result.get("curatedRules", [])
+            if isinstance(result, dict)
+            else result
+        )
         print(f"\nFound {len(rules)} curated rules")
+        if isinstance(result, dict) and result.get("nextPageToken"):
+            print("More results available (nextPageToken present)")
 
         results = []
         for i, rule in enumerate(rules[:5]):
@@ -308,10 +329,17 @@ def example_list_curated_rule_set_deployments(chronicle):
     print("\n=== List Curated Rule Set Deployments ===")
 
     try:
-        deployments = chronicle.list_curated_rule_set_deployments(
+        result = chronicle.list_curated_rule_set_deployments(
             page_size=10, only_enabled=False
         )
-        print(f"\nFound {len(deployments)} curated rule set deployments")
+        deployments = (
+            result.get("curatedRuleSetDeployments", [])
+            if isinstance(result, dict)
+            else result
+        )
+        print(f"\nFound {len(deployments)} " "curated rule set deployments")
+        if isinstance(result, dict) and result.get("nextPageToken"):
+            print("More results available (nextPageToken present)")
 
         if deployments:
             # Return the first deployment for use in other examples
