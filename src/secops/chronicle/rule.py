@@ -66,7 +66,7 @@ def get_rule(
     Raises:
         APIError: If the API request fails
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1, APIVersion.V1BETA, APIVersion.V1ALPHA])}/{client.instance_id}/rules/{rule_id}"
+    url = f"{client.base_url(api_version, list(APIVersion))}/{client.instance_id}/rules/{rule_id}"
 
     response = client.session.get(url)
 
@@ -111,7 +111,7 @@ def list_rules(
         params["pageToken"] = page_token
 
     while more:
-        url = f"{client.base_url(api_version, [APIVersion.V1, APIVersion.V1BETA, APIVersion.V1ALPHA])}/{client.instance_id}/rules"
+        url = f"{client.base_url(api_version, list(APIVersion))}/{client.instance_id}/rules"
         response = client.session.get(url, params=params)
 
         if response.status_code != 200:
@@ -157,7 +157,7 @@ def update_rule(
     Raises:
         APIError: If the API request fails
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1, APIVersion.V1BETA, APIVersion.V1ALPHA])}/{client.instance_id}/rules/{rule_id}"
+    url = f"{client.base_url(api_version, list(APIVersion))}/{client.instance_id}/rules/{rule_id}"
 
     body = {
         "text": rule_text,
@@ -189,7 +189,7 @@ def delete_rule(
     Raises:
         APIError: If the API request fails
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1, APIVersion.V1BETA, APIVersion.V1ALPHA])}/{client.instance_id}/rules/{rule_id}"
+    url = f"{client.base_url(api_version, list(APIVersion))}/{client.instance_id}/rules/{rule_id}"
 
     params = {}
     if force:
@@ -256,7 +256,7 @@ def get_rule_deployment(client, rule_id: str, api_version: Optional[APIVersion])
         APIError: If the API request fails.
 
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1, APIVersion.V1BETA, APIVersion.V1ALPHA])}/{client.instance_id}/rules/{rule_id}/deployment"
+    url = f"{client.base_url(api_version, list(APIVersion))}/{client.instance_id}/rules/{rule_id}/deployment"
     response = client.session.get(url)
     if response.status_code != 200:
         raise APIError(f"Failed to get rule deployment: {response.text}")
@@ -296,7 +296,7 @@ def list_rule_deployments(
     if filter_query:
         params["filter"] = filter_query
 
-    url = f"{client.base_url(api_version, [APIVersion.V1, APIVersion.V1BETA, APIVersion.V1ALPHA])}/{client.instance_id}/rules/-/deployments"
+    url = f"{client.base_url(api_version, list(APIVersion))}/{client.instance_id}/rules/-/deployments"
 
     if page_size:
         response = client.session.get(url, params=params)
@@ -511,7 +511,7 @@ def update_rule_deployment(
         - The ``update_mask`` is derived from provided fields in the same order
           they are specified by the caller.
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1, APIVersion.V1BETA, APIVersion.V1ALPHA])}/{client.instance_id}/rules/{rule_id}/deployment"
+    url = f"{client.base_url(api_version, list(APIVersion))}/{client.instance_id}/rules/{rule_id}/deployment"
 
     body: Dict[str, Any] = {}
     fields: List[str] = []
