@@ -51,13 +51,9 @@ def example_list_curated_rule_sets(chronicle):
 
     try:
         result = chronicle.list_curated_rule_sets(page_size=10)
-        rule_sets = (
-            result.get("curatedRuleSets", [])
-            if isinstance(result, dict)
-            else result
-        )
+        rule_sets = result.get("curatedRuleSets", [])
         print(f"\nFound {len(rule_sets)} curated rule sets")
-        if isinstance(result, dict) and result.get("nextPageToken"):
+        if result.get("nextPageToken"):
             print("More results available (nextPageToken present)")
 
         # Return the first few rule sets for use in other examples
@@ -125,13 +121,9 @@ def example_list_curated_rule_set_categories(chronicle):
 
     try:
         result = chronicle.list_curated_rule_set_categories(page_size=10)
-        categories = (
-            result.get("curatedRuleSetCategories", [])
-            if isinstance(result, dict)
-            else result
-        )
+        categories = result.get("curatedRuleSetCategories", [])
         print(f"\nFound {len(categories)} curated rule set categories")
-        if isinstance(result, dict) and result.get("nextPageToken"):
+        if result.get("nextPageToken"):
             print("More results available (nextPageToken present)")
 
         results = []
@@ -191,13 +183,9 @@ def example_list_curated_rules(chronicle):
 
     try:
         result = chronicle.list_curated_rules(page_size=10)
-        rules = (
-            result.get("curatedRules", [])
-            if isinstance(result, dict)
-            else result
-        )
+        rules = result.get("curatedRules", [])
         print(f"\nFound {len(rules)} curated rules")
-        if isinstance(result, dict) and result.get("nextPageToken"):
+        if result.get("nextPageToken"):
             print("More results available (nextPageToken present)")
 
         results = []
@@ -332,13 +320,9 @@ def example_list_curated_rule_set_deployments(chronicle):
         result = chronicle.list_curated_rule_set_deployments(
             page_size=10, only_enabled=False
         )
-        deployments = (
-            result.get("curatedRuleSetDeployments", [])
-            if isinstance(result, dict)
-            else result
-        )
+        deployments = result.get("curatedRuleSetDeployments", [])
         print(f"\nFound {len(deployments)} " "curated rule set deployments")
-        if isinstance(result, dict) and result.get("nextPageToken"):
+        if result.get("nextPageToken"):
             print("More results available (nextPageToken present)")
 
         if deployments:

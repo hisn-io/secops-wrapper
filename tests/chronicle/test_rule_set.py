@@ -117,17 +117,23 @@ def _page(items_key: str, items: list[dict], next_token: Optional[str] = None):
 
 # --- _paginated_request  tests ---
 
+
 def test_paginated_request_auto_paginates_success(chronicle_client):
     p1 = _page("curatedRules", [{"name": ".../ur_1"}], next_token="t2")
     p2 = _page("curatedRules", [{"name": ".../ur_2"}])
-    with patch.object(chronicle_client.session, "get", side_effect=[p1, p2]) as mocked:
+    with patch.object(
+        chronicle_client.session, "get", side_effect=[p1, p2]
+    ) as mocked:
         result = _paginated_request(
             chronicle_client,
             path="curatedRules",
             items_key="curatedRules",
             page_size=None,
         )
-        assert [r["name"] for r in result] == [".../ur_1", ".../ur_2"]
+        assert [r["name"] for r in result.get("curatedRules")] == [
+            ".../ur_1",
+            ".../ur_2",
+        ]
         base = f"{chronicle_client.base_url}/{chronicle_client.instance_id}/curatedRules"
         assert mocked.call_args_list[0].args[0] == base
         assert mocked.call_args_list[0].kwargs["params"] == {"pageSize": 1000}
@@ -139,18 +145,19 @@ def test_paginated_request_auto_paginates_success(chronicle_client):
 
 def test_paginated_request_when_page_size_given_success(chronicle_client):
     p1 = _page("curatedRules", [{"name": ".../ur_1"}], next_token="t2")
-    with patch.object(chronicle_client.session, "get", return_value=p1) as mocked:
+    with patch.object(
+        chronicle_client.session, "get", return_value=p1
+    ) as mocked:
         result = _paginated_request(
             chronicle_client,
             path="curatedRules",
             items_key="curatedRules",
             page_size=1000,
         )
-        assert [r["name"] for r in result] == [".../ur_1"]
+        assert [r["name"] for r in result.get("curatedRules")] == [".../ur_1"]
         # Only one call, no follow-up with nextPageToken
         assert mocked.call_count == 1
         assert mocked.call_args.kwargs["params"] == {"pageSize": 1000}
-
 
 
 def test_paginated_request_error(chronicle_client, mock_error_response):
@@ -174,7 +181,7 @@ def test_list_curated_rules_success(chronicle_client, mock_response):
         chronicle_client.session, "get", return_value=mock_response
     ):
         rules = list_curated_rules(chronicle_client, page_size=50)
-        assert rules == [{"name": "n1"}]
+        assert rules == {"curatedRules": [{"name": "n1"}]}
 
 
 def test_list_curated_rules_error(chronicle_client, mock_error_response):
@@ -352,10 +359,39 @@ def test_list_deployments_success(chronicle_client):
         )
         assert len(out_enabled) == 1 and out_enabled[0]["displayName"] == "One"
 
+    deployments_page_alerting = _page(
+        "curatedRuleSetDeployments",
+        [
+            {
+                "name": f"{chronicle_client.instance_id}/curatedRuleSetCategories/c1/curatedRuleSets/crs_1/curatedRuleSetDeployments/precise",
+                "enabled": True,
+                "alerting": False,
+            },
+            {
+                "name": f"{chronicle_client.instance_id}/curatedRuleSetCategories/c1/curatedRuleSets/crs_2/curatedRuleSetDeployments/broad",
+                "enabled": False,
+                "alerting": True,
+            },
+        ],
+    )
+    rulesets_page_alerting = _page(
+        "curatedRuleSets",
+        [
+            {
+                "name": f"{chronicle_client.instance_id}/curatedRuleSetCategories/c1/curatedRuleSets/crs_1",
+                "displayName": "One",
+            },
+            {
+                "name": f"{chronicle_client.instance_id}/curatedRuleSetCategories/c1/curatedRuleSets/crs_2",
+                "displayName": "Two",
+            },
+        ],
+    )
+
     with patch.object(
         chronicle_client.session,
         "get",
-        side_effect=[deployments_page, rulesets_page],
+        side_effect=[deployments_page_alerting, rulesets_page_alerting],
     ):
         out_alerting = list_curated_rule_set_deployments(
             chronicle_client, only_alerting=True
@@ -384,7 +420,9 @@ def test_get_ruleset_deployment_success(chronicle_client, mock_response):
     with patch.object(
         chronicle_client.session, "get", side_effect=[ruleset, deployment]
     ) as mocked_request:
-        out = get_curated_rule_set_deployment(chronicle_client, "crs_1", "precise")
+        out = get_curated_rule_set_deployment(
+            chronicle_client, "crs_1", "precise"
+        )
         assert out["displayName"] == "My Ruleset"
 
         dep_url = (
@@ -409,8 +447,9 @@ def test_get_ruleset_deployment_ruleset_error_not_found(chronicle_client):
 
     with patch.object(chronicle_client.session, "get", return_value=not_found):
         with pytest.raises(APIError):
-            get_curated_rule_set_deployment(chronicle_client, "crs_404", "precise")
-
+            get_curated_rule_set_deployment(
+                chronicle_client, "crs_404", "precise"
+            )
 
 
 # --- get_curated_rule_set_deployment_by_name ---

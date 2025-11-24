@@ -28,7 +28,7 @@ def _paginated_request(
     page_size: Optional[int] = None,
     page_token: Optional[str] = None,
     extra_params: Optional[Dict[str, Any]] = None,
-) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
+) -> Dict[str, Any]:
     """
     Helper to get items from endpoints that use pagination.
 
@@ -37,13 +37,13 @@ def _paginated_request(
         path: URL path after {base_url}/{instance_id}/
         items_key: JSON key holding the array of items (e.g., 'curatedRules')
         page_size: Maximum number of rules to return per page.
-            If provided, returns dict with items and nextPageToken.
         page_token: Token for the next page of results, if available.
         extra_params: extra query params to include on every request
 
     Returns:
-        If page_size is None: List of all items (auto-paginated).
-        If page_size is provided: Dict with items_key and nextPageToken.
+        Full response dict with items in items_key.
+        - If page_size is None: All items accumulated, no nextPageToken
+        - If page_size provided: Single page with nextPageToken
 
     Raises:
         APIError: If the HTTP request fails.
@@ -51,6 +51,7 @@ def _paginated_request(
     url = f"{client.base_url}/{client.instance_id}/{path}"
     results = []
     next_token = page_token
+    last_response = {}
 
     while True:
         # Build params each loop to prevent stale keys being
@@ -68,20 +69,23 @@ def _paginated_request(
 
         data = response.json()
         results.extend(data.get(items_key, []))
+        last_response = data
 
-        # If caller provided page_size, return single page with token
+        # If caller provided page_size, return single page response
         if page_size is not None:
-            return {
-                items_key: results,
-                "nextPageToken": data.get("nextPageToken"),
-            }
+            # Return original response with items
+            return data
 
         # Otherwise, auto-paginate
         next_token = data.get("nextPageToken")
         if not next_token:
             break
 
-    return results
+    # Return full response with all accumulated items
+    last_response[items_key] = results
+    # Remove nextPageToken for auto-paginated responses
+    last_response.pop("nextPageToken", None)
+    return last_response
 
 
 def list_curated_rule_sets(
@@ -106,13 +110,17 @@ def list_curated_rule_sets(
     Raises:
         APIError: If the API request fails
     """
-    return _paginated_request(
+    result = _paginated_request(
         client,
         path="curatedRuleSetCategories/-/curatedRuleSets",
         items_key="curatedRuleSets",
         page_size=page_size,
         page_token=page_token,
     )
+    # Return full dict if page_size provided, else just the list
+    if page_size is not None:
+        return result
+    return result.get("curatedRuleSets", [])
 
 
 def get_curated_rule_set(client, rule_set_id: str) -> Dict[str, Any]:
@@ -162,13 +170,17 @@ def list_curated_rule_set_categories(
     Raises:
         APIError: If the API request fails
     """
-    return _paginated_request(
+    result = _paginated_request(
         client,
         path="curatedRuleSetCategories",
         items_key="curatedRuleSetCategories",
         page_size=page_size,
         page_token=page_token,
     )
+    # Return full dict if page_size provided, else just the list
+    if page_size is not None:
+        return result
+    return result.get("curatedRuleSetCategories", [])
 
 
 def get_curated_rule_set_category(client, category_id: str) -> Dict[str, Any]:
@@ -220,13 +232,17 @@ def list_curated_rules(
     Raises:
         APIError: If the API request fails
     """
-    return _paginated_request(
+    result = _paginated_request(
         client,
         path="curatedRules",
         items_key="curatedRules",
         page_size=page_size,
         page_token=page_token,
     )
+    # Return full dict if page_size provided, else just the list
+    if page_size is not None:
+        return result
+    return result.get("curatedRules", [])
 
 
 def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
@@ -316,21 +332,11 @@ def list_curated_rule_set_deployments(
         page_token=page_token,
     )
 
-    # Handle both return types from _paginated_request
-    if isinstance(result, dict):
-        # Manual pagination - dict with nextPageToken
-        rule_set_deployments = result.get("curatedRuleSetDeployments", [])
-        next_page_token = result.get("nextPageToken")
-    else:
-        # Auto-pagination - list
-        rule_set_deployments = result
-        next_page_token = None
-
+    # Extract deployments from response
+    rule_set_deployments = result.get("curatedRuleSetDeployments", [])
+    print(rule_set_deployments)
     # Enrich the deployment data with the rule set displayName
     all_rule_sets = list_curated_rule_sets(client)
-    # Handle all_rule_sets being either list or dict
-    if isinstance(all_rule_sets, dict):
-        all_rule_sets = all_rule_sets.get("curatedRuleSets", [])
 
     for deployment in rule_set_deployments:
         rule_set_id = (
@@ -341,7 +347,6 @@ def list_curated_rule_set_deployments(
         for rule_set in all_rule_sets:
             if rule_set.get("name", "") == rule_set_id:
                 deployment["displayName"] = rule_set.get("displayName", "")
-
     # Apply filters for only enabled and/or alerting rule sets
     if only_enabled:
         rule_set_deployments = [
@@ -356,12 +361,12 @@ def list_curated_rule_set_deployments(
             if deployment.get("alerting", False)
         ]
 
-    # Return in same format as received
-    if next_page_token is not None or page_size is not None:
-        return {
-            "curatedRuleSetDeployments": rule_set_deployments,
-            "nextPageToken": next_page_token,
-        }
+    # Update result with filtered deployments
+    result["curatedRuleSetDeployments"] = rule_set_deployments
+
+    # Return full dict if page_size provided, else just the list
+    if page_size is not None:
+        return result
     return rule_set_deployments
 
 
@@ -753,17 +758,8 @@ def search_curated_detections(
             extra_params=extra_params,
         )
 
-        # _paginated_request returns:
-        # - Dict with items_key and nextPageToken if page_size provided
-        # - List of all items if page_size is None
-        if isinstance(result, dict):
-            # Manual pagination - already has correct format
-            return result
-        else:
-            # Auto-pagination - wrap list in dict
-            return {
-                items_key: result,
-            }
+        # _paginated_request now always returns dict with full response
+        return result
 
     except Exception as e:
         print(f"Error searching curated detections for rule " f"{rule_id}: {e}")
