@@ -1958,7 +1958,7 @@ class ChronicleClient:
         rule_id: str,
         start_time: Optional[datetime] = None,
         end_time: Optional[datetime] = None,
-        list_basis: Union["ListBasis", str] = "LIST_BASIS_UNSPECIFIED",
+        list_basis: Union["ListBasis", str] = None,
         alert_state: Optional[Union["AlertState", str]] = None,
         page_size: Optional[int] = None,
         page_token: Optional[str] = None,
