@@ -15,6 +15,7 @@
 """Tests for Chronicle curated rule set functions."""
 
 import pytest
+from datetime import datetime, timedelta, timezone
 from typing import Optional
 from unittest.mock import Mock, patch
 from secops.chronicle.client import ChronicleClient
@@ -32,7 +33,9 @@ from secops.chronicle.rule_set import (
     get_curated_rule_set_deployment_by_name,
     update_curated_rule_set_deployment,
     batch_update_curated_rule_set_deployments,
+    search_curated_detections,
 )
+from secops.chronicle.models import AlertState, ListBasis
 from secops.exceptions import APIError, SecOpsError
 
 
@@ -637,3 +640,368 @@ def test_batch_update_curated_rule_set_error_http(
                     },
                 ],
             )
+
+
+# --- search_curated_detections tests ---
+
+
+def test_search_curated_detections_success_with_results(chronicle_client):
+    """Test search_curated_detections returns detections successfully."""
+    detection_page = _page(
+        "curatedDetections",
+        [
+            {
+                "id": "det_123",
+                "detectionTime": "2024-01-15T10:00:00Z",
+                "ruleId": "ur_abc123",
+            },
+            {
+                "id": "det_456",
+                "detectionTime": "2024-01-15T11:00:00Z",
+                "ruleId": "ur_abc123",
+            },
+        ],
+    )
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        end_time = datetime.now(timezone.utc)
+        start_time = end_time - timedelta(days=7)
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            start_time=start_time,
+            end_time=end_time,
+            list_basis="DETECTION_TIME",
+            alert_state="ALERTING",
+        )
+        assert "curatedDetections" in result
+        assert len(result["curatedDetections"]) == 2
+        assert result["curatedDetections"][0]["id"] == "det_123"
+        # Verify URL and params
+        expected_url = (
+            f"{chronicle_client.base_url}/"
+            f"{chronicle_client.instance_id}/"
+            f"legacy:legacySearchCuratedDetections"
+        )
+        mocked.assert_called_once()
+        assert mocked.call_args.args[0] == expected_url
+        params = mocked.call_args.kwargs["params"]
+        assert params["ruleId"] == "ur_abc123"
+        assert params["listBasis"] == "DETECTION_TIME"
+        assert params["alertState"] == "ALERTING"
+        assert "startTime" in params
+        assert "endTime" in params
+
+
+def test_search_curated_detections_success_empty_results(chronicle_client):
+    """Test search_curated_detections with no detections found."""
+    detection_page = _page("curatedDetections", [])
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ):
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+        )
+        assert "curatedDetections" in result
+        assert len(result["curatedDetections"]) == 0
+
+
+def test_search_curated_detections_with_enums(chronicle_client):
+    """Test search_curated_detections using enum values."""
+    detection_page = _page(
+        "curatedDetections",
+        [{"id": "det_789", "detectionTime": "2024-01-15T12:00:00Z"}],
+    )
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_xyz789",
+            list_basis=ListBasis.DETECTION_TIME,
+            alert_state=AlertState.ALERTING,
+        )
+        assert len(result["curatedDetections"]) == 1
+        # Verify enum values converted to strings
+        params = mocked.call_args.kwargs["params"]
+        assert params["listBasis"] == "DETECTION_TIME"
+        assert params["alertState"] == "ALERTING"
+
+
+def test_search_curated_detections_with_nested_detections(
+    chronicle_client,
+):
+    """Test search_curated_detections with nested detections enabled."""
+    detection_page = _page(
+        "nestedDetectionSamples",
+        [
+            {
+                "id": "det_nested_1",
+                "detectionTime": "2024-01-15T10:00:00Z",
+                "nestedDetections": [
+                    {"id": "nested_1a"},
+                    {"id": "nested_1b"},
+                ],
+            }
+        ],
+    )
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+            include_nested_detections=True,
+        )
+        assert "nestedDetectionSamples" in result
+        assert len(result["nestedDetectionSamples"]) == 1
+        # Verify includeNestedDetections param
+        params = mocked.call_args.kwargs["params"]
+        assert params["includeNestedDetections"] is True
+
+
+def test_search_curated_detections_with_pagination(chronicle_client):
+    """Test search_curated_detections with manual pagination."""
+    detection_page = _page(
+        "curatedDetections",
+        [{"id": "det_1"}],
+        next_token="next_page_token",
+    )
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ):
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+            page_size=10,
+        )
+        assert "curatedDetections" in result
+        assert len(result["curatedDetections"]) == 1
+        assert result["nextPageToken"] == "next_page_token"
+
+
+def test_search_curated_detections_auto_pagination(chronicle_client):
+    """Test search_curated_detections with auto-pagination."""
+    p1 = _page("curatedDetections", [{"id": "det_1"}], next_token="page2")
+    p2 = _page("curatedDetections", [{"id": "det_2"}])
+    with patch.object(
+        chronicle_client.session, "get", side_effect=[p1, p2]
+    ) as mocked:
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+        )
+        assert len(result["curatedDetections"]) == 2
+        assert result["curatedDetections"][0]["id"] == "det_1"
+        assert result["curatedDetections"][1]["id"] == "det_2"
+        assert "nextPageToken" not in result
+        assert mocked.call_count == 2
+
+
+def test_search_curated_detections_with_max_resp_size(
+    chronicle_client,
+):
+    """Test search_curated_detections with max response size limit."""
+    detection_page = _page("curatedDetections", [{"id": "det_1"}])
+    detection_page.json.return_value["respTooLargeDetectionsTruncated"] = True
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+            max_resp_size_bytes=1048576,
+        )
+        assert result["respTooLargeDetectionsTruncated"] is True
+        params = mocked.call_args.kwargs["params"]
+        assert params["maxRespSizeBytes"] == 1048576
+
+
+def test_search_curated_detections_with_page_token(chronicle_client):
+    """Test search_curated_detections with page_token for continuation."""
+    detection_page = _page("curatedDetections", [{"id": "det_2"}])
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+            page_size=10,
+            page_token="existing_token",
+        )
+        assert len(result["curatedDetections"]) == 1
+        params = mocked.call_args.kwargs["params"]
+        assert params["pageToken"] == "existing_token"
+
+
+def test_search_curated_detections_minimal_params(chronicle_client):
+    """Test search_curated_detections with only required parameters."""
+    detection_page = _page("curatedDetections", [{"id": "det_1"}])
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+        )
+        assert "curatedDetections" in result
+        params = mocked.call_args.kwargs["params"]
+        assert params["ruleId"] == "ur_abc123"
+        assert params["listBasis"] == "DETECTION_TIME"
+        assert "alertState" not in params
+        assert "startTime" not in params
+        assert "endTime" not in params
+
+
+def test_search_curated_detections_with_all_filter_types(
+    chronicle_client,
+):
+    """Test search_curated_detections with all list_basis types."""
+    detection_page = _page("curatedDetections", [{"id": "det_1"}])
+
+    # Test DETECTION_TIME
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis=ListBasis.DETECTION_TIME,
+        )
+        params = mocked.call_args.kwargs["params"]
+        assert params["listBasis"] == "DETECTION_TIME"
+
+    # Test CREATED_TIME
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis=ListBasis.CREATED_TIME,
+        )
+        params = mocked.call_args.kwargs["params"]
+        assert params["listBasis"] == "CREATED_TIME"
+
+
+def test_search_curated_detections_with_all_alert_states(
+    chronicle_client,
+):
+    """Test search_curated_detections with all alert_state types."""
+    detection_page = _page("curatedDetections", [{"id": "det_1"}])
+
+    # Test ALERTING
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+            alert_state=AlertState.ALERTING,
+        )
+        params = mocked.call_args.kwargs["params"]
+        assert params["alertState"] == "ALERTING"
+
+    # Test NOT_ALERTING
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+            alert_state=AlertState.NOT_ALERTING,
+        )
+        params = mocked.call_args.kwargs["params"]
+        assert params["alertState"] == "NOT_ALERTING"
+
+
+def test_search_curated_detections_error_api_failure(
+    chronicle_client, mock_error_response
+):
+    """Test search_curated_detections raises APIError on API failure."""
+    with patch.object(
+        chronicle_client.session, "get", return_value=mock_error_response
+    ):
+        with pytest.raises(APIError):
+            search_curated_detections(
+                chronicle_client,
+                rule_id="ur_abc123",
+                list_basis="DETECTION_TIME",
+            )
+
+
+def test_search_curated_detections_error_invalid_list_basis(
+    chronicle_client,
+):
+    """Test search_curated_detections raises ValueError for invalid
+    list_basis."""
+    with pytest.raises(ValueError, match="list_basis must be one of"):
+        search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="INVALID_BASIS",
+        )
+
+
+def test_search_curated_detections_error_invalid_alert_state(
+    chronicle_client,
+):
+    """Test search_curated_detections raises ValueError for invalid
+    alert_state."""
+    with pytest.raises(ValueError, match="alert_state must be one of"):
+        search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+            alert_state="INVALID_STATE",
+        )
+
+
+def test_search_curated_detections_none_alert_state_allowed(
+    chronicle_client,
+):
+    """Test search_curated_detections allows None for alert_state."""
+    detection_page = _page("curatedDetections", [{"id": "det_1"}])
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        result = search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            list_basis="DETECTION_TIME",
+            alert_state=None,
+        )
+        assert "curatedDetections" in result
+        params = mocked.call_args.kwargs["params"]
+        assert "alertState" not in params
+
+
+def test_search_curated_detections_time_format(chronicle_client):
+    """Test search_curated_detections formats time correctly."""
+    detection_page = _page("curatedDetections", [{"id": "det_1"}])
+    with patch.object(
+        chronicle_client.session, "get", return_value=detection_page
+    ) as mocked:
+        end_time = datetime(2024, 1, 15, 23, 59, 59, 999999, timezone.utc)
+        start_time = datetime(2024, 1, 1, 0, 0, 0, 0, timezone.utc)
+        search_curated_detections(
+            chronicle_client,
+            rule_id="ur_abc123",
+            start_time=start_time,
+            end_time=end_time,
+            list_basis="DETECTION_TIME",
+        )
+        params = mocked.call_args.kwargs["params"]
+        assert params["startTime"] == "2024-01-01T00:00:00.000000Z"
+        assert params["endTime"] == "2024-01-15T23:59:59.999999Z"

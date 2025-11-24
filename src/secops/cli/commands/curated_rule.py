@@ -15,7 +15,6 @@
 """Google SecOps CLI curated rule commands"""
 
 import sys
-from datetime import datetime, timezone
 
 from secops.cli.utils.common_args import (
     add_pagination_args,
