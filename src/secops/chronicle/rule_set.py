@@ -334,7 +334,7 @@ def list_curated_rule_set_deployments(
 
     # Extract deployments from response
     rule_set_deployments = result.get("curatedRuleSetDeployments", [])
-    print(rule_set_deployments)
+
     # Enrich the deployment data with the rule set displayName
     all_rule_sets = list_curated_rule_sets(client)
 
