@@ -14,7 +14,6 @@
 #
 """Curated rule set functionality for Chronicle."""
 
-from multiprocessing import Value
 from typing import Dict, Any, List, Optional, Union
 from datetime import datetime
 from secops.exceptions import APIError, SecOpsError
