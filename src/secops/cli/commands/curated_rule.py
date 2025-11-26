@@ -230,7 +230,6 @@ def handle_curated_rules_rules_search_detections_command(args, chronicle):
     try:
         start_time, end_time = get_time_range(args)
 
-        # Call search_curated_detections
         out = chronicle.search_curated_detections(
             rule_id=args.rule_id,
             start_time=start_time,

@@ -946,7 +946,7 @@ def test_search_curated_detections_error_invalid_list_basis(
 ):
     """Test search_curated_detections raises ValueError for invalid
     list_basis."""
-    with pytest.raises(ValueError, match="list_basis must be one of"):
+    with pytest.raises(ValueError, match="Invalid list_basis"):
         search_curated_detections(
             chronicle_client,
             rule_id="ur_abc123",
@@ -959,7 +959,7 @@ def test_search_curated_detections_error_invalid_alert_state(
 ):
     """Test search_curated_detections raises ValueError for invalid
     alert_state."""
-    with pytest.raises(ValueError, match="alert_state must be one of"):
+    with pytest.raises(ValueError, match="Invalid alert_state"):
         search_curated_detections(
             chronicle_client,
             rule_id="ur_abc123",

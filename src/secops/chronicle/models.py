@@ -32,6 +32,9 @@ class AlertState(str, Enum):
     NOT_ALERTING = "NOT_ALERTING"
     ALERTING = "ALERTING"
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class ListBasis(str, Enum):
     """List basis for determining time filter application.
@@ -42,6 +45,9 @@ class ListBasis(str, Enum):
     LIST_BASIS_UNSPECIFIED = "LIST_BASIS_UNSPECIFIED"
     DETECTION_TIME = "DETECTION_TIME"
     CREATED_TIME = "CREATED_TIME"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 @dataclass
