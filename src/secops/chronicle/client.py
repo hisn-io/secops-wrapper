@@ -25,7 +25,7 @@ from secops import auth as secops_auth
 from secops.auth import RetryConfig
 from secops.chronicle.alert import get_alerts as _get_alerts
 from secops.chronicle.case import get_cases_from_list
-from secops.chronicle.consts import APIVersion
+from secops.chronicle.models import APIVersion
 from secops.chronicle.dashboard import DashboardAccessType, DashboardView
 from secops.chronicle.dashboard import add_chart as _add_chart
 from secops.chronicle.dashboard import create_dashboard as _create_dashboard
@@ -364,7 +364,7 @@ class ChronicleClient:
         extra_scopes: Optional[List[str]] = None,
         credentials: Optional[Any] = None,
         retry_config: Optional[Union[RetryConfig, Dict[str, Any], bool]] = None,
-        preferred_api_version: Optional[APIVersion] = None,
+        default_api_version: Optional[APIVersion] = None,
     ):
         """Initialize ChronicleClient.
 
@@ -378,12 +378,12 @@ class ChronicleClient:
             credentials: Credentials object
             retry_config: Request retry configurations.
                 If set to false, retry will be disabled.
-            preferred_api_version: Preferred API version to use for requests.
+            default_api_version: Default API version to use for requests.
         """
         self.project_id = project_id
         self.customer_id = customer_id
         self.region = region
-        self.preferred_api_version = APIVersion(preferred_api_version)
+        self.default_api_version = APIVersion(default_api_version)
         self._default_forwarder_display_name: str = "Wrapper-SDK-Forwarder"
         self._cached_default_forwarder_id: Optional[str] = None
 
@@ -416,7 +416,7 @@ class ChronicleClient:
                 f"instances/{customer_id}"
             )
             # Set up the base URL
-            self.base_url = BaseUrl(preferred_api_version, self.region)
+            self.base_url = BaseUrl(default_api_version, self.region)
             self.base_v1_url = BaseUrl(APIVersion.V1, self.region) #TODO: remove after removing all references to base_v1_url
 
         # Create a session with authentication

@@ -17,7 +17,7 @@
 from typing import Dict, Any, Iterator, Optional, List, Literal
 from datetime import datetime, timezone
 import json
-from secops.chronicle.consts import APIVersion
+from secops.chronicle.models import APIVersion
 from secops.exceptions import APIError, SecOpsError
 import re
 
