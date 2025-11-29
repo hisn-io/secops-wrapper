@@ -364,7 +364,7 @@ class ChronicleClient:
         extra_scopes: Optional[List[str]] = None,
         credentials: Optional[Any] = None,
         retry_config: Optional[Union[RetryConfig, Dict[str, Any], bool]] = None,
-        default_api_version: Optional[APIVersion] = None,
+        default_api_version: APIVersion = APIVersion.V1ALPHA,
     ):
         """Initialize ChronicleClient.
 
