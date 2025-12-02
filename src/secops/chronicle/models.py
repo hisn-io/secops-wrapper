@@ -26,8 +26,6 @@ from secops.exceptions import SecOpsError
 if sys.version_info >= (3, 11):
     from enum import StrEnum
 else:
-    from enum import Enum
-
     class StrEnum(str, Enum):
         """String enum implementation for Python versions before 3.11."""
 
