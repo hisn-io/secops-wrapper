@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.26.0] - 2025-11-26
+### Added
+- Search curated rule detection method support
+### Updated
+- Curated rules/rule category/rule deployment related list methods to return page token for paginated requests.
+
+## [0.25.2] - 2025-11-20
+### Updated
+- CLI with better modularity for improved development and maintenance support.
+
 ## [0.25.1] - 2025-11-17
 ### Fixed
 - Request retry logging for no response

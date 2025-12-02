@@ -1743,6 +1743,41 @@ rule = chronicle.get_curated_rule("ur_ttp_lol_Atbroker")
 rule_set = chronicle.get_curated_rule_by_name("Atbroker.exe Abuse")
 ```
 
+Search for curated rules detections:
+
+```python
+from datetime import datetime, timedelta, timezone
+from secops.chronicle.models import AlertState, ListBasis
+
+# Search for detections from a specific curated rule
+end_time = datetime.now(timezone.utc)
+start_time = end_time - timedelta(days=7)
+
+result = chronicle.search_curated_detections(
+    rule_id="ur_ttp_GCP_MassSecretDeletion",
+    start_time=start_time,
+    end_time=end_time,
+    list_basis=ListBasis.DETECTION_TIME,
+    alert_state=AlertState.ALERTING,
+    page_size=100
+)
+
+detections = result.get("curatedDetections", [])
+print(f"Found {len(detections)} detections")
+
+# Check if more results are available
+if "nextPageToken" in result:
+    # Retrieve next page
+    next_result = chronicle.search_curated_detections(
+        rule_id="ur_ttp_GCP_MassSecretDeletion",
+        start_time=start_time,
+        end_time=end_time,
+        list_basis=ListBasis.DETECTION_TIME,
+        page_token=result["nextPageToken"],
+        page_size=100
+    )
+```
+
 Query curated rule sets:
 
 ```python

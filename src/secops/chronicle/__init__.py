@@ -80,6 +80,7 @@ from secops.chronicle.log_types import (
 )
 from secops.chronicle.models import (
     AlertCount,
+    AlertState,
     Case,
     CaseList,
     DataExport,
@@ -91,6 +92,7 @@ from secops.chronicle.models import (
     EntitySummary,
     FileMetadataAndProperties,
     InputInterval,
+    ListBasis,
     PrevalenceData,
     SoarPlatformInfo,
     TileType,
@@ -146,6 +148,7 @@ from secops.chronicle.rule_set import (
     get_curated_rule_set_deployment_by_name,
     get_curated_rule_by_name,
     update_curated_rule_set_deployment,
+    search_curated_detections,
 )
 from secops.chronicle.rule_validation import ValidationResult
 from secops.chronicle.search import search_udm
@@ -251,6 +254,7 @@ __all__ = [
     "get_curated_rule_set_deployment_by_name",
     "get_curated_rule_by_name",
     "update_curated_rule_set_deployment",
+    "search_curated_detections",
     # Native Dashboard
     "add_chart",
     "create_dashboard",
@@ -275,6 +279,7 @@ __all__ = [
     "WidgetMetadata",
     "EntitySummary",
     "AlertCount",
+    "AlertState",
     "Case",
     "SoarPlatformInfo",
     "CaseList",
@@ -290,6 +295,7 @@ __all__ = [
     "DashboardAccessType",
     "DashboardView",
     "InputInterval",
+    "ListBasis",
     "TileType",
     # Data Table and Reference List
     "DataTableColumnType",

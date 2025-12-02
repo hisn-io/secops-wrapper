@@ -14,8 +14,10 @@
 #
 """Curated rule set functionality for Chronicle."""
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Union
+from datetime import datetime
 from secops.exceptions import APIError, SecOpsError
+from secops.chronicle.models import AlertState, ListBasis
 
 
 def _paginated_request(
@@ -26,7 +28,7 @@ def _paginated_request(
     page_size: Optional[int] = None,
     page_token: Optional[str] = None,
     extra_params: Optional[Dict[str, Any]] = None,
-) -> List[Dict[str, Any]]:
+) -> Dict[str, Any]:
     """
     Helper to get items from endpoints that use pagination.
 
@@ -39,7 +41,9 @@ def _paginated_request(
         extra_params: extra query params to include on every request
 
     Returns:
-        List of items from the paginated collection.
+        Full response dict with items in items_key.
+        - If page_size is None: All items accumulated, no nextPageToken
+        - If page_size provided: Single page with nextPageToken
 
     Raises:
         APIError: If the HTTP request fails.
@@ -47,15 +51,13 @@ def _paginated_request(
     url = f"{client.base_url}/{client.instance_id}/{path}"
     results = []
     next_token = page_token
+    last_response = {}
 
     while True:
-        # Build params each loop to prevent stale keys being
-        # included in the next request
         params = {"pageSize": 1000 if not page_size else page_size}
         if next_token:
             params["pageToken"] = next_token
         if extra_params:
-            # copy to avoid passed dict being mutated
             params.update(dict(extra_params))
 
         response = client.session.get(url, params=params)
@@ -64,44 +66,51 @@ def _paginated_request(
 
         data = response.json()
         results.extend(data.get(items_key, []))
+        last_response = data
 
-        # If caller provided page_size, return only this page
         if page_size is not None:
-            break
+            return data
 
-        # Otherwise, auto-paginate
         next_token = data.get("nextPageToken")
         if not next_token:
             break
 
-    return results
+    last_response[items_key] = results
+    last_response.pop("nextPageToken", None)
+    return last_response
 
 
 def list_curated_rule_sets(
     client,
     page_size: Optional[str] = None,
     page_token: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
     """Get a list of all curated rule sets
 
     Args:
         client: ChronicleClient instance
-        page_size: Number of results to return per page
+        page_size: Number of results to return per page.
         page_token: Token for the page to retrieve
 
     Returns:
-        List of curated rule sets
+        If page_size is None: List of all curated rule sets.
+        If page_size is provided: Dict with curatedRuleSets list
+            and nextPageToken.
 
     Raises:
         APIError: If the API request fails
     """
-    return _paginated_request(
+    result = _paginated_request(
         client,
         path="curatedRuleSetCategories/-/curatedRuleSets",
         items_key="curatedRuleSets",
         page_size=page_size,
         page_token=page_token,
     )
+    # Return full dict if page_size provided, else just the list
+    if page_size is not None:
+        return result
+    return result.get("curatedRuleSets", [])
 
 
 def get_curated_rule_set(client, rule_set_id: str) -> Dict[str, Any]:
@@ -133,27 +142,33 @@ def list_curated_rule_set_categories(
     client,
     page_size: Optional[str] = None,
     page_token: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
     """Get a list of all curated rule set categories
 
     Args:
         client: ChronicleClient instance
-        page_size: Number of results to return per page
+        page_size: Number of results to return per page.
         page_token: Token for the page to retrieve
 
     Returns:
-        List of curated rule set categories
+        If page_size is None: List of all categories.
+        If page_size is provided: Dict with curatedRuleSetCategories
+            list and nextPageToken.
 
     Raises:
         APIError: If the API request fails
     """
-    return _paginated_request(
+    result = _paginated_request(
         client,
         path="curatedRuleSetCategories",
         items_key="curatedRuleSetCategories",
         page_size=page_size,
         page_token=page_token,
     )
+    # Return full dict if page_size provided, else just the list
+    if page_size is not None:
+        return result
+    return result.get("curatedRuleSetCategories", [])
 
 
 def get_curated_rule_set_category(client, category_id: str) -> Dict[str, Any]:
@@ -187,27 +202,33 @@ def list_curated_rules(
     client,
     page_size: Optional[str] = None,
     page_token: Optional[str] = None,
-) -> List[Dict[str, Any]]:
+) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
     """Get a list of all curated rules
 
     Args:
         client: ChronicleClient instance
-        page_size: Number of results to return per page
+        page_size: Number of results to return per page.
         page_token: Token for the page to retrieve
 
     Returns:
-        List of curated rules
+        If page_size is None: List of all curated rules.
+        If page_size is provided: Dict with curatedRules list and
+            nextPageToken.
 
     Raises:
         APIError: If the API request fails
     """
-    return _paginated_request(
+    result = _paginated_request(
         client,
         path="curatedRules",
         items_key="curatedRules",
         page_size=page_size,
         page_token=page_token,
     )
+    # Return full dict if page_size provided, else just the list
+    if page_size is not None:
+        return result
+    return result.get("curatedRules", [])
 
 
 def get_curated_rule(client, rule_id: str) -> Dict[str, Any]:
@@ -268,23 +289,25 @@ def list_curated_rule_set_deployments(
     page_token: Optional[str] = None,
     only_enabled: Optional[bool] = False,
     only_alerting: Optional[bool] = False,
-) -> List[Dict[str, Any]]:
+) -> Union[List[Dict[str, Any]], Dict[str, Any]]:
     """Get a list of all curated rule set deployment statuses
 
     Args:
         client: ChronicleClient instance
-        page_size: Number of results to return per page
+        page_size: Number of results to return per page.
         page_token: Token for the page to retrieve
         only_enabled: Only return enabled rule set deployments
         only_alerting: Only return alerting rule set deployments
 
     Returns:
-        List of curated rule set deployments
+        If page_size is None: List of all deployments.
+        If page_size is provided: Dict with curatedRuleSetDeployments
+            list and nextPageToken.
 
     Raises:
         APIError: If the API request fails
     """
-    rule_set_deployments = _paginated_request(
+    result = _paginated_request(
         client,
         path="curatedRuleSetCategories/-/curatedRuleSets/"
         "-/curatedRuleSetDeployments",
@@ -293,8 +316,12 @@ def list_curated_rule_set_deployments(
         page_token=page_token,
     )
 
+    # Extract deployments from response
+    rule_set_deployments = result.get("curatedRuleSetDeployments", [])
+
     # Enrich the deployment data with the rule set displayName
     all_rule_sets = list_curated_rule_sets(client)
+
     for deployment in rule_set_deployments:
         rule_set_id = (
             deployment.get("name", "")
@@ -304,7 +331,6 @@ def list_curated_rule_set_deployments(
         for rule_set in all_rule_sets:
             if rule_set.get("name", "") == rule_set_id:
                 deployment["displayName"] = rule_set.get("displayName", "")
-
     # Apply filters for only enabled and/or alerting rule sets
     if only_enabled:
         rule_set_deployments = [
@@ -319,6 +345,12 @@ def list_curated_rule_set_deployments(
             if deployment.get("alerting", False)
         ]
 
+    # Update result with filtered deployments
+    result["curatedRuleSetDeployments"] = rule_set_deployments
+
+    # Return full dict if page_size provided, else just the list
+    if page_size is not None:
+        return result
     return rule_set_deployments
 
 
@@ -560,3 +592,111 @@ def batch_update_curated_rule_set_deployments(
         )
 
     return response.json()
+
+
+def search_curated_detections(
+    client,
+    rule_id: str,
+    start_time: Optional[datetime] = None,
+    end_time: Optional[datetime] = None,
+    list_basis: Union[ListBasis, str] = None,
+    alert_state: Optional[Union[AlertState, str]] = None,
+    page_size: Optional[int] = None,
+    page_token: Optional[str] = None,
+    max_resp_size_bytes: Optional[int] = None,
+    include_nested_detections: Optional[bool] = False,
+) -> Dict[str, Any]:
+    """Search for detections generated by a specific curated rule.
+
+    Args:
+        client: ChronicleClient instance
+        rule_id: ID of the curated rule to search detections for.
+        start_time: The time to start searching detections
+            from (inclusive). Applied based on list_basis parameter.
+        end_time: The time to end searching detections to
+            (exclusive). Applied based on list_basis parameter.
+        list_basis: Basis for determining whether to apply time
+            filters. Can be ListBasis enum or string. Valid values:
+                - ListBasis.LIST_BASIS_UNSPECIFIED
+                - ListBasis.DETECTION_TIME
+                - ListBasis.CREATED_TIME
+        alert_state: Filter detections by alert state.
+            Can be AlertState enum or string. Valid values:
+                - AlertState.UNSPECIFIED
+                - AlertState.NOT_ALERTING
+                - AlertState.ALERTING
+        page_size: Maximum number of detections to return.
+            Maximum value is 1000. If provided, only returns that page.
+        page_token: Token for retrieving the next page of results.
+        max_resp_size_bytes: Maximum size of response in bytes.
+            If set to 0 or omitted, no limit is enforced.
+        include_nested_detections: If True, include one level
+            of nested detections in the response. Default is False.
+
+    Returns:
+        Dictionary containing:
+            - curatedDetections: List of detections (if
+                include_nested_detections is False)
+            - nestedDetectionSamples: List of detections with nested
+                data (if include_nested_detections is True)
+            - nextPageToken: Token for retrieving the next page
+                (only if page_size was provided)
+            - respTooLargeDetectionsTruncated: Boolean indicating if
+                results were truncated
+
+    Raises:
+        APIError: If the API request fails
+        ValueError: If invalid alert_state or list_basis is provided
+    """
+    extra_params = {
+        "ruleId": rule_id,
+    }
+
+    if alert_state:
+        if isinstance(alert_state, AlertState):
+            extra_params["alertState"] = alert_state.value
+        else:
+            try:
+                extra_params["alertState"] = AlertState(alert_state).value
+            except ValueError as e:
+                raise ValueError("Invalid alert_state") from e
+
+    if list_basis:
+        if isinstance(list_basis, ListBasis):
+            extra_params["listBasis"] = list_basis.value
+        else:
+            try:
+                extra_params["listBasis"] = ListBasis(list_basis).value
+            except ValueError as e:
+                raise ValueError("Invalid list_basis") from e
+
+    if start_time:
+        extra_params["startTime"] = start_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    if end_time:
+        extra_params["endTime"] = end_time.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+
+    if max_resp_size_bytes:
+        extra_params["maxRespSizeBytes"] = max_resp_size_bytes
+
+    if include_nested_detections:
+        extra_params["includeNestedDetections"] = include_nested_detections
+
+    # Determine the items key based on include_nested_detections
+    items_key = (
+        "nestedDetectionSamples"
+        if include_nested_detections
+        else "curatedDetections"
+    )
+
+    try:
+        return _paginated_request(
+            client,
+            path="legacy:legacySearchCuratedDetections",
+            items_key=items_key,
+            page_size=page_size,
+            page_token=page_token,
+            extra_params=extra_params,
+        )
+    except Exception as e:
+        print(f"Error searching curated detections for rule " f"{rule_id}: {e}")
+        raise

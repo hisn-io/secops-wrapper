@@ -587,10 +587,28 @@ secops curated-rule rule list
 Get curated rules:
 ```bash
 # Get rule by UUID
-curated-rule rule get --id "ur_ttp_GCP_ServiceAPIDisable"
+secops curated-rule rule get --id "ur_ttp_GCP_ServiceAPIDisable"
 
 # Get rule by name
-curated-rule rule get --name "GCP Service API Disable"
+secops curated-rule rule get --name "GCP Service API Disable"
+```
+
+Search for curated rule detections:
+```bash
+secops curated-rule search-detections \
+  --rule-id "ur_ttp_GCP_MassSecretDeletion" \
+  --start-time "2024-01-01T00:00:00Z" \
+  --end-time "2024-01-31T23:59:59Z" \
+  --list-basis "DETECTION_TIME" \
+  --alert-state "ALERTING"
+
+# Search with pagination
+secops curated-rule search-detections \
+  --rule-id "ur_ttp_GCP_MassSecretDeletion" \
+  --start-time "2024-01-01T00:00:00Z" \
+  --end-time "2024-01-31T23:59:59Z" \
+  --list-basis "DETECTION_TIME" \
+  --page-size 50
 
 ```
 
@@ -669,7 +687,7 @@ secops rule-exclusion create \
 
 Update rule exclusion
 ```bash
-secops rule-exclusion patch \
+secops rule-exclusion update \
   --id "exclusion-id" \
   --display-name "Updated Exclusion" \
   --query '(domain="googl.com")' \
@@ -691,7 +709,7 @@ secops rule-exclusion update-deployment \
 ```
 Compute rule exclusion activity for specific exclusion
 ```bash
-secops rule-exclusion activity \
+secops rule-exclusion compute-activity \
   --id "exclusion-id" \
   --time-window 168
 ```
