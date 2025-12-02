@@ -276,25 +276,53 @@ class ValueType(Enum):
 
 
 class BaseUrl(str):
+    """Chronicle base url generation based on version and region.
+
+    Supports production, dev, and staging regions with appropriate
+    domain names.
+    """
+
     def __new__(cls, version: APIVersion, region: str = "us"):
-        return super().__new__(
-            cls, f"https://{region}-chronicle.googleapis.com/{version}"
-        )
+        domain = cls._get_domain(region)
+        return super().__new__(cls, f"https://{domain}/{version}")
 
     def __init__(self, version: APIVersion, region: str = "us"):
         self._default = version
         self._region = region
 
+    @staticmethod
+    def _get_domain(region: str) -> str:
+        """Get the appropriate domain for the given region.
+
+        Args:
+            region: Region identifier (e.g., 'us', 'europe', 'dev',
+                'staging')
+
+        Returns:
+            str: Domain name for the region
+        """
+        if region == "dev":
+            return "autopush-chronicle.sandbox.googleapis.com"
+        elif region == "staging":
+            return "staging-chronicle.sandbox.googleapis.com"
+        else:
+            return f"{region}-chronicle.googleapis.com"
+
     def __call__(
         self, version: APIVersion = None, allowed: list[APIVersion] = None
     ) -> str:
-        return f"https://{self._region}-chronicle.googleapis.com/" + (
+        domain = self._get_domain(self._region)
+        return f"https://{domain}/" + (
             APIVersion(version or self._default)
             if not allowed or APIVersion(version or self._default) in allowed
             else next(
                 (
                     v
-                    for v in (APIVersion.V1, APIVersion.V1BETA, APIVersion.V1ALPHA)
+                    for v in (
+                        APIVersion.V1,
+                        APIVersion.V1BETA,
+                        APIVersion.V1ALPHA,
+                    )
                     if v in allowed
                 ),
                 APIVersion.V1ALPHA,
@@ -365,7 +393,7 @@ class ChronicleClient:
         extra_scopes: Optional[List[str]] = None,
         credentials: Optional[Any] = None,
         retry_config: Optional[Union[RetryConfig, Dict[str, Any], bool]] = None,
-        default_api_version: APIVersion = APIVersion.V1ALPHA,
+        default_api_version: Union[APIVersion, str] = APIVersion.V1ALPHA,
     ):
         """Initialize ChronicleClient.
 
@@ -390,35 +418,19 @@ class ChronicleClient:
 
         # Format the instance ID to match the expected format
         if region in ["dev", "staging"]:
-            # For dev and staging environments,
-            # use a different instance ID format
+            # Dev and staging use 'us' as the location
             self.instance_id = (
                 f"projects/{project_id}/locations/us/instances/{customer_id}"
             )
-            # Set up the base URL for dev/staging
-            if region == "dev":
-                self.base_url = (
-                    "https://autopush-chronicle.sandbox.googleapis.com/v1alpha"
-                )
-                self.base_v1_url = (
-                    "https://autopush-chronicle.sandbox.googleapis.com/v1"
-                )
-            else:  # staging
-                self.base_url = (
-                    "https://staging-chronicle.sandbox.googleapis.com/v1alpha"
-                )
-                self.base_v1_url = (
-                    "https://staging-chronicle.sandbox.googleapis.com/v1"
-                )
         else:
             # Standard production regions use the normal format
             self.instance_id = (
                 f"projects/{project_id}/locations/{region}/"
                 f"instances/{customer_id}"
             )
-            # Set up the base URL
-            self.base_url = BaseUrl(default_api_version, self.region)
-            self.base_v1_url = BaseUrl(APIVersion.V1, self.region) #TODO: remove after removing all references to base_v1_url
+
+        # Set up base URLs using BaseUrl for all regions
+        self.base_url = BaseUrl(self.default_api_version, self.region)
 
         # Create a session with authentication
         if session:

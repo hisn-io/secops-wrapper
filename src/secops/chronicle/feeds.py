@@ -36,6 +36,10 @@ else:
             return self.value
 
 
+# List of Allowed version for feed endpoints
+ALLOWED_ENDPOINT_VERSIONS = [APIVersion.V1ALPHA, APIVersion.V1BETA]
+
+
 @dataclass
 class CreateFeedModel:
     """Model for creating a feed.
@@ -146,7 +150,10 @@ def list_feeds(
     """
     feeds: list[dict] = []
 
-    url = f"{client.base_url(api_version, [APIVersion.V1ALPHA, APIVersion.V1BETA])}/{client.instance_id}/feeds"
+    url = (
+        f"{client.base_url(api_version, ALLOWED_ENDPOINT_VERSIONS)}/"
+        f"{client.instance_id}/feeds"
+    )
     more = True
     while more:
         params = {"pageSize": page_size, "pageToken": page_token}
@@ -166,7 +173,9 @@ def list_feeds(
     return feeds
 
 
-def get_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) -> Feed:
+def get_feed(
+    client, feed_id: str, api_version: Optional[APIVersion] = None
+) -> Feed:
     """Get a feed by ID.
 
     Args:
@@ -181,7 +190,10 @@ def get_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) -> 
         APIError: If the API request fails
     """
     feed_id = os.path.basename(feed_id)
-    url = f"{client.base_url(api_version, [APIVersion.V1ALPHA, APIVersion.V1BETA])}/{client.instance_id}/feeds/{feed_id}"
+    url = (
+        f"{client.base_url(api_version, ALLOWED_ENDPOINT_VERSIONS)}/"
+        f"{client.instance_id}/feeds/{feed_id}"
+    )
     response = client.session.get(url)
     if response.status_code != 200:
         raise APIError(f"Failed to get feed: {response.text}")
@@ -190,7 +202,9 @@ def get_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) -> 
 
 
 def create_feed(
-    client, feed_config: CreateFeedModel, api_version: Optional[APIVersion] = None
+    client,
+    feed_config: CreateFeedModel,
+    api_version: Optional[APIVersion] = None,
 ) -> Feed:
     """Create a new feed.
 
@@ -205,7 +219,10 @@ def create_feed(
     Raises:
         APIError: If the API request fails
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1ALPHA, APIVersion.V1BETA])}/{client.instance_id}/feeds"
+    url = (
+        f"{client.base_url(api_version, ALLOWED_ENDPOINT_VERSIONS)}/"
+        f"{client.instance_id}/feeds"
+    )
     response = client.session.post(url, json=feed_config.to_dict())
     if response.status_code != 200:
         raise APIError(f"Failed to create feed: {response.text}")
@@ -235,7 +252,10 @@ def update_feed(
     Raises:
         APIError: If the API request fails
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1ALPHA, APIVersion.V1BETA])}/{client.instance_id}/feeds/{feed_id}"
+    url = (
+        f"{client.base_url(api_version, ALLOWED_ENDPOINT_VERSIONS)}/"
+        f"{client.instance_id}/feeds/{feed_id}"
+    )
 
     if update_mask is None:
         update_mask = []
@@ -248,14 +268,18 @@ def update_feed(
     if update_mask:
         params = {"updateMask": ",".join(update_mask)}
 
-    response = client.session.patch(url, params=params, json=feed_config.to_dict())
+    response = client.session.patch(
+        url, params=params, json=feed_config.to_dict()
+    )
     if response.status_code != 200:
         raise APIError(f"Failed to update feed: {response.text}")
 
     return response.json()
 
 
-def delete_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) -> None:
+def delete_feed(
+    client, feed_id: str, api_version: Optional[APIVersion] = None
+) -> None:
     """Delete a feed.
 
     Args:
@@ -266,13 +290,18 @@ def delete_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) 
     Raises:
         APIError: If the API request fails
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1ALPHA, APIVersion.V1BETA])}/{client.instance_id}/feeds/{feed_id}"
+    url = (
+        f"{client.base_url(api_version, ALLOWED_ENDPOINT_VERSIONS)}/"
+        f"{client.instance_id}/feeds/{feed_id}"
+    )
     response = client.session.delete(url)
     if response.status_code != 200:
         raise APIError(f"Failed to delete feed: {response.text}")
 
 
-def disable_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) -> Feed:
+def disable_feed(
+    client, feed_id: str, api_version: Optional[APIVersion] = None
+) -> Feed:
     """Disable a feed.
 
     Args:
@@ -286,7 +315,10 @@ def disable_feed(client, feed_id: str, api_version: Optional[APIVersion] = None)
     Raises:
         APIError: If the API request fails
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1ALPHA, APIVersion.V1BETA])}/{client.instance_id}/feeds/{feed_id}:disable"
+    url = (
+        f"{client.base_url(api_version, ALLOWED_ENDPOINT_VERSIONS)}/"
+        f"{client.instance_id}/feeds/{feed_id}:disable"
+    )
     response = client.session.post(url)
     if response.status_code != 200:
         raise APIError(f"Failed to disable feed: {response.text}")
@@ -294,7 +326,9 @@ def disable_feed(client, feed_id: str, api_version: Optional[APIVersion] = None)
     return response.json()
 
 
-def enable_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) -> Feed:
+def enable_feed(
+    client, feed_id: str, api_version: Optional[APIVersion] = None
+) -> Feed:
     """Enable a feed.
 
     Args:
@@ -308,7 +342,10 @@ def enable_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) 
     Raises:
         APIError: If the API request fails
     """
-    url = f"{client.base_url(api_version, [APIVersion.V1ALPHA, APIVersion.V1BETA])}/{client.instance_id}/feeds/{feed_id}:enable"
+    url = (
+        f"{client.base_url(api_version, ALLOWED_ENDPOINT_VERSIONS)}/"
+        f"{client.instance_id}/feeds/{feed_id}:enable"
+    )
     response = client.session.post(url)
     if response.status_code != 200:
         raise APIError(f"Failed to enable feed: {response.text}")
@@ -316,7 +353,9 @@ def enable_feed(client, feed_id: str, api_version: Optional[APIVersion] = None) 
     return response.json()
 
 
-def generate_secret(client, feed_id: str, api_version: Optional[APIVersion] = None) -> FeedSecret:
+def generate_secret(
+    client, feed_id: str, api_version: Optional[APIVersion] = None
+) -> FeedSecret:
     """Generate a secret for a feed.
 
     Args:
@@ -331,7 +370,8 @@ def generate_secret(client, feed_id: str, api_version: Optional[APIVersion] = No
         APIError: If the API request fails
     """
     url = (
-        f"{client.base_url}/{client.instance_id}/feeds/{feed_id}:generateSecret"
+        f"{client.base_url(api_version, ALLOWED_ENDPOINT_VERSIONS)}/"
+        f"{client.instance_id}/feeds/{feed_id}:generateSecret"
     )
     response = client.session.post(url)
     if response.status_code != 200:
