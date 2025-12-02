@@ -13,13 +13,26 @@
 # limitations under the License.
 #
 """Data models for Chronicle API responses."""
+import sys
 import json
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from enum import Enum, StrEnum
+from enum import Enum
 from typing import Any, Dict, List, Optional, Union
 
 from secops.exceptions import SecOpsError
+
+# Use built-in StrEnum if Python 3.11+, otherwise create a compatible version
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from enum import Enum
+
+    class StrEnum(str, Enum):
+        """String enum implementation for Python versions before 3.11."""
+
+        def __str__(self) -> str:
+            return self.value
 
 
 class AlertState(str, Enum):
