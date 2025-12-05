@@ -311,23 +311,29 @@ class BaseUrl(str):
     def __call__(
         self, version: APIVersion = None, allowed: list[APIVersion] = None
     ) -> str:
-        domain = self._get_domain(self._region)
-        return f"https://{domain}/" + (
-            APIVersion(version or self._default)
-            if not allowed or APIVersion(version or self._default) in allowed
-            else next(
-                (
-                    v
-                    for v in (
-                        APIVersion.V1,
-                        APIVersion.V1BETA,
-                        APIVersion.V1ALPHA,
-                    )
-                    if v in allowed
-                ),
-                APIVersion.V1ALPHA,
+        """
+        Returns the base URL for a specific API version.
+
+        Args:
+            version: (Optional) The API version to use. If not provided,
+            uses the default.
+            allowed: (Optional) A list of allowed API versions for the
+            endpoint.
+
+        Returns:
+            The base URL string.
+
+        Raises:
+            SecOpsError: If the requested API version is not supported.
+        """
+        selected_version = APIVersion(version or self._default)
+        if allowed and selected_version not in allowed:
+            raise SecOpsError(
+                f"API version '{selected_version}' is not supported for this "
+                f"endpoint. Allowed versions: {', '.join(allowed)}"
             )
-        )
+        domain = self._get_domain(self._region)
+        return f"https://{domain}/{selected_version}"
 
 
 def _detect_value_type(value: str) -> tuple[Optional[str], Optional[str]]:
