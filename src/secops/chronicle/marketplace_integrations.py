@@ -129,10 +129,10 @@ def get_marketplace_integration_diff(
 def install_marketplace_integration(
     client: "ChronicleClient",
     integration_name: str,
-    override_mapping: bool | None = None,
-    staging: bool | None = None,
+    override_mapping: bool | None = False,
+    staging: bool | None = False,
     version: str | None = None,
-    restore_from_snapshot: bool | None = None,
+    restore_from_snapshot: bool | None = False,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
     """Install a marketplace integration by integration name
@@ -161,7 +161,7 @@ def install_marketplace_integration(
         "overrideMapping": override_mapping,
         "staging": staging,
         "version": version,
-        "restoreFromSnapshot": restore_from_snapshot,
+        "restoreIntegrationSnapshot": restore_from_snapshot,
     }
 
     return chronicle_request(
