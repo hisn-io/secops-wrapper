@@ -811,7 +811,7 @@ class ChronicleClient:
             api_version: API version to use for the request. Default is V1BETA.
 
         Returns:
-            Uninstalled marketplace integration details
+            Empty dictionary if uninstallation is successful
 
         Raises:
             APIError: If the API request fails
