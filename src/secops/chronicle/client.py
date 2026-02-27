@@ -333,6 +333,13 @@ from secops.chronicle.watchlist import (
     create_watchlist as _create_watchlist,
     update_watchlist as _update_watchlist,
 )
+from secops.chronicle.marketplace_integrations import (
+    list_marketplace_integrations as _list_marketplace_integrations,
+    get_marketplace_integration as _get_marketplace_integration,
+    get_marketplace_integration_diff as _get_marketplace_integration_diff,
+    install_marketplace_integration as _install_marketplace_integration,
+    uninstall_marketplace_integration as _uninstall_marketplace_integration,
+)
 from secops.exceptions import SecOpsError
 
 
@@ -758,6 +765,155 @@ class ChronicleClient:
             entity_population_mechanism,
             watchlist_user_preferences,
             update_mask,
+        )
+
+    def list_marketplace_integrations(
+        self,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """Get a list of all marketplace integrations.
+
+        Args:
+            page_size: Maximum number of integrations to return per page
+            page_token: Token for the next page of results, if available
+            filter_string: Filter expression to filter marketplace integrations
+            order_by: Field to sort the marketplace integrations by
+            api_version: API version to use. Defaults to V1BETA
+            as_list: If True, return a list of integrations instead of a dict
+                with integrations list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of marketplace integrations.
+            If as_list is False: Dict with marketplace integrations list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _list_marketplace_integrations(
+            self,
+            page_size,
+            page_token,
+            filter_string,
+            order_by,
+            api_version,
+            as_list
+        )
+
+    def get_marketplace_integration(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a specific marketplace integration by integration name.
+
+        Args:
+            integration_name: name of the marketplace integration to retrieve
+            api_version: API version to use. Defaults to V1BETA
+
+        Returns:
+            Marketplace integration details
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_marketplace_integration(
+            self,
+            integration_name,
+            api_version
+        )
+
+    def get_marketplace_integration_diff(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get the differences between the currently installed version of
+            an integration and the commercial version available in the
+            marketplace.
+
+        Args:
+            integration_name: name of the marketplace integration
+            api_version: API version to use. Defaults to V1BETA
+
+        Returns:
+            Marketplace integration diff details
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_marketplace_integration_diff(
+            self,
+            integration_name,
+            api_version
+        )
+
+    def install_marketplace_integration(
+        self,
+        integration_name: str,
+        override_mapping: bool | None = None,
+        staging: bool | None = None,
+        version: str | None = None,
+        restore_from_snapshot: bool | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Install a marketplace integration by integration name
+
+        Args:
+            integration_name: Name of the marketplace integration to install
+            override_mapping: Optional. Determines if the integration should
+                override the ontology if already installed, if not provided, set to
+                false by default.
+            staging: Optional. Determines if the integration should be installed
+                as staging or production, if not provided, installed as production.
+            version: Optional. Determines which version of the integration
+                should be installed.
+            restore_from_snapshot: Optional. Determines if the integration
+                should be installed from existing integration snapshot.
+            api_version: API version to use for the request. Default is V1BETA.
+
+        Returns:
+            Installed marketplace integration details
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _install_marketplace_integration(
+            self,
+            integration_name,
+            override_mapping,
+            staging,
+            version,
+            restore_from_snapshot,
+            api_version
+        )
+
+    def uninstall_marketplace_integration(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Uninstall a marketplace integration by integration name
+
+        Args:
+            integration_name: Name of the marketplace integration to uninstall
+            api_version: API version to use for the request. Default is V1BETA.
+
+        Returns:
+            Uninstalled marketplace integration details
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _uninstall_marketplace_integration(
+            self,
+            integration_name,
+            api_version
         )
 
     def get_stats(
