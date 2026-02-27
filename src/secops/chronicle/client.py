@@ -22,140 +22,119 @@ from typing import Any, Literal, Union
 
 from google.auth.transport import requests as google_auth_requests
 
+#pylint: disable=line-too-long
 from secops import auth as secops_auth
 from secops.auth import RetryConfig
 from secops.chronicle.alert import get_alerts as _get_alerts
 from secops.chronicle.case import get_cases_from_list
-from secops.chronicle.dashboard import DashboardAccessType, DashboardView
-from secops.chronicle.dashboard import add_chart as _add_chart
-from secops.chronicle.dashboard import create_dashboard as _create_dashboard
-from secops.chronicle.dashboard import delete_dashboard as _delete_dashboard
 from secops.chronicle.dashboard import (
+    DashboardAccessType,
+    DashboardView,
+    add_chart as _add_chart,
+    create_dashboard as _create_dashboard,
+    delete_dashboard as _delete_dashboard,
     duplicate_dashboard as _duplicate_dashboard,
+    edit_chart as _edit_chart,
+    export_dashboard as _export_dashboard,
+    get_chart as _get_chart,
+    get_dashboard as _get_dashboard,
+    import_dashboard as _import_dashboard,
+    list_dashboards as _list_dashboards,
+    remove_chart as _remove_chart,
+    update_dashboard as _update_dashboard,
 )
-from secops.chronicle.dashboard import edit_chart as _edit_chart
-from secops.chronicle.dashboard import export_dashboard as _export_dashboard
-from secops.chronicle.dashboard import get_chart as _get_chart
-from secops.chronicle.dashboard import get_dashboard as _get_dashboard
-from secops.chronicle.dashboard import import_dashboard as _import_dashboard
-from secops.chronicle.dashboard import list_dashboards as _list_dashboards
-from secops.chronicle.dashboard import remove_chart as _remove_chart
-from secops.chronicle.dashboard import update_dashboard as _update_dashboard
 from secops.chronicle.dashboard_query import (
     execute_query as _execute_dashboard_query,
-)
-from secops.chronicle.dashboard_query import (
     get_execute_query as _get_execute_query,
 )
 from secops.chronicle.data_export import (
     cancel_data_export as _cancel_data_export,
-)
-from secops.chronicle.data_export import (
     create_data_export as _create_data_export,
-)
-from secops.chronicle.data_export import (
     fetch_available_log_types as _fetch_available_log_types,
-)
-from secops.chronicle.data_export import get_data_export as _get_data_export
-from secops.chronicle.data_export import list_data_export as _list_data_export
-from secops.chronicle.data_export import (
+    get_data_export as _get_data_export,
+    list_data_export as _list_data_export,
     update_data_export as _update_data_export,
 )
-from secops.chronicle.data_table import DataTableColumnType
-from secops.chronicle.data_table import create_data_table as _create_data_table
 from secops.chronicle.data_table import (
+    DataTableColumnType,
+    create_data_table as _create_data_table,
     create_data_table_rows as _create_data_table_rows,
-)
-from secops.chronicle.data_table import delete_data_table as _delete_data_table
-from secops.chronicle.data_table import (
+    delete_data_table as _delete_data_table,
     delete_data_table_rows as _delete_data_table_rows,
-)
-from secops.chronicle.data_table import get_data_table as _get_data_table
-from secops.chronicle.data_table import (
+    get_data_table as _get_data_table,
     list_data_table_rows as _list_data_table_rows,
-)
-from secops.chronicle.data_table import list_data_tables as _list_data_tables
-from secops.chronicle.data_table import (
+    list_data_tables as _list_data_tables,
     replace_data_table_rows as _replace_data_table_rows,
-)
-from secops.chronicle.data_table import update_data_table as _update_data_table
-from secops.chronicle.data_table import (
+    update_data_table as _update_data_table,
     update_data_table_rows as _update_data_table_rows,
 )
-from secops.chronicle.entity import _detect_value_type_for_query
-from secops.chronicle.entity import summarize_entity as _summarize_entity
-from secops.chronicle.feeds import CreateFeedModel, UpdateFeedModel
-from secops.chronicle.feeds import create_feed as _create_feed
-from secops.chronicle.feeds import delete_feed as _delete_feed
-from secops.chronicle.feeds import disable_feed as _disable_feed
-from secops.chronicle.feeds import enable_feed as _enable_feed
-from secops.chronicle.feeds import generate_secret as _generate_secret
-from secops.chronicle.feeds import get_feed as _get_feed
-from secops.chronicle.feeds import list_feeds as _list_feeds
-from secops.chronicle.feeds import update_feed as _update_feed
-from secops.chronicle.gemini import GeminiResponse
-from secops.chronicle.gemini import opt_in_to_gemini as _opt_in_to_gemini
-from secops.chronicle.gemini import query_gemini as _query_gemini
-from secops.chronicle.ioc import list_iocs as _list_iocs
+from secops.chronicle.entity import (
+    _detect_value_type_for_query,
+    summarize_entity as _summarize_entity,
+)
+from secops.chronicle.featured_content_rules import (
+    list_featured_content_rules as _list_featured_content_rules,
+)
+from secops.chronicle.feeds import (
+    CreateFeedModel,
+    UpdateFeedModel,
+    create_feed as _create_feed,
+    delete_feed as _delete_feed,
+    disable_feed as _disable_feed,
+    enable_feed as _enable_feed,
+    generate_secret as _generate_secret,
+    get_feed as _get_feed,
+    list_feeds as _list_feeds,
+    update_feed as _update_feed,
+)
+from secops.chronicle.gemini import (
+    GeminiResponse,
+    opt_in_to_gemini as _opt_in_to_gemini,
+    query_gemini as _query_gemini,
+)
 from secops.chronicle.investigations import (
     fetch_associated_investigations as _fetch_associated_investigations,
-)
-from secops.chronicle.investigations import (
     get_investigation as _get_investigation,
-)
-from secops.chronicle.investigations import (
     list_investigations as _list_investigations,
-)
-from secops.chronicle.investigations import (
     trigger_investigation as _trigger_investigation,
 )
-from secops.chronicle.log_ingest import create_forwarder as _create_forwarder
-from secops.chronicle.log_ingest import delete_forwarder as _delete_forwarder
-from secops.chronicle.log_ingest import get_forwarder as _get_forwarder
+from secops.chronicle.ioc import list_iocs as _list_iocs
 from secops.chronicle.log_ingest import (
+    create_forwarder as _create_forwarder,
+    delete_forwarder as _delete_forwarder,
+    get_forwarder as _get_forwarder,
     get_or_create_forwarder as _get_or_create_forwarder,
+    import_entities as _import_entities,
+    ingest_log as _ingest_log,
+    ingest_udm as _ingest_udm,
+    list_forwarders as _list_forwarders,
+    update_forwarder as _update_forwarder,
 )
-from secops.chronicle.log_ingest import import_entities as _import_entities
-from secops.chronicle.log_ingest import ingest_log as _ingest_log
-from secops.chronicle.log_ingest import ingest_udm as _ingest_udm
-from secops.chronicle.log_ingest import list_forwarders as _list_forwarders
-from secops.chronicle.log_ingest import update_forwarder as _update_forwarder
-from secops.chronicle.log_types import classify_logs as _classify_logs
-from secops.chronicle.log_types import get_all_log_types as _get_all_log_types
-from secops.chronicle.log_types import (
-    get_log_type_description as _get_log_type_description,
-)
-from secops.chronicle.log_types import is_valid_log_type as _is_valid_log_type
-from secops.chronicle.log_types import search_log_types as _search_log_types
 from secops.chronicle.log_processing_pipelines import (
     associate_streams as _associate_streams,
-)
-from secops.chronicle.log_processing_pipelines import (
     create_log_processing_pipeline as _create_log_processing_pipeline,
-)
-from secops.chronicle.log_processing_pipelines import (
     delete_log_processing_pipeline as _delete_log_processing_pipeline,
-)
-from secops.chronicle.log_processing_pipelines import (
     dissociate_streams as _dissociate_streams,
-)
-from secops.chronicle.log_processing_pipelines import (
     fetch_associated_pipeline as _fetch_associated_pipeline,
-)
-from secops.chronicle.log_processing_pipelines import (
     fetch_sample_logs_by_streams as _fetch_sample_logs_by_streams,
-)
-from secops.chronicle.log_processing_pipelines import (
     get_log_processing_pipeline as _get_log_processing_pipeline,
-)
-from secops.chronicle.log_processing_pipelines import (
     list_log_processing_pipelines as _list_log_processing_pipelines,
-)
-from secops.chronicle.log_processing_pipelines import (
+    test_pipeline as _test_pipeline,
     update_log_processing_pipeline as _update_log_processing_pipeline,
 )
-from secops.chronicle.log_processing_pipelines import (
-    test_pipeline as _test_pipeline,
+from secops.chronicle.log_types import (
+    classify_logs as _classify_logs,
+    get_all_log_types as _get_all_log_types,
+    get_log_type_description as _get_log_type_description,
+    is_valid_log_type as _is_valid_log_type,
+    search_log_types as _search_log_types,
+)
+from secops.chronicle.marketplace_integrations import (
+    get_marketplace_integration as _get_marketplace_integration,
+    get_marketplace_integration_diff as _get_marketplace_integration_diff,
+    install_marketplace_integration as _install_marketplace_integration,
+    list_marketplace_integrations as _list_marketplace_integrations,
+    uninstall_marketplace_integration as _uninstall_marketplace_integration,
 )
 from secops.chronicle.models import (
     APIVersion,
@@ -166,102 +145,70 @@ from secops.chronicle.models import (
     InputInterval,
     TileType,
 )
-from secops.chronicle.nl_search import nl_search as _nl_search
-from secops.chronicle.nl_search import translate_nl_to_udm
-from secops.chronicle.parser import activate_parser as _activate_parser
+from secops.chronicle.nl_search import (
+    nl_search as _nl_search,
+    translate_nl_to_udm,
+)
 from secops.chronicle.parser import (
+    activate_parser as _activate_parser,
     activate_release_candidate_parser as _activate_release_candidate_parser,
+    copy_parser as _copy_parser,
+    create_parser as _create_parser,
+    deactivate_parser as _deactivate_parser,
+    delete_parser as _delete_parser,
+    get_parser as _get_parser,
+    list_parsers as _list_parsers,
+    run_parser as _run_parser,
 )
-from secops.chronicle.parser import copy_parser as _copy_parser
-from secops.chronicle.parser import create_parser as _create_parser
-from secops.chronicle.parser import deactivate_parser as _deactivate_parser
-from secops.chronicle.parser import delete_parser as _delete_parser
-from secops.chronicle.parser import get_parser as _get_parser
-from secops.chronicle.parser import list_parsers as _list_parsers
-from secops.chronicle.parser import run_parser as _run_parser
-from secops.chronicle.parser_extension import ParserExtensionConfig
 from secops.chronicle.parser_extension import (
+    ParserExtensionConfig,
     activate_parser_extension as _activate_parser_extension,
-)
-from secops.chronicle.parser_extension import (
     create_parser_extension as _create_parser_extension,
-)
-from secops.chronicle.parser_extension import (
     delete_parser_extension as _delete_parser_extension,
-)
-from secops.chronicle.parser_extension import (
     get_parser_extension as _get_parser_extension,
-)
-from secops.chronicle.parser_extension import (
     list_parser_extensions as _list_parser_extensions,
 )
 from secops.chronicle.reference_list import (
     ReferenceListSyntaxType,
     ReferenceListView,
-)
-from secops.chronicle.reference_list import (
     create_reference_list as _create_reference_list,
-)
-from secops.chronicle.reference_list import (
     get_reference_list as _get_reference_list,
-)
-from secops.chronicle.reference_list import (
     list_reference_lists as _list_reference_lists,
-)
-from secops.chronicle.reference_list import (
     update_reference_list as _update_reference_list,
 )
-
-# Import rule functions
-from secops.chronicle.rule import create_rule as _create_rule
-from secops.chronicle.rule import delete_rule as _delete_rule
-from secops.chronicle.rule import enable_rule as _enable_rule
-from secops.chronicle.rule import get_rule as _get_rule
-from secops.chronicle.rule import get_rule_deployment as _get_rule_deployment
 from secops.chronicle.rule import (
+    create_rule as _create_rule,
+    delete_rule as _delete_rule,
+    enable_rule as _enable_rule,
+    get_rule as _get_rule,
+    get_rule_deployment as _get_rule_deployment,
     list_rule_deployments as _list_rule_deployments,
-)
-from secops.chronicle.rule import list_rules as _list_rules
-from secops.chronicle.rule import run_rule_test
-from secops.chronicle.rule import search_rules as _search_rules
-from secops.chronicle.rule import set_rule_alerting as _set_rule_alerting
-from secops.chronicle.rule import update_rule as _update_rule
-from secops.chronicle.rule import (
+    list_rules as _list_rules,
+    run_rule_test,
+    search_rules as _search_rules,
+    set_rule_alerting as _set_rule_alerting,
+    update_rule as _update_rule,
     update_rule_deployment as _update_rule_deployment,
 )
 from secops.chronicle.rule_alert import (
     bulk_update_alerts as _bulk_update_alerts,
-)
-from secops.chronicle.rule_alert import get_alert as _get_alert
-from secops.chronicle.rule_alert import (
+    get_alert as _get_alert,
     search_rule_alerts as _search_rule_alerts,
+    update_alert as _update_alert,
 )
-from secops.chronicle.rule_alert import update_alert as _update_alert
-from secops.chronicle.rule_detection import list_detections as _list_detections
-from secops.chronicle.rule_detection import list_errors as _list_errors
+from secops.chronicle.rule_detection import (
+    list_detections as _list_detections,
+    list_errors as _list_errors,
+)
 from secops.chronicle.rule_exclusion import (
     RuleExclusionType,
     UpdateRuleDeployment,
-)
-from secops.chronicle.rule_exclusion import (
     compute_rule_exclusion_activity as _compute_rule_exclusion_activity,
-)
-from secops.chronicle.rule_exclusion import (
     create_rule_exclusion as _create_rule_exclusion,
-)
-from secops.chronicle.rule_exclusion import (
     get_rule_exclusion as _get_rule_exclusion,
-)
-from secops.chronicle.rule_exclusion import (
     get_rule_exclusion_deployment as _get_rule_exclusion_deployment,
-)
-from secops.chronicle.rule_exclusion import (
     list_rule_exclusions as _list_rule_exclusions,
-)
-from secops.chronicle.rule_exclusion import (
     patch_rule_exclusion as _patch_rule_exclusion,
-)
-from secops.chronicle.rule_exclusion import (
     update_rule_exclusion_deployment as _update_rule_exclusion_deployment,
 )
 from secops.chronicle.rule_retrohunt import (
@@ -270,78 +217,42 @@ from secops.chronicle.rule_retrohunt import (
     list_retrohunts as _list_retrohunts,
 )
 from secops.chronicle.rule_set import (
-    batch_update_curated_rule_set_deployments as _batch_update_curated_rule_set_deployments,  # pylint: disable=line-too-long
-)
-from secops.chronicle.rule_set import get_curated_rule as _get_curated_rule
-from secops.chronicle.rule_set import (
+    batch_update_curated_rule_set_deployments as _batch_update_curated_rule_set_deployments,
+    get_curated_rule as _get_curated_rule,
     get_curated_rule_by_name as _get_curated_rule_by_name,
-)
-from secops.chronicle.rule_set import (
     get_curated_rule_set as _get_curated_rule_set,
-)
-from secops.chronicle.rule_set import (
     get_curated_rule_set_category as _get_curated_rule_set_category,
-)
-from secops.chronicle.rule_set import (
     get_curated_rule_set_deployment as _get_curated_rule_set_deployment,
-)
-from secops.chronicle.rule_set import (
-    get_curated_rule_set_deployment_by_name as _get_curated_rule_set_deployment_by_name,  # pylint: disable=line-too-long
-)
-from secops.chronicle.rule_set import (
+    get_curated_rule_set_deployment_by_name as _get_curated_rule_set_deployment_by_name,
     list_curated_rule_set_categories as _list_curated_rule_set_categories,
-)
-from secops.chronicle.rule_set import (
     list_curated_rule_set_deployments as _list_curated_rule_set_deployments,
-)
-from secops.chronicle.rule_set import (
     list_curated_rule_sets as _list_curated_rule_sets,
-)
-from secops.chronicle.rule_set import list_curated_rules as _list_curated_rules
-from secops.chronicle.rule_set import (
+    list_curated_rules as _list_curated_rules,
     search_curated_detections as _search_curated_detections,
-)
-from secops.chronicle.rule_set import (
     update_curated_rule_set_deployment as _update_curated_rule_set_deployment,
-)
-from secops.chronicle.featured_content_rules import (
-    list_featured_content_rules as _list_featured_content_rules,
 )
 from secops.chronicle.rule_validation import validate_rule as _validate_rule
 from secops.chronicle.search import search_udm as _search_udm
 from secops.chronicle.stats import get_stats as _get_stats
-from secops.chronicle.udm_mapping import RowLogFormat
 from secops.chronicle.udm_mapping import (
+    RowLogFormat,
     generate_udm_key_value_mappings as _generate_udm_key_value_mappings,
 )
-
-# Import functions from the new modules
 from secops.chronicle.udm_search import (
     fetch_udm_search_csv as _fetch_udm_search_csv,
-)
-from secops.chronicle.udm_search import (
     fetch_udm_search_view as _fetch_udm_search_view,
-)
-from secops.chronicle.udm_search import (
     find_udm_field_values as _find_udm_field_values,
 )
 from secops.chronicle.validate import validate_query as _validate_query
 from secops.chronicle.watchlist import (
-    list_watchlists as _list_watchlists,
-    get_watchlist as _get_watchlist,
-    delete_watchlist as _delete_watchlist,
     create_watchlist as _create_watchlist,
+    delete_watchlist as _delete_watchlist,
+    get_watchlist as _get_watchlist,
+    list_watchlists as _list_watchlists,
     update_watchlist as _update_watchlist,
 )
-from secops.chronicle.marketplace_integrations import (
-    list_marketplace_integrations as _list_marketplace_integrations,
-    get_marketplace_integration as _get_marketplace_integration,
-    get_marketplace_integration_diff as _get_marketplace_integration_diff,
-    install_marketplace_integration as _install_marketplace_integration,
-    uninstall_marketplace_integration as _uninstall_marketplace_integration,
-)
 from secops.exceptions import SecOpsError
-
+#pylint: enable=line-too-long
 
 class ValueType(Enum):
     """Chronicle API value types."""
@@ -802,7 +713,7 @@ class ChronicleClient:
             filter_string,
             order_by,
             api_version,
-            as_list
+            as_list,
         )
 
     def get_marketplace_integration(
@@ -822,11 +733,7 @@ class ChronicleClient:
         Raises:
             APIError: If the API request fails
         """
-        return _get_marketplace_integration(
-            self,
-            integration_name,
-            api_version
-        )
+        return _get_marketplace_integration(self, integration_name, api_version)
 
     def get_marketplace_integration_diff(
         self,
@@ -848,9 +755,7 @@ class ChronicleClient:
             APIError: If the API request fails
         """
         return _get_marketplace_integration_diff(
-            self,
-            integration_name,
-            api_version
+            self, integration_name, api_version
         )
 
     def install_marketplace_integration(
@@ -867,10 +772,11 @@ class ChronicleClient:
         Args:
             integration_name: Name of the marketplace integration to install
             override_mapping: Optional. Determines if the integration should
-                override the ontology if already installed, if not provided, set to
-                false by default.
+                override the ontology if already installed, if not provided,
+                set to false by default.
             staging: Optional. Determines if the integration should be installed
-                as staging or production, if not provided, installed as production.
+                as staging or production,
+                if not provided, installed as production.
             version: Optional. Determines which version of the integration
                 should be installed.
             restore_from_snapshot: Optional. Determines if the integration
@@ -890,7 +796,7 @@ class ChronicleClient:
             staging,
             version,
             restore_from_snapshot,
-            api_version
+            api_version,
         )
 
     def uninstall_marketplace_integration(
@@ -911,9 +817,7 @@ class ChronicleClient:
             APIError: If the API request fails
         """
         return _uninstall_marketplace_integration(
-            self,
-            integration_name,
-            api_version
+            self, integration_name, api_version
         )
 
     def get_stats(
