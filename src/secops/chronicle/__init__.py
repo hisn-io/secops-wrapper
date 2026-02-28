@@ -197,6 +197,13 @@ from secops.chronicle.watchlist import (
     create_watchlist,
     update_watchlist,
 )
+from secops.chronicle.marketplace_integrations import (
+    list_marketplace_integrations,
+    get_marketplace_integration,
+    get_marketplace_integration_diff,
+    install_marketplace_integration,
+    uninstall_marketplace_integration
+)
 
 __all__ = [
     # Client
@@ -365,4 +372,10 @@ __all__ = [
     "delete_watchlist",
     "create_watchlist",
     "update_watchlist",
+    # Marketplace Integrations
+    "list_marketplace_integrations",
+    "get_marketplace_integration",
+    "get_marketplace_integration_diff",
+    "install_marketplace_integration",
+    "uninstall_marketplace_integration",
 ]
