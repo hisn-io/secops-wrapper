@@ -720,6 +720,55 @@ Delete a watchlist:
 secops watchlist delete --watchlist-id "abc-123-def"
 ```
 
+### Integration Management
+
+#### Marketplace Integrations
+
+List marketplace integrations:
+
+```bash
+# List all marketplace integration (returns dict with pagination metadata)
+secops integration marketplace list
+
+# List marketplace integration as a direct list (fetches all pages automatically)
+secops integration marketplace list --as-list
+```
+
+Get marketplace integration details:
+
+```bash
+secops integration marketplace get --integration-name "AWSSecurityHub"
+```
+
+Get marketplace integration diff between installed version and latest version:
+
+```bash
+secops integration marketplace diff --integration-name "AWSSecurityHub"
+```
+
+Install or update a marketplace integration:
+
+```bash
+# Install with default settings
+secops integration marketplace install --integration-name "AWSSecurityHub"
+
+# Install to staging environment and override any existing ontology mappings
+secops integration marketplace install --integration-name "AWSSecurityHub" --staging --override-mapping
+
+# Installing a currently installed integration with no specified version 
+# number will update it to the latest version
+secops integration marketplace install --integration-name "AWSSecurityHub"
+
+# Or you can specify a specific version to install
+secops integration marketplace install --integration-name "AWSSecurityHub" --version "5.0"
+```
+
+Uninstall a marketplace integration:
+
+```bash
+secops integration marketplace uninstall --integration-name "AWSSecurityHub"
+```
+
 ### Rule Management
 
 List detection rules:

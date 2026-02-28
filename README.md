@@ -1865,6 +1865,78 @@ for watchlist in watchlists:
     print(f"Watchlist: {watchlist.get('displayName')}")
 ```
 
+## Integration Management
+
+### Marketplace Integrations
+
+List available marketplace integrations:
+
+```python
+# Get all available marketplace integration
+integrations = chronicle.list_marketplace_integrations()
+for integration in integrations.get("marketplaceIntegrations", []):
+  integration_title = integration.get("title")
+  integration_id = integration.get("name", "").split("/")[-1]
+  integration_version = integration.get("version", "")
+  documentation_url = integration.get("documentationUri", "")
+
+# Get all integration as a list
+integrations = chronicle.list_marketplace_integrations(as_list=True)
+  
+# Get all currently installed integration
+integrations = chronicle.list_marketplace_integrations(filter_string="installed = true")
+
+# Get all installed integration with updates available
+integrations = chronicle.list_marketplace_integrations(filter_string="installed = true AND updateAvailable = true")
+
+# Specify use of V1 Alpha API version
+integrations = chronicle.list_marketplace_integrations(api_version=APIVersion.V1ALPHA)
+```
+
+Get a specific marketplace integration:
+
+```python
+integration = chronicle.get_marketplace_integration("AWSSecurityHub")
+```
+
+Get the diff between the currently installed version and the latest 
+available version of an integration:
+
+```python
+diff = chronicle.get_marketplace_integration_diff("AWSSecurityHub")
+```
+
+Install or update a marketplace integration:
+
+```python
+# Install an integration with the default settings
+integration_name = "AWSSecurityHub"
+integration = chronicle.install_marketplace_integration(integration_name)
+
+# Install to staging environment and override any existing ontology mappings
+integration = chronicle.install_marketplace_integration(
+    integration_name,
+    staging=True,
+    override_ontology_mappings=True
+)
+
+# Installing a currently installed integration with no specified version 
+# number will update it to the latest version
+integration = chronicle.install_marketplace_integration(integration_name)
+
+# Or you can specify a specific version to install
+integration = chronicle.install_marketplace_integration(
+    integration_name,
+    version="5.0"
+)
+```
+
+Uninstall a marketplace integration:
+
+```python
+chronicle.uninstall_marketplace_integration("AWSSecurityHub")
+```
+
 ## Rule Management
 
 The SDK provides comprehensive support for managing Chronicle detection rules:
