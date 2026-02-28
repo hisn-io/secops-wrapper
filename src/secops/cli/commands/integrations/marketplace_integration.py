@@ -26,7 +26,7 @@ from secops.cli.utils.common_args import (
 def setup_marketplace_integrations_command(subparsers):
     """Setup marketplace integrations command"""
     mp_parser = subparsers.add_parser(
-        "marketplace-integrations",
+        "marketplace",
         help="Manage Chronicle marketplace integrations",
     )
     lvl1 = mp_parser.add_subparsers(
