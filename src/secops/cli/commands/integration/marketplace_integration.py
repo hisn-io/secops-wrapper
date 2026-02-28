@@ -143,7 +143,7 @@ def handle_mp_integration_list_command(args, chronicle):
             as_list=args.as_list,
         )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error listing marketplace integrations: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -155,7 +155,7 @@ def handle_mp_integration_get_command(args, chronicle):
             integration_name=args.integration_name,
         )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error getting marketplace integration: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -167,7 +167,7 @@ def handle_mp_integration_diff_command(args, chronicle):
             integration_name=args.integration_name,
         )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(
             f"Error getting marketplace integration diff: {e}", file=sys.stderr
         )
@@ -185,7 +185,7 @@ def handle_mp_integration_install_command(args, chronicle):
             restore_from_snapshot=args.restore_from_snapshot,
         )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error installing marketplace integration: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -197,7 +197,7 @@ def handle_mp_integration_uninstall_command(args, chronicle):
             integration_name=args.integration_name,
         )
         output_formatter(out, getattr(args, "output", "json"))
-    except Exception as e: # pylint: disable=broad-exception-caught
+    except Exception as e:  # pylint: disable=broad-exception-caught
         print(
             f"Error uninstalling marketplace integration: {e}", file=sys.stderr
         )

@@ -16,6 +16,7 @@
 
 from secops.cli.commands.integration import marketplace_integration
 
+
 def setup_integrations_command(subparsers):
     """Setup integration command"""
     integrations_parser = subparsers.add_parser(
