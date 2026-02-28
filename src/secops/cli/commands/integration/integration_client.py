@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Top level arguments for integrations commands"""
+"""Top level arguments for integration commands"""
 
-from secops.cli.commands.integrations import marketplace_integration
+from secops.cli.commands.integration import marketplace_integration
 
 def setup_integrations_command(subparsers):
-    """Setup integrations command"""
+    """Setup integration command"""
     integrations_parser = subparsers.add_parser(
-        "integrations", help="Manage SecOps integrations"
+        "integration", help="Manage SecOps integrations"
     )
     lvl1 = integrations_parser.add_subparsers(
         dest="integrations_command", help="Integrations command"
     )
 
-    # Setup all subcommands under `integrations`
+    # Setup all subcommands under `integration`
     marketplace_integration.setup_marketplace_integrations_command(lvl1)

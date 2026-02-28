@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Google SecOps CLI marketplace integrations commands"""
+"""Google SecOps CLI marketplace integration commands"""
 
 import sys
 
@@ -24,13 +24,13 @@ from secops.cli.utils.common_args import (
 
 
 def setup_marketplace_integrations_command(subparsers):
-    """Setup marketplace integrations command"""
+    """Setup marketplace integration command"""
     mp_parser = subparsers.add_parser(
         "marketplace",
-        help="Manage Chronicle marketplace integrations",
+        help="Manage Chronicle marketplace integration",
     )
     lvl1 = mp_parser.add_subparsers(
-        dest="mp_command", help="Marketplace integrations command"
+        dest="mp_command", help="Marketplace integration command"
     )
 
     # list command
@@ -133,7 +133,7 @@ def setup_marketplace_integrations_command(subparsers):
 
 
 def handle_mp_integration_list_command(args, chronicle):
-    """Handle marketplace integrations list command"""
+    """Handle marketplace integration list command"""
     try:
         out = chronicle.list_marketplace_integrations(
             page_size=args.page_size,
@@ -149,7 +149,7 @@ def handle_mp_integration_list_command(args, chronicle):
 
 
 def handle_mp_integration_get_command(args, chronicle):
-    """Handle marketplace integrations get command"""
+    """Handle marketplace integration get command"""
     try:
         out = chronicle.get_marketplace_integration(
             integration_name=args.integration_name,
@@ -161,7 +161,7 @@ def handle_mp_integration_get_command(args, chronicle):
 
 
 def handle_mp_integration_diff_command(args, chronicle):
-    """Handle marketplace integrations diff command"""
+    """Handle marketplace integration diff command"""
     try:
         out = chronicle.get_marketplace_integration_diff(
             integration_name=args.integration_name,
@@ -175,7 +175,7 @@ def handle_mp_integration_diff_command(args, chronicle):
 
 
 def handle_mp_integration_install_command(args, chronicle):
-    """Handle marketplace integrations install command"""
+    """Handle marketplace integration install command"""
     try:
         out = chronicle.install_marketplace_integration(
             integration_name=args.integration_name,
@@ -191,7 +191,7 @@ def handle_mp_integration_install_command(args, chronicle):
 
 
 def handle_mp_integration_uninstall_command(args, chronicle):
-    """Handle marketplace integrations uninstall command"""
+    """Handle marketplace integration uninstall command"""
     try:
         out = chronicle.uninstall_marketplace_integration(
             integration_name=args.integration_name,

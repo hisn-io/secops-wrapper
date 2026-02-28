@@ -687,20 +687,20 @@ class ChronicleClient:
         api_version: APIVersion | None = APIVersion.V1BETA,
         as_list: bool = False,
     ) -> dict[str, Any] | list[dict[str, Any]]:
-        """Get a list of all marketplace integrations.
+        """Get a list of all marketplace integration.
 
         Args:
-            page_size: Maximum number of integrations to return per page
+            page_size: Maximum number of integration to return per page
             page_token: Token for the next page of results, if available
-            filter_string: Filter expression to filter marketplace integrations
-            order_by: Field to sort the marketplace integrations by
+            filter_string: Filter expression to filter marketplace integration
+            order_by: Field to sort the marketplace integration by
             api_version: API version to use. Defaults to V1BETA
-            as_list: If True, return a list of integrations instead of a dict
-                with integrations list and nextPageToken.
+            as_list: If True, return a list of integration instead of a dict
+                with integration list and nextPageToken.
 
         Returns:
-            If as_list is True: List of marketplace integrations.
-            If as_list is False: Dict with marketplace integrations list and
+            If as_list is True: List of marketplace integration.
+            If as_list is False: Dict with marketplace integration list and
                 nextPageToken.
 
         Raises:
