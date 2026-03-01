@@ -20,7 +20,7 @@ import pytest
 
 from secops.chronicle.client import ChronicleClient
 from secops.chronicle.models import APIVersion
-from secops.chronicle.marketplace_integrations import (
+from secops.chronicle.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
     get_marketplace_integration_diff,

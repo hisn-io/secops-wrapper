@@ -129,7 +129,7 @@ from secops.chronicle.log_types import (
     is_valid_log_type as _is_valid_log_type,
     search_log_types as _search_log_types,
 )
-from secops.chronicle.marketplace_integrations import (
+from secops.chronicle.integration.marketplace_integrations import (
     get_marketplace_integration as _get_marketplace_integration,
     get_marketplace_integration_diff as _get_marketplace_integration_diff,
     install_marketplace_integration as _install_marketplace_integration,
