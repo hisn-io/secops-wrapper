@@ -73,6 +73,38 @@ class DetectionType(StrEnum):
     CASE = "DETECTION_TYPE_CASE"
 
 
+class PythonVersion(str, Enum):
+    """Python version for compatibility checks."""
+
+    UNSPECIFIED = "PYTHON_VERSION_UNSPECIFIED"
+    PYTHON_2_7 = "V2_7"
+    PYTHON_3_7 = "V3_7"
+    PYTHON_3_11 = "V3_11"
+
+
+class DiffType(str, Enum):
+    """Type of diff to retrieve."""
+
+    COMMERCIAL = "Commercial"
+    PRODUCTION = "Production"
+    STAGING = "Staging"
+
+
+class TargetMode(str, Enum):
+    """Target mode for integration transition."""
+
+    PRODUCTION = "Production"
+    STAGING = "Staging"
+
+
+class IntegrationType(str, Enum):
+    """Type of integration."""
+
+    UNSPECIFIED = "INTEGRATION_TYPE_UNSPECIFIED"
+    RESPONSE = "RESPONSE"
+    EXTENSION = "EXTENSION"
+
+
 @dataclass
 class TimeInterval:
     """Time interval with start and end times."""

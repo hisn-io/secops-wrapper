@@ -22,7 +22,7 @@ from typing import Any, Literal, Union
 
 from google.auth.transport import requests as google_auth_requests
 
-#pylint: disable=line-too-long
+# pylint: disable=line-too-long
 from secops import auth as secops_auth
 from secops.auth import RetryConfig
 from secops.chronicle.alert import get_alerts as _get_alerts
@@ -135,6 +135,12 @@ from secops.chronicle.integration.marketplace_integrations import (
     install_marketplace_integration as _install_marketplace_integration,
     list_marketplace_integrations as _list_marketplace_integrations,
     uninstall_marketplace_integration as _uninstall_marketplace_integration,
+)
+from secops.chronicle.integration.integrations import (
+    DiffType,
+    list_integrations as _list_integrations,
+    get_integration as _get_integration,
+    get_integration_diff as _get_integration_diff,
 )
 from secops.chronicle.models import (
     APIVersion,
@@ -252,7 +258,9 @@ from secops.chronicle.watchlist import (
     update_watchlist as _update_watchlist,
 )
 from secops.exceptions import SecOpsError
-#pylint: enable=line-too-long
+
+# pylint: enable=line-too-long
+
 
 class ValueType(Enum):
     """Chronicle API value types."""
@@ -818,6 +826,93 @@ class ChronicleClient:
         """
         return _uninstall_marketplace_integration(
             self, integration_name, api_version
+        )
+
+    def list_integrations(
+        self,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any]:
+        """Get a list of all integrations.
+
+        Args:
+            page_size: Maximum number of integrations to return per page
+            page_token: Token for the next page of results, if available
+            filter_string: Filter expression to filter integrations
+            order_by: Field to sort the integrations by
+            api_version: API version to use. Defaults to V1BETA
+            as_list: If True, return a list of integrations instead of a dict
+                with integration list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of integration.
+            If as_list is False: Dict with integration list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _list_integrations(
+            self,
+            page_size,
+            page_token,
+            filter_string,
+            order_by,
+            api_version,
+            as_list,
+        )
+
+    def get_integration(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a specific integration by integration name.
+
+        Args:
+            integration_name: name of the integration to retrieve
+            api_version: API version to use. Defaults to V1BETA
+
+        Returns:
+            Integration details
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_integration(self, integration_name, api_version)
+
+    def get_integration_diff(
+        self,
+        integration_name: str,
+        diff_type: DiffType | None = DiffType.COMMERCIAL,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get the configuration diff of a specific integration.
+
+        Args:
+            integration_name: ID of the integration to retrieve the diff for
+            diff_type: Type of diff to retrieve (Commercial, Production, or Staging).
+                Default is Commercial.
+                COMMERCIAL: Diff between the commercial version of the
+                    integration  and the current version in the environment.
+                PRODUCTION: Returns the difference between the staging
+                    integration and its matching production version.
+                STAGING: Returns the difference between the production
+                    integration  and its corresponding staging version.
+            api_version: API version to use for the request. Default is V1BETA.
+
+        Returns:
+            Dict containing the configuration diff of the specified integration
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_integration_diff(
+            self, integration_name, diff_type, api_version
         )
 
     def get_stats(
