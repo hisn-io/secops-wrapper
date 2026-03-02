@@ -225,6 +225,7 @@ def setup_parser_command(subparsers):
     )
     run_parser_sub.add_argument(
         "--parse-statedump",
+        "--parse_statedump",
         action="store_true",
         help=("Parse statedump results into readable format"),
     )
