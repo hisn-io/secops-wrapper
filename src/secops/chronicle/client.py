@@ -916,7 +916,6 @@ class ChronicleClient:
         query: str,
         start_time: datetime,
         end_time: datetime,
-        allow_partial_results: bool = False,
         snapshot_query: str | None = None,
         case_sensitive: bool = False,
         log_types: list[str] | None = None,
@@ -929,7 +928,6 @@ class ChronicleClient:
             query: Query to search for raw logs.
             start_time: Search start time (inclusive).
             end_time: Search end time (exclusive).
-            allow_partial_results: Optional. Whether to allow partial results.
             snapshot_query: Optional. Query to filter results.
             case_sensitive: Optional. Whether search is case-sensitive.
             log_types: Optional. Limit results to specific log types
@@ -953,7 +951,6 @@ class ChronicleClient:
             log_types=log_types,
             max_aggregations_per_field=max_aggregations_per_field,
             page_size=page_size,
-            allow_partial_results=allow_partial_results,
         )
 
     def find_udm_field_values(

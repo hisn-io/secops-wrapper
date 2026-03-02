@@ -108,13 +108,6 @@ def setup_search_command(subparsers):
         type=int,
         help="Max values for a UDM field",
     )
-    raw_logs_parser.add_argument(
-        "--allow-partial-results",
-        "--allow_partial_results",
-        dest="allow_partial_results",
-        action="store_true",
-        help="Whether to allow partial results",
-    )
     add_time_range_args(raw_logs_parser, required=True)
     add_pagination_args(raw_logs_parser)
     raw_logs_parser.set_defaults(func=handle_search_raw_logs_command)
@@ -214,9 +207,6 @@ def handle_search_raw_logs_command(args, chronicle):
 
         if args.page_size is not None:
             kwargs["page_size"] = args.page_size
-
-        if args.allow_partial_results:
-            kwargs["allow_partial_results"] = True
 
         result = chronicle.search_raw_logs(**kwargs)
         output_formatter(result, args.output)

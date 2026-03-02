@@ -34,7 +34,6 @@ def search_raw_logs(
     log_types: list[str] | None = None,
     max_aggregations_per_field: int | None = None,
     page_size: int | None = None,
-    allow_partial_results: bool = False,
 ) -> dict[str, Any]:
     """Search for raw logs in Chronicle.
 
@@ -49,7 +48,6 @@ def search_raw_logs(
             (e.g. ["OKTA"]).
         max_aggregations_per_field: Optional. Max values for a UDM field.
         page_size: Optional. Maximum number of results to return.
-        allow_partial_results: Optional. Whether to allow partial results.
 
     Returns:
         Dictionary containing search results.
@@ -78,9 +76,6 @@ def search_raw_logs(
 
     if page_size is not None:
         search_query["pageSize"] = page_size
-
-    if allow_partial_results:
-        search_query["allowPartialResults"] = allow_partial_results
 
     return chronicle_request(
         client,
