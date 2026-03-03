@@ -27,6 +27,7 @@ from secops.chronicle.models import (
 from secops.chronicle.utils.format_utils import build_patch_body
 from secops.chronicle.utils.request_utils import (
     chronicle_paginated_request,
+    chronicle_request_bytes,
     chronicle_request,
 )
 
@@ -197,7 +198,7 @@ def download_integration(
     client: "ChronicleClient",
     integration_name: str,
     api_version: APIVersion | None = APIVersion.V1BETA,
-) -> dict[str, Any]:
+) -> bytes:
     """Exports the entire integration package as a ZIP file. Includes all
     scripts, definitions, and the manifest file. Use this method for backup
     or sharing.
@@ -208,16 +209,18 @@ def download_integration(
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing the configuration of the specified integration
+        Bytes of the ZIP file containing the integration package
 
     Raises:
         APIError: If the API request fails
     """
-    return chronicle_request(
+    return chronicle_request_bytes(
         client,
         method="GET",
         endpoint_path=f"integrations/{integration_name}:export",
         api_version=api_version,
+        params={"alt": "media"},
+        headers={"Accept": "application/zip"},
     )
 
 
@@ -262,7 +265,7 @@ def export_integration_items(
     transformers: list[str] | None = None,
     logical_operators: list[str] | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
-) -> dict[str, Any]:
+) -> bytes:
     """Exports specific items from an integration into a ZIP folder. Use
     this method to extract only a subset of capabilities (e.g., just the
     connectors) for reuse.
@@ -285,7 +288,7 @@ def export_integration_items(
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing the exported items of the specified integration
+        Bytes of the ZIP file containing the exported integration items
 
     Raises:
         APIError: If the API request fails
@@ -297,17 +300,19 @@ def export_integration_items(
         "managers": managers,
         "transformers": transformers,
         "logicalOperators": logical_operators,
+        "alt": "media",
     }
 
     # Remove keys with None values
     export_items = {k: v for k, v in export_items.items() if v is not None}
 
-    return chronicle_request(
+    return chronicle_request_bytes(
         client,
         method="GET",
         endpoint_path=f"integrations/{integration_name}:exportItems",
         params=export_items,
         api_version=api_version,
+        headers={"Accept": "application/zip"},
     )
 
 

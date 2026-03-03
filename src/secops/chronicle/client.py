@@ -137,18 +137,33 @@ from secops.chronicle.integration.marketplace_integrations import (
     uninstall_marketplace_integration as _uninstall_marketplace_integration,
 )
 from secops.chronicle.integration.integrations import (
-    DiffType,
-    list_integrations as _list_integrations,
+    create_integration as _create_integration,
+    delete_integration as _delete_integration,
+    download_integration as _download_integration,
+    download_integration_dependency as _download_integration_dependency,
+    export_integration_items as _export_integration_items,
+    get_agent_integrations as _get_agent_integrations,
     get_integration as _get_integration,
+    get_integration_affected_items as _get_integration_affected_items,
+    get_integration_dependencies as _get_integration_dependencies,
     get_integration_diff as _get_integration_diff,
+    get_integration_restricted_agents as _get_integration_restricted_agents,
+    list_integrations as _list_integrations,
+    transition_integration as _transition_integration,
+    update_custom_integration as _update_custom_integration,
+    update_integration as _update_integration,
 )
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
     DashboardChart,
     DashboardQuery,
+    DiffType,
     EntitySummary,
     InputInterval,
+    IntegrationType,
+    PythonVersion,
+    TargetMode,
     TileType,
 )
 from secops.chronicle.nl_search import (
@@ -686,6 +701,10 @@ class ChronicleClient:
             update_mask,
         )
 
+    # -------------------------------------------------------------------------
+    # Marketplace Integration methods
+    # -------------------------------------------------------------------------
+
     def list_marketplace_integrations(
         self,
         page_size: int | None = None,
@@ -828,6 +847,10 @@ class ChronicleClient:
             self, integration_name, api_version
         )
 
+    # -------------------------------------------------------------------------
+    # Integration methods
+    # -------------------------------------------------------------------------
+
     def list_integrations(
         self,
         page_size: int | None = None,
@@ -842,16 +865,16 @@ class ChronicleClient:
         Args:
             page_size: Maximum number of integrations to return per page
             page_token: Token for the next page of results, if available
-            filter_string: Filter expression to filter integrations
+            filter_string: Filter expression to filter integrations.
+                Only supports "displayName:" prefix.
             order_by: Field to sort the integrations by
             api_version: API version to use. Defaults to V1BETA
             as_list: If True, return a list of integrations instead of a dict
                 with integration list and nextPageToken.
 
         Returns:
-            If as_list is True: List of integration.
-            If as_list is False: Dict with integration list and
-                nextPageToken.
+            If as_list is True: List of integrations.
+            If as_list is False: Dict with integration list and nextPageToken.
 
         Raises:
             APIError: If the API request fails
@@ -885,6 +908,250 @@ class ChronicleClient:
         """
         return _get_integration(self, integration_name, api_version)
 
+    def delete_integration(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Deletes a specific custom integration. Commercial integrations
+        cannot be deleted via this method.
+
+        Args:
+            integration_name: Name of the integration to delete
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Raises:
+            APIError: If the API request fails
+        """
+        _delete_integration(self, integration_name, api_version)
+
+    def create_integration(
+        self,
+        display_name: str,
+        staging: bool,
+        description: str | None = None,
+        image_base64: str | None = None,
+        svg_icon: str | None = None,
+        python_version: PythonVersion | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        categories: list[str] | None = None,
+        integration_type: IntegrationType | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Creates a new custom SOAR integration.
+
+        Args:
+            display_name: Required. The display name of the integration
+                (max 150 characters)
+            staging: Required. True if the integration is in staging mode
+            description: Optional. The integration's description
+                (max 1,500 characters)
+            image_base64: Optional. The integration's image encoded as a
+                base64 string (max 5 MB)
+            svg_icon: Optional. The integration's SVG icon (max 1 MB)
+            python_version: Optional. The integration's Python version
+            parameters: Optional. Integration parameters (max 50)
+            categories: Optional. Integration categories (max 50)
+            integration_type: Optional. The integration's type
+                (response/extension)
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing the details of the newly created integration
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _create_integration(
+            self,
+            display_name=display_name,
+            staging=staging,
+            description=description,
+            image_base64=image_base64,
+            svg_icon=svg_icon,
+            python_version=python_version,
+            parameters=parameters,
+            categories=categories,
+            integration_type=integration_type,
+            api_version=api_version,
+        )
+
+    def download_integration(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> bytes:
+        """Exports the entire integration package as a ZIP file. Includes
+        all scripts, definitions, and the manifest file. Use this method
+        for backup or sharing.
+
+        Args:
+            integration_name: Name of the integration to download
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Bytes of the ZIP file containing the integration package
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _download_integration(self, integration_name, api_version)
+
+    def download_integration_dependency(
+        self,
+        integration_name: str,
+        dependency_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Initiates the download of a Python dependency (e.g., a library
+        from PyPI) for a custom integration.
+
+        Args:
+            integration_name: Name of the integration whose dependency
+                to download
+            dependency_name: The dependency name to download. It can
+                contain the version or the repository.
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing the dependency installation result with keys:
+                - successful: True if installation was successful
+                - error: Error message if installation failed
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _download_integration_dependency(
+            self, integration_name, dependency_name, api_version
+        )
+
+    def export_integration_items(
+        self,
+        integration_name: str,
+        actions: list[str] | str | None = None,
+        jobs: list[str] | str | None = None,
+        connectors: list[str] | str | None = None,
+        managers: list[str] | str | None = None,
+        transformers: list[str] | str | None = None,
+        logical_operators: list[str] | str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> bytes:
+        """Exports specific items from an integration into a ZIP folder.
+        Use this method to extract only a subset of capabilities (e.g.,
+        just the connectors) for reuse.
+
+        Args:
+            integration_name: Name of the integration to export items from
+            actions: Optional. IDs of the actions to export as a list or
+                comma-separated string. Format: [1,2,3] or "1,2,3"
+            jobs: Optional. IDs of the jobs to export as a list or
+                comma-separated string.
+            connectors: Optional. IDs of the connectors to export as a
+                list or comma-separated string.
+            managers: Optional. IDs of the managers to export as a list
+                or comma-separated string.
+            transformers: Optional. IDs of the transformers to export as
+                a list or comma-separated string.
+            logical_operators: Optional. IDs of the logical operators to
+                export as a list or comma-separated string.
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Bytes of the ZIP file containing the exported items
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _export_integration_items(
+            self,
+            integration_name,
+            actions=actions,
+            jobs=jobs,
+            connectors=connectors,
+            managers=managers,
+            transformers=transformers,
+            logical_operators=logical_operators,
+            api_version=api_version,
+        )
+
+    def get_integration_affected_items(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Identifies all system items (e.g., connector instances, job
+        instances, playbooks) that would be affected by a change to or
+        deletion of this integration. Use this method to conduct impact
+        analysis before making breaking changes.
+
+        Args:
+            integration_name: Name of the integration to check for
+                affected items
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing the list of items affected by changes to
+                the specified integration
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_integration_affected_items(
+            self, integration_name, api_version
+        )
+
+    def get_agent_integrations(
+        self,
+        agent_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Returns the set of integrations currently installed and
+        configured on a specific agent.
+
+        Args:
+            agent_id: The agent identifier
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing the list of agent-based integrations
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_agent_integrations(self, agent_id, api_version)
+
+    def get_integration_dependencies(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Returns the complete list of Python dependencies currently
+        associated with a custom integration.
+
+        Args:
+            integration_name: Name of the integration to check for
+                dependencies
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing the list of dependencies for the specified
+                integration
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_integration_dependencies(
+            self, integration_name, api_version
+        )
+
     def get_integration_diff(
         self,
         integration_name: str,
@@ -895,14 +1162,14 @@ class ChronicleClient:
 
         Args:
             integration_name: ID of the integration to retrieve the diff for
-            diff_type: Type of diff to retrieve (Commercial, Production, or Staging).
-                Default is Commercial.
+            diff_type: Type of diff to retrieve (Commercial, Production, or
+                Staging). Default is Commercial.
                 COMMERCIAL: Diff between the commercial version of the
-                    integration  and the current version in the environment.
+                    integration and the current version in the environment.
                 PRODUCTION: Returns the difference between the staging
                     integration and its matching production version.
                 STAGING: Returns the difference between the production
-                    integration  and its corresponding staging version.
+                    integration and its corresponding staging version.
             api_version: API version to use for the request. Default is V1BETA.
 
         Returns:
@@ -913,6 +1180,204 @@ class ChronicleClient:
         """
         return _get_integration_diff(
             self, integration_name, diff_type, api_version
+        )
+
+    def get_integration_restricted_agents(
+        self,
+        integration_name: str,
+        required_python_version: PythonVersion,
+        push_request: bool = False,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Identifies remote agents that would be restricted from running
+        an updated version of the integration, typically due to environment
+        incompatibilities like unsupported Python versions.
+
+        Args:
+            integration_name: Name of the integration to check for
+                restricted agents
+            required_python_version: Python version required for the
+                updated integration
+            push_request: Optional. Indicates whether the integration is
+                being pushed to a different mode (production/staging).
+                False by default.
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing the list of agents that would be restricted
+                from running the updated integration
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_integration_restricted_agents(
+            self,
+            integration_name,
+            required_python_version=required_python_version,
+            push_request=push_request,
+            api_version=api_version,
+        )
+
+    def transition_integration(
+        self,
+        integration_name: str,
+        target_mode: TargetMode,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Transitions an integration to a different environment
+        (e.g. staging to production).
+
+        Args:
+            integration_name: Name of the integration to transition
+            target_mode: Target mode to transition the integration to.
+                PRODUCTION: Transition the integration to production.
+                STAGING: Transition the integration to staging.
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing the details of the transitioned integration
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _transition_integration(
+            self, integration_name, target_mode, api_version
+        )
+
+    def update_integration(
+        self,
+        integration_name: str,
+        display_name: str | None = None,
+        description: str | None = None,
+        image_base64: str | None = None,
+        svg_icon: str | None = None,
+        python_version: PythonVersion | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        categories: list[str] | None = None,
+        integration_type: IntegrationType | None = None,
+        staging: bool | None = None,
+        dependencies_to_remove: list[str] | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Updates an existing integration's metadata. Use this method to
+        change the description or display image of a custom integration.
+
+        Args:
+            integration_name: Name of the integration to update
+            display_name: Optional. The display name of the integration
+                (max 150 characters)
+            description: Optional. The integration's description
+                (max 1,500 characters)
+            image_base64: Optional. The integration's image encoded as a
+                base64 string (max 5 MB)
+            svg_icon: Optional. The integration's SVG icon (max 1 MB)
+            python_version: Optional. The integration's Python version
+            parameters: Optional. Integration parameters (max 50)
+            categories: Optional. Integration categories (max 50)
+            integration_type: Optional. The integration's type
+                (response/extension)
+            staging: Optional. True if the integration is in staging mode
+            dependencies_to_remove: Optional. List of dependencies to
+                remove from the integration
+            update_mask: Optional. Comma-separated list of fields to
+                update. If not provided, all non-None fields are updated.
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing the details of the updated integration
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _update_integration(
+            self,
+            integration_name,
+            display_name=display_name,
+            description=description,
+            image_base64=image_base64,
+            svg_icon=svg_icon,
+            python_version=python_version,
+            parameters=parameters,
+            categories=categories,
+            integration_type=integration_type,
+            staging=staging,
+            dependencies_to_remove=dependencies_to_remove,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def update_custom_integration(
+        self,
+        integration_name: str,
+        display_name: str | None = None,
+        description: str | None = None,
+        image_base64: str | None = None,
+        svg_icon: str | None = None,
+        python_version: PythonVersion | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        categories: list[str] | None = None,
+        integration_type: IntegrationType | None = None,
+        staging: bool | None = None,
+        dependencies_to_remove: list[str] | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Updates a custom integration definition, including its
+        parameters and dependencies. Use this method to refine the
+        operational behavior of a locally developed integration.
+
+        Args:
+            integration_name: Name of the integration to update
+            display_name: Optional. The display name of the integration
+                (max 150 characters)
+            description: Optional. The integration's description
+                (max 1,500 characters)
+            image_base64: Optional. The integration's image encoded as a
+                base64 string (max 5 MB)
+            svg_icon: Optional. The integration's SVG icon (max 1 MB)
+            python_version: Optional. The integration's Python version
+            parameters: Optional. Integration parameters (max 50)
+            categories: Optional. Integration categories (max 50)
+            integration_type: Optional. The integration's type
+                (response/extension)
+            staging: Optional. True if the integration is in staging mode
+            dependencies_to_remove: Optional. List of dependencies to
+                remove from the integration
+            update_mask: Optional. Comma-separated list of fields to
+                update. If not provided, all non-None fields are updated.
+            api_version: API version to use for the request.
+                Default is V1BETA.
+
+        Returns:
+            Dict containing:
+                - successful: Whether the integration was updated
+                    successfully
+                - integration: The updated integration (if successful)
+                - dependencies: Dependency installation statuses
+                    (if failed)
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _update_custom_integration(
+            self,
+            integration_name,
+            display_name=display_name,
+            description=description,
+            image_base64=image_base64,
+            svg_icon=svg_icon,
+            python_version=python_version,
+            parameters=parameters,
+            categories=categories,
+            integration_type=integration_type,
+            staging=staging,
+            dependencies_to_remove=dependencies_to_remove,
+            update_mask=update_mask,
+            api_version=api_version,
         )
 
     def get_stats(
