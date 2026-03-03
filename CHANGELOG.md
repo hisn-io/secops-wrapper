@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.35.3] - 2026-03-03
+### Updated
+- Dashboard methods to use centralized `chronicle_request` helper function for improved code consistency and maintainability
+
+### Added
+- Helper functions for formatting dashboard resources
+- Pagination helper for `list_dashboards` method
+
+## [0.35.2] - 2026-03-02
+### Added
+- `parse_statedump` parameter to `run_parser()` method for converting 
+  statedump strings into structured JSON format
+- CLI `--parse-statedump` flag for `secops parser run` command
+
 ## [0.35.1] - 2026-02-23
 ### Added
 - `as_list` parameter to `search_udm()` for returning events as a list instead of dictionary
