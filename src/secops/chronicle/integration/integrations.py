@@ -151,15 +151,18 @@ def create_integration(
 
     Args:
         client: ChronicleClient instance
-        display_name: Required. The display name of the integration (max 150 characters)
+        display_name: Required. The display name of the integration
+            (max 150 characters)
         staging: Required. True if the integration is in staging mode
-        description: Optional. The integration's description (max 1,500 characters)
-        image_base64: Optional. The integration's image encoded as a base64 string (max 5 MB)
+        description: Optional. The integration's description
+            (max 1,500 characters)
+        image_base64: Optional. The integration's image encoded as
+            a base64 string (max 5 MB)
         svg_icon: Optional. The integration's SVG icon (max 1 MB)
         python_version: Optional. The integration's Python version
-        parameters: Optional. Integration parameters (max 50). Each parameter is a dict
-            with keys: id, defaultValue, displayName, propertyName, type, description,
-            mandatory
+        parameters: Optional. Integration parameters (max 50). Each parameter
+            is a dict with keys: id, defaultValue, displayName,
+            propertyName, type, description, mandatory
         categories: Optional. Integration categories (max 50)
         integration_type: Optional. The integration's type (response/extension)
         api_version: API version to use for the request. Default is V1BETA.
@@ -455,8 +458,8 @@ def get_integration_diff(
     Args:
         client: ChronicleClient instance
         integration_name: ID of the integration to retrieve the diff for
-        diff_type: Type of diff to retrieve (Commercial, Production, or Staging).
-            Default is Commercial.
+        diff_type: Type of diff to retrieve
+            (Commercial, Production, or Staging). Default is Commercial.
             COMMERCIAL: Diff between the commercial version of the
                 integration  and the current version in the environment.
             PRODUCTION: Returns the difference between the staging
@@ -486,7 +489,8 @@ def transition_integration(
     target_mode: TargetMode,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
-    """Transition an integration to a different environment (e.g. staging to production).
+    """Transition an integration to a different environment
+    (e.g. staging to production).
 
     Args:
         client: ChronicleClient instance
@@ -532,17 +536,20 @@ def update_integration(
     Args:
         client: ChronicleClient instance
         integration_name: ID of the integration to update
-        display_name: Optional. The display name of the integration (max 150 characters)
-        description: Optional. The integration's description (max 1,500 characters)
-        image_base64: Optional. The integration's image encoded as a base64 string (max 5 MB)
+        display_name: Optional. The display name of the integration
+            (max 150 characters)
+        description: Optional. The integration's description
+            (max 1,500 characters)
+        image_base64: Optional. The integration's image encoded as a
+            base64 string (max 5 MB)
         svg_icon: Optional. The integration's SVG icon (max 1 MB)
         python_version: Optional. The integration's Python version
         parameters: Optional. Integration parameters (max 50)
         categories: Optional. Integration categories (max 50)
         integration_type: Optional. The integration's type (response/extension)
         staging: Optional. True if the integration is in staging mode
-        dependencies_to_remove: Optional. List of dependencies to remove from the
-            integration.
+        dependencies_to_remove: Optional. List of dependencies to
+            remove from the integration.
         update_mask: Optional. Comma-separated list of fields to update.
             If not provided, all non-None fields will be updated.
         api_version: API version to use for the request. Default is V1BETA.
@@ -581,6 +588,7 @@ def update_integration(
         api_version=api_version,
     )
 
+
 def update_custom_integration(
     client: "ChronicleClient",
     integration_name: str,
@@ -604,9 +612,12 @@ def update_custom_integration(
     Args:
         client: ChronicleClient instance
         integration_name: Name of the integration to update
-        display_name: Optional. The display name of the integration (max 150 characters)
-        description: Optional. The integration's description (max 1,500 characters)
-        image_base64: Optional. The integration's image encoded as a base64 string (max 5 MB)
+        display_name: Optional. The display name of the integration
+            (max 150 characters)
+        description: Optional. The integration's description
+            (max 1,500 characters)
+        image_base64: Optional. The integration's image encoded as a
+            base64 string (max 5 MB)
         svg_icon: Optional. The integration's SVG icon (max 1 MB)
         python_version: Optional. The integration's Python version
         parameters: Optional. Integration parameters (max 50)
@@ -623,7 +634,8 @@ def update_custom_integration(
         Dict containing:
             - successful: Whether the integration was updated successfully
             - integration: The updated integration (populated if successful)
-            - dependencies: Dependency installation statuses (populated if failed)
+            - dependencies: Dependency installation statuses
+                (populated if failed)
 
     Raises:
         APIError: If the API request fails
@@ -642,7 +654,9 @@ def update_custom_integration(
     }
 
     # Remove keys with None values
-    integration_fields = {k: v for k, v in integration_fields.items() if v is not None}
+    integration_fields = {
+        k: v for k, v in integration_fields.items() if v is not None
+    }
 
     body = {"integration": integration_fields}
 
@@ -654,7 +668,8 @@ def update_custom_integration(
     return chronicle_request(
         client,
         method="POST",
-        endpoint_path=f"integrations/{integration_name}:updateCustomIntegration",
+        endpoint_path=f"integrations/"
+                      f"{integration_name}:updateCustomIntegration",
         json=body,
         params=params,
         api_version=api_version,

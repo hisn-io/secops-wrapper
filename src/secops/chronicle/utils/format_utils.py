@@ -66,7 +66,7 @@ def parse_json_list(
             raise APIError(f"Invalid {field_name} JSON") from e
     return value
 
-
+#pylint: disable=line-too-long
 def build_patch_body(
     field_map: list[tuple[str, str, Any]],
     update_mask: str | None = None,
