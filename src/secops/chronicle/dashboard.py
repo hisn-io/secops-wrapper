@@ -583,7 +583,9 @@ def remove_chart(
         APIError: If the API request fails
     """
     dashboard_id = format_resource_id(dashboard_id)
-    chart_id = format_resource_id(chart_id)
+
+    if not chart_id.startswith("projects/"):
+        chart_id = f"{client.instance_id}/dashboardCharts/{chart_id}"
 
     return chronicle_request(
         client,
