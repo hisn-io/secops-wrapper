@@ -15,6 +15,7 @@
 """Top level arguments for integration commands"""
 
 from secops.cli.commands.integration import marketplace_integration
+from secops.cli.commands.integration import integration
 
 
 def setup_integrations_command(subparsers):
@@ -28,3 +29,4 @@ def setup_integrations_command(subparsers):
 
     # Setup all subcommands under `integration`
     marketplace_integration.setup_marketplace_integrations_command(lvl1)
+    integration.setup_integrations_command(lvl1)

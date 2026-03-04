@@ -105,6 +105,61 @@ class IntegrationType(str, Enum):
     EXTENSION = "EXTENSION"
 
 
+class IntegrationParamType(str, Enum):
+    """Type of integration parameter."""
+
+    PARAM_TYPE_UNSPECIFIED = "PARAM_TYPE_UNSPECIFIED"
+    BOOLEAN = "BOOLEAN"
+    INT = "INT"
+    STRING = "STRING"
+    PASSWORD = "PASSWORD"
+    IP = "IP"
+    IP_OR_HOST = "IP_OR_HOST"
+    URL = "URL"
+    DOMAIN = "DOMAIN"
+    EMAIL = "EMAIL"
+    VALUES_LIST = "VALUES_LIST"
+    VALUES_AS_SEMICOLON_SEPARATED_STRING = "VALUES_AS_SEMICOLON_SEPARATED_STRING"
+    MULTI_VALUES_SELECTION = "MULTI_VALUES_SELECTION"
+    SCRIPT = "SCRIPT"
+    FILTER_LIST = "FILTER_LIST"
+
+
+@dataclass
+class IntegrationParam:
+    """A parameter definition for a Chronicle SOAR integration.
+
+    Attributes:
+        display_name: Human-readable label shown in the UI.
+        property_name: The programmatic key used in code/config.
+        type: The data type of the parameter (see IntegrationParamType).
+        description: Optional. Explanation of what the parameter is for.
+        mandatory: Whether the parameter must be supplied. Defaults to False.
+        default_value: Optional. Pre-filled value shown in the UI.
+    """
+
+    display_name: str
+    property_name: str
+    type: IntegrationParamType
+    mandatory: bool
+    description: str | None = None
+    default_value: str | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {
+            "displayName": self.display_name,
+            "propertyName": self.property_name,
+            "type": str(self.type),
+            "mandatory": self.mandatory,
+        }
+        if self.description is not None:
+            data["description"] = self.description
+        if self.default_value is not None:
+            data["defaultValue"] = self.default_value
+        return data
+
+
 @dataclass
 class TimeInterval:
     """Time interval with start and end times."""

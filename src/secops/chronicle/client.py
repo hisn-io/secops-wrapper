@@ -164,7 +164,7 @@ from secops.chronicle.models import (
     IntegrationType,
     PythonVersion,
     TargetMode,
-    TileType,
+    TileType, IntegrationParam,
 )
 from secops.chronicle.nl_search import (
     nl_search as _nl_search,
@@ -859,7 +859,7 @@ class ChronicleClient:
         order_by: str | None = None,
         api_version: APIVersion | None = APIVersion.V1BETA,
         as_list: bool = False,
-    ) -> dict[str, Any]:
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """Get a list of all integrations.
 
         Args:
@@ -934,7 +934,7 @@ class ChronicleClient:
         image_base64: str | None = None,
         svg_icon: str | None = None,
         python_version: PythonVersion | None = None,
-        parameters: list[dict[str, Any]] | None = None,
+        parameters: list[IntegrationParam | dict[str, Any]] | None = None,
         categories: list[str] | None = None,
         integration_type: IntegrationType | None = None,
         api_version: APIVersion | None = APIVersion.V1BETA,
@@ -951,7 +951,10 @@ class ChronicleClient:
                 base64 string (max 5 MB)
             svg_icon: Optional. The integration's SVG icon (max 1 MB)
             python_version: Optional. The integration's Python version
-            parameters: Optional. Integration parameters (max 50)
+            parameters: Optional. Integration parameters (max 50). Each entry may
+                be an IntegrationParam dataclass instance or a plain dict with
+                keys: id, defaultValue, displayName, propertyName, type,
+                description, mandatory.
             categories: Optional. Integration categories (max 50)
             integration_type: Optional. The integration's type
                 (response/extension)

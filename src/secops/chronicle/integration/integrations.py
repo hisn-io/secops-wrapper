@@ -19,6 +19,7 @@ from typing import Any, TYPE_CHECKING
 from secops.chronicle.models import (
     APIVersion,
     DiffType,
+    IntegrationParam,
     TargetMode,
     PythonVersion,
     IntegrationType,
@@ -142,7 +143,7 @@ def create_integration(
     image_base64: str | None = None,
     svg_icon: str | None = None,
     python_version: PythonVersion | None = None,
-    parameters: list[dict[str, Any]] | None = None,
+    parameters: list[IntegrationParam | dict[str, Any]] | None = None,
     categories: list[str] | None = None,
     integration_type: IntegrationType | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
@@ -160,9 +161,10 @@ def create_integration(
             a base64 string (max 5 MB)
         svg_icon: Optional. The integration's SVG icon (max 1 MB)
         python_version: Optional. The integration's Python version
-        parameters: Optional. Integration parameters (max 50). Each parameter
-            is a dict with keys: id, defaultValue, displayName,
-            propertyName, type, description, mandatory
+        parameters: Optional. Integration parameters (max 50). Each entry may
+            be an IntegrationParam dataclass instance or a plain dict with
+            keys: id, defaultValue, displayName, propertyName, type,
+            description, mandatory.
         categories: Optional. Integration categories (max 50)
         integration_type: Optional. The integration's type (response/extension)
         api_version: API version to use for the request. Default is V1BETA.
@@ -173,6 +175,13 @@ def create_integration(
     Raises:
         APIError: If the API request fails
     """
+    serialised_params: list[dict[str, Any]] | None = None
+    if parameters is not None:
+        serialised_params = [
+            p.to_dict() if isinstance(p, IntegrationParam) else p
+            for p in parameters
+        ]
+
     body_fields = {
         "displayName": display_name,
         "staging": staging,
@@ -180,7 +189,7 @@ def create_integration(
         "imageBase64": image_base64,
         "svgIcon": svg_icon,
         "pythonVersion": python_version,
-        "parameters": parameters,
+        "parameters": serialised_params,
         "categories": categories,
         "type": integration_type,
     }
