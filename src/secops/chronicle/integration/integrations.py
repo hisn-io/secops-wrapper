@@ -253,7 +253,8 @@ def download_integration_dependency(
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing the details of the downloaded dependency
+        Empty dict if the download was successful, or a dict containing error
+        details if the download failed
 
     Raises:
         APIError: If the API request fails
@@ -678,7 +679,7 @@ def update_custom_integration(
         client,
         method="POST",
         endpoint_path=f"integrations/"
-                      f"{integration_name}:updateCustomIntegration",
+        f"{integration_name}:updateCustomIntegration",
         json=body,
         params=params,
         api_version=api_version,

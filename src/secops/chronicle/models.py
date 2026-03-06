@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 """Data models for Chronicle API responses."""
+
 import json
 import sys
 from dataclasses import asdict, dataclass, field
@@ -119,7 +120,9 @@ class IntegrationParamType(str, Enum):
     DOMAIN = "DOMAIN"
     EMAIL = "EMAIL"
     VALUES_LIST = "VALUES_LIST"
-    VALUES_AS_SEMICOLON_SEPARATED_STRING = "VALUES_AS_SEMICOLON_SEPARATED_STRING"
+    VALUES_AS_SEMICOLON_SEPARATED_STRING = (
+        "VALUES_AS_SEMICOLON_SEPARATED_STRING"
+    )
     MULTI_VALUES_SELECTION = "MULTI_VALUES_SELECTION"
     SCRIPT = "SCRIPT"
     FILTER_LIST = "FILTER_LIST"
@@ -150,13 +153,78 @@ class IntegrationParam:
         data: dict = {
             "displayName": self.display_name,
             "propertyName": self.property_name,
-            "type": str(self.type),
+            "type": str(self.type.value),
             "mandatory": self.mandatory,
         }
         if self.description is not None:
             data["description"] = self.description
         if self.default_value is not None:
             data["defaultValue"] = self.default_value
+        return data
+
+
+class ActionParamType(str, Enum):
+    """Action parameter types for Chronicle SOAR integration actions."""
+
+    STRING = "STRING"
+    BOOLEAN = "BOOLEAN"
+    WFS_REPOSITORY = "WFS_REPOSITORY"
+    USER_REPOSITORY = "USER_REPOSITORY"
+    STAGES_REPOSITORY = "STAGES_REPOSITORY"
+    CLOSE_CASE_REASON_REPOSITORY = "CLOSE_CASE_REASON_REPOSITORY"
+    CLOSE_CASE_ROOT_CAUSE_REPOSITORY = "CLOSE_CASE_ROOT_CAUSE_REPOSITORY"
+    PRIORITIES_REPOSITORY = "PRIORITIES_REPOSITORY"
+    EMAIL_CONTENT = "EMAIL_CONTENT"
+    CONTENT = "CONTENT"
+    PASSWORD = "PASSWORD"
+    ENTITY_TYPE = "ENTITY_TYPE"
+    MULTI_VALUES = "MULTI_VALUES"
+    LIST = "LIST"
+    CODE = "CODE"
+    MULTIPLE_CHOICE_PARAMETER = "MULTIPLE_CHOICE_PARAMETER"
+
+
+class ActionType(str, Enum):
+    """Action types for Chronicle SOAR integration actions."""
+
+    UNSPECIFIED = "ACTION_TYPE_UNSPECIFIED"
+    STANDARD = "STANDARD"
+    AI_AGENT = "AI_AGENT"
+
+
+@dataclass
+class ActionParameter:
+    """A parameter definition for a Chronicle SOAR integration action.
+
+    Attributes:
+        display_name: The parameter's display name. Maximum 150 characters.
+        type: The parameter's type.
+        description: The parameter's description. Maximum 150 characters.
+        mandatory: Whether the parameter is mandatory.
+        default_value: The default value of the parameter.
+            Maximum 150 characters.
+        optional_values: Parameter's optional values. Maximum 50 items.
+    """
+
+    display_name: str
+    type: ActionParamType
+    description: str
+    mandatory: bool
+    default_value: str | None = None
+    optional_values: list[str] | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {
+            "displayName": self.display_name,
+            "type": str(self.type.value),
+            "description": self.description,
+            "mandatory": self.mandatory,
+        }
+        if self.default_value is not None:
+            data["defaultValue"] = self.default_value
+        if self.optional_values is not None:
+            data["optionalValues"] = self.optional_values
         return data
 
 

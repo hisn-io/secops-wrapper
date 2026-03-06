@@ -1958,6 +1958,122 @@ Uninstall a marketplace integration:
 chronicle.uninstall_marketplace_integration("AWSSecurityHub")
 ```
 
+### Integration Actions
+
+List all available actions for an integration:
+
+```python
+# Get all actions for an integration
+actions = chronicle.list_integration_actions("AWSSecurityHub")
+for action in actions.get("actions", []):
+    print(f"Action: {action.get('displayName')}, ID: {action.get('name')}")
+
+# Get all actions as a list
+actions = chronicle.list_integration_actions("AWSSecurityHub", as_list=True)
+
+# Get only enabled actions
+actions = chronicle.list_integration_actions("AWSSecurityHub", filter_string="enabled = true")
+```
+
+Get details of a specific action:
+
+```python
+
+action = chronicle.get_integration_action(
+   integration_name="AWSSecurityHub",
+   action_id="123"
+)
+```
+
+Create an integration action
+
+```python
+from secops.chronicle.models import ActionParameter, ActionParamType
+
+new_action = chronicle.create_integration_action(
+        integration_name="MyIntegration",
+        display_name="New Action",
+        description="This is a new action",
+        enabled=True,
+        timeout_seconds=900,
+        is_async=False,
+        script_result_name="script_result",
+        parameters=[
+            ActionParameter(
+                display_name="Parameter 1",
+                type=ActionParamType.STRING,
+                description="This is parameter 1",
+                mandatory=True,
+            )
+        ],
+        script="print('Hello, World!')"
+    )
+```
+
+Update an integration action
+
+```python
+from secops.chronicle.models import ActionParameter, ActionParamType
+
+updated_action = chronicle.update_integration_action(
+    integration_name="MyIntegration",
+    action_id="123",
+    display_name="Updated Action Name",
+    description="Updated description",
+    enabled=False,
+   parameters=[
+        ActionParameter(
+            display_name="New Parameter",
+            type=ActionParamType.PASSWORD,
+            description="This is a new parameter",
+            mandatory=True,
+        )
+    ],
+    script="print('Updated script')"
+)
+```
+
+Delete an integration action
+
+```python
+chronicle.delete_integration_action(
+    integration_name="MyIntegration",
+    action_id="123"
+)
+```
+
+Execute test run of an integration action
+
+```python
+# Get the integration instance ID by using chronicle.list_integration_instances()
+integration_instance_id = "abc-123-def-456"
+
+test_run = chronicle.execute_integration_action_test(
+        integration_name="MyIntegration",
+        test_case_id=123456,
+        action=chronicle.get_integration_action("MyIntegration", "123"),
+        scope="TEST",
+        integration_instance_id=integration_instance_id,
+)
+```
+
+Get integration actions by environment
+
+```python
+# Get all actions for an integration in the Default Environment
+actions = chronicle.get_integration_actions_by_environment(
+    integration_name="MyIntegration",
+    environments=["Default Environment"],
+    include_widgets=True,
+)
+```
+
+Get a template for creating an action in an integration
+
+```python
+template = chronicle.get_integration_action_template("MyIntegration")
+```
+
 ## Rule Management
 
 The SDK provides comprehensive support for managing Chronicle detection rules:
