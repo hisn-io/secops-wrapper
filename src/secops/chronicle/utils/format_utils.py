@@ -66,7 +66,8 @@ def parse_json_list(
             raise APIError(f"Invalid {field_name} JSON") from e
     return value
 
-#pylint: disable=line-too-long
+
+# pylint: disable=line-too-long
 def build_patch_body(
     field_map: list[tuple[str, str, Any]],
     update_mask: str | None = None,
@@ -82,10 +83,16 @@ def build_patch_body(
     Returns:
         Tuple of (body, params) where params contains the updateMask or is None.
     """
-    body = {api_key: value for api_key, _, value in field_map if value is not None}
-    mask_fields = [mask_key for _, mask_key, value in field_map if value is not None]
+    body = {
+        api_key: value for api_key, _, value in field_map if value is not None
+    }
+    mask_fields = [
+        mask_key for _, mask_key, value in field_map if value is not None
+    ]
 
-    resolved_mask = update_mask or (",".join(mask_fields) if mask_fields else None)
+    resolved_mask = update_mask or (
+        ",".join(mask_fields) if mask_fields else None
+    )
     params = {"updateMask": resolved_mask} if resolved_mask else None
 
     return body, params

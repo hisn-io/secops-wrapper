@@ -208,7 +208,7 @@ from secops.chronicle.integration.marketplace_integrations import (
     get_marketplace_integration,
     get_marketplace_integration_diff,
     install_marketplace_integration,
-    uninstall_marketplace_integration
+    uninstall_marketplace_integration,
 )
 
 __all__ = [

@@ -283,9 +283,7 @@ def setup_integrations_command(subparsers):
         dest="integration_id",
         required=True,
     )
-    deps_parser.set_defaults(
-        func=handle_get_integration_dependencies_command
-    )
+    deps_parser.set_defaults(func=handle_get_integration_dependencies_command)
 
     # restricted-agents command
     restricted_parser = lvl1.add_parser(
@@ -557,9 +555,7 @@ def handle_integration_delete_command(args, chronicle):
         chronicle.delete_integration(
             integration_name=args.integration_id,
         )
-        print(
-            f"Integration {args.integration_id} deleted successfully."
-        )
+        print(f"Integration {args.integration_id} deleted successfully.")
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error deleting integration: {e}", file=sys.stderr)
         sys.exit(1)
@@ -651,9 +647,7 @@ def handle_get_integration_affected_items_command(args, chronicle):
         )
         output_formatter(out, getattr(args, "output", "json"))
     except Exception as e:  # pylint: disable=broad-exception-caught
-        print(
-            f"Error getting integration affected items: {e}", file=sys.stderr
-        )
+        print(f"Error getting integration affected items: {e}", file=sys.stderr)
         sys.exit(1)
 
 
@@ -677,9 +671,7 @@ def handle_get_integration_dependencies_command(args, chronicle):
         )
         output_formatter(out, getattr(args, "output", "json"))
     except Exception as e:  # pylint: disable=broad-exception-caught
-        print(
-            f"Error getting integration dependencies: {e}", file=sys.stderr
-        )
+        print(f"Error getting integration dependencies: {e}", file=sys.stderr)
         sys.exit(1)
 
 

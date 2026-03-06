@@ -300,16 +300,16 @@ def chronicle_request(
 
 
 def chronicle_request_bytes(
-        client: "ChronicleClient",
-        method: str,
-        endpoint_path: str,
-        *,
-        api_version: str = APIVersion.V1,
-        params: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, Any]] = None,
-        expected_status: int | set[int] | tuple[int, ...] | list[int] = 200,
-        error_message: str | None = None,
-        timeout: int | None = None,
+    client: "ChronicleClient",
+    method: str,
+    endpoint_path: str,
+    *,
+    api_version: str = APIVersion.V1,
+    params: Optional[dict[str, Any]] = None,
+    headers: Optional[dict[str, Any]] = None,
+    expected_status: int | set[int] | tuple[int, ...] | list[int] = 200,
+    error_message: str | None = None,
+    timeout: int | None = None,
 ) -> bytes:
     base = f"{client.base_url(api_version)}/{client.instance_id}"
 
@@ -351,8 +351,9 @@ def chronicle_request_bytes(
                 f"status={response.status_code}, response={data}"
             ) from None
         except ValueError:
-            preview = _safe_body_preview(getattr(response, "text", ""),
-                                         limit=MAX_BODY_CHARS)
+            preview = _safe_body_preview(
+                getattr(response, "text", ""), limit=MAX_BODY_CHARS
+            )
             raise APIError(
                 f"{error_message or "API request failed"}: method={method}, url={url}, "
                 f"status={response.status_code}, response_text={preview}"
