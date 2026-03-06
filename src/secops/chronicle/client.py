@@ -173,6 +173,15 @@ from secops.chronicle.integration.connectors import (
     list_integration_connectors as _list_integration_connectors,
     update_integration_connector as _update_integration_connector,
 )
+from secops.chronicle.integration.jobs import (
+    create_integration_job as _create_integration_job,
+    delete_integration_job as _delete_integration_job,
+    execute_integration_job_test as _execute_integration_job_test,
+    get_integration_job as _get_integration_job,
+    get_integration_job_template as _get_integration_job_template,
+    list_integration_jobs as _list_integration_jobs,
+    update_integration_job as _update_integration_job,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -184,6 +193,7 @@ from secops.chronicle.models import (
     EntitySummary,
     InputInterval,
     IntegrationType,
+    JobParameter,
     PythonVersion,
     TargetMode,
     TileType,
@@ -2062,6 +2072,304 @@ class ChronicleClient:
             APIError: If the API request fails.
         """
         return _get_integration_connector_template(
+            self,
+            integration_name,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Integration Job methods
+    # -------------------------------------------------------------------------
+
+    def list_integration_jobs(
+        self,
+        integration_name: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        exclude_staging: bool | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all jobs defined for a specific integration.
+
+        Use this method to browse the available background and scheduled
+        automation capabilities provided by a third-party connection.
+
+        Args:
+            integration_name: Name of the integration to list jobs for.
+            page_size: Maximum number of jobs to return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter jobs. Allowed
+                filters are: id, custom, system, author, version,
+                integration.
+            order_by: Field to sort the jobs by.
+            exclude_staging: Whether to exclude staging jobs from the
+                response. By default, staging jobs are included.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of jobs instead of a dict
+                with jobs list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of jobs.
+            If as_list is False: Dict with jobs list and nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_jobs(
+            self,
+            integration_name,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            exclude_staging=exclude_staging,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_integration_job(
+        self,
+        integration_name: str,
+        job_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a single job for a given integration.
+
+        Use this method to retrieve the Python script, execution
+        parameters, and versioning information for a background
+        automation task.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job to retrieve.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing details of the specified IntegrationJob.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_job(
+            self,
+            integration_name,
+            job_id,
+            api_version=api_version,
+        )
+
+    def delete_integration_job(
+        self,
+        integration_name: str,
+        job_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific custom job from a given integration.
+
+        Only custom jobs can be deleted; commercial and system jobs
+        are immutable.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job to delete.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_job(
+            self,
+            integration_name,
+            job_id,
+            api_version=api_version,
+        )
+
+    def create_integration_job(
+        self,
+        integration_name: str,
+        display_name: str,
+        script: str,
+        version: int,
+        enabled: bool,
+        custom: bool,
+        description: str | None = None,
+        parameters: list[dict[str, Any] | JobParameter] | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new custom job for a given integration.
+
+        Each job must have a unique display name and a functional
+        Python script for its background execution.
+
+        Args:
+            integration_name: Name of the integration to create the job
+                for.
+            display_name: Job's display name. Maximum 400 characters.
+                Required.
+            script: Job's Python script. Required.
+            version: Job's version. Required.
+            enabled: Whether the job is enabled. Required.
+            custom: Whether the job is custom or commercial. Required.
+            description: Job's description. Optional.
+            parameters: List of JobParameter instances or dicts.
+                Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created IntegrationJob resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_job(
+            self,
+            integration_name,
+            display_name,
+            script,
+            version,
+            enabled,
+            custom,
+            description=description,
+            parameters=parameters,
+            api_version=api_version,
+        )
+
+    def update_integration_job(
+        self,
+        integration_name: str,
+        job_id: str,
+        display_name: str | None = None,
+        script: str | None = None,
+        version: int | None = None,
+        enabled: bool | None = None,
+        custom: bool | None = None,
+        description: str | None = None,
+        parameters: list[dict[str, Any] | JobParameter] | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Update an existing custom job for a given integration.
+
+        Use this method to modify the Python script or adjust the
+        parameter definitions for a job.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job to update.
+            display_name: Job's display name. Maximum 400 characters.
+            script: Job's Python script.
+            version: Job's version.
+            enabled: Whether the job is enabled.
+            custom: Whether the job is custom or commercial.
+            description: Job's description.
+            parameters: List of JobParameter instances or dicts.
+            update_mask: Comma-separated list of fields to update. If
+                omitted, the mask is auto-generated from whichever
+                fields are provided. Example: "displayName,script".
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the updated IntegrationJob resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _update_integration_job(
+            self,
+            integration_name,
+            job_id,
+            display_name=display_name,
+            script=script,
+            version=version,
+            enabled=enabled,
+            custom=custom,
+            description=description,
+            parameters=parameters,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def execute_integration_job_test(
+        self,
+        integration_name: str,
+        job: dict[str, Any],
+        agent_identifier: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Execute a test run of an integration job's Python script.
+
+        Use this method to verify background automation logic and
+        connectivity before deploying the job to an instance for
+        recurring execution.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job: Dict containing the IntegrationJob to test.
+            agent_identifier: Agent identifier for remote testing.
+                Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the test execution results with the
+                following fields:
+                - output: The script output.
+                - debugOutput: The script debug output.
+                - resultObjectJson: The result JSON if it exists
+                    (optional).
+                - resultName: The script result name (optional).
+                - resultValue: The script result value (optional).
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _execute_integration_job_test(
+            self,
+            integration_name,
+            job,
+            agent_identifier=agent_identifier,
+            api_version=api_version,
+        )
+
+    def get_integration_job_template(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Retrieve a default Python script template for a new
+        integration job.
+
+        Use this method to rapidly initialize the development of a new
+        job.
+
+        Args:
+            integration_name: Name of the integration to fetch the
+                template for.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the IntegrationJob template.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_job_template(
             self,
             integration_name,
             api_version=api_version,

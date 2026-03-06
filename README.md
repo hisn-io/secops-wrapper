@@ -1,3 +1,5 @@
+from tests.chronicle.test_rule_integration import chronicle
+
 # Google SecOps SDK for Python
 
 [![PyPI version](https://img.shields.io/pypi/v/secops.svg)](https://pypi.org/project/secops/)
@@ -2111,37 +2113,37 @@ Create an integration connector:
 
 ```python
 from secops.chronicle.models import (
-    ConnectorParameter,
-    ConnectorParamType,
-    ConnectorParamMode,
-    ConnectorRule,
-    ConnectorRuleType
+   ConnectorParameter,
+   ParamType,
+   ConnectorParamMode,
+   ConnectorRule,
+   ConnectorRuleType
 )
 
 new_connector = chronicle.create_integration_connector(
-    integration_name="MyIntegration",
-    display_name="New Connector",
-    description="This is a new connector",
-    script="print('Fetching data...')",
-    timeout_seconds=300,
-    enabled=True,
-    product_field_name="product",
-    event_field_name="event_type",
-    parameters=[
-        ConnectorParameter(
-            display_name="API Key",
-            type=ConnectorParamType.PASSWORD,
-            mode=ConnectorParamMode.CONNECTIVITY,
-            mandatory=True,
-            description="API key for authentication"
-        )
-    ],
-    rules=[
-        ConnectorRule(
-            display_name="Allow List",
-            type=ConnectorRuleType.ALLOW_LIST
-        )
-    ]
+   integration_name="MyIntegration",
+   display_name="New Connector",
+   description="This is a new connector",
+   script="print('Fetching data...')",
+   timeout_seconds=300,
+   enabled=True,
+   product_field_name="product",
+   event_field_name="event_type",
+   parameters=[
+      ConnectorParameter(
+         display_name="API Key",
+         type=ParamType.PASSWORD,
+         mode=ConnectorParamMode.CONNECTIVITY,
+         mandatory=True,
+         description="API key for authentication"
+      )
+   ],
+   rules=[
+      ConnectorRule(
+         display_name="Allow List",
+         type=ConnectorRuleType.ALLOW_LIST
+      )
+   ]
 )
 ```
 
@@ -2149,28 +2151,28 @@ Update an integration connector:
 
 ```python
 from secops.chronicle.models import (
-    ConnectorParameter,
-    ConnectorParamType,
-    ConnectorParamMode
+   ConnectorParameter,
+   ParamType,
+   ConnectorParamMode
 )
 
 updated_connector = chronicle.update_integration_connector(
-    integration_name="MyIntegration",
-    connector_id="123",
-    display_name="Updated Connector Name",
-    description="Updated description",
-    enabled=False,
-    timeout_seconds=600,
-    parameters=[
-        ConnectorParameter(
-            display_name="API Token",
-            type=ConnectorParamType.PASSWORD,
-            mode=ConnectorParamMode.CONNECTIVITY,
-            mandatory=True,
-            description="Updated authentication token"
-        )
-    ],
-    script="print('Updated connector script')"
+   integration_name="MyIntegration",
+   connector_id="123",
+   display_name="Updated Connector Name",
+   description="Updated description",
+   enabled=False,
+   timeout_seconds=600,
+   parameters=[
+      ConnectorParameter(
+         display_name="API Token",
+         type=ParamType.PASSWORD,
+         mode=ConnectorParamMode.CONNECTIVITY,
+         mandatory=True,
+         description="Updated authentication token"
+      )
+   ],
+   script="print('Updated connector script')"
 )
 ```
 
@@ -2216,6 +2218,133 @@ Get a template for creating a connector in an integration:
 
 ```python
 template = chronicle.get_integration_connector_template("MyIntegration")
+print(f"Template script: {template.get('script')}")
+```
+
+### Integration Jobs
+
+List all available jobs for an integration:
+
+```python
+# Get all jobs for an integration
+jobs = chronicle.list_integration_jobs("MyIntegration")
+for job in jobs.get("jobs", []):
+    print(f"Job: {job.get('displayName')}, ID: {job.get('name')}")
+
+# Get all jobs as a list
+jobs = chronicle.list_integration_jobs("MyIntegration", as_list=True)
+
+# Get only custom jobs
+jobs = chronicle.list_integration_jobs(
+    "MyIntegration",
+    filter_string="custom = true"
+)
+
+# Exclude staging jobs
+jobs = chronicle.list_integration_jobs(
+    "MyIntegration",
+    exclude_staging=True
+)
+```
+
+Get details of a specific job:
+
+```python
+job = chronicle.get_integration_job(
+    integration_name="MyIntegration",
+    job_id="123"
+)
+```
+
+Create an integration job:
+
+```python
+from secops.chronicle.models import JobParameter, ParamType
+
+new_job = chronicle.create_integration_job(
+    integration_name="MyIntegration",
+    display_name="Scheduled Sync Job",
+    description="Syncs data from external source",
+    script="print('Running scheduled job...')",
+    version=1,
+    enabled=True,
+    custom=True,
+    parameters=[
+        JobParameter(
+            id=1,
+            display_name="Sync Interval",
+            description="Interval in minutes",
+            type=ParamType.INT,
+            mandatory=True,
+            default_value="60"
+        )
+    ]
+)
+```
+
+Update an integration job:
+
+```python
+from secops.chronicle.models import JobParameter, ParamType
+
+updated_job = chronicle.update_integration_job(
+    integration_name="MyIntegration",
+    job_id="123",
+    display_name="Updated Job Name",
+    description="Updated description",
+    enabled=False,
+    version=2,
+    parameters=[
+        JobParameter(
+            id=1,
+            display_name="New Parameter",
+            description="Updated parameter",
+            type=ParamType.STRING,
+            mandatory=True,
+        )
+    ],
+    script="print('Updated job script')"
+)
+```
+
+Delete an integration job:
+
+```python
+chronicle.delete_integration_job(
+    integration_name="MyIntegration",
+    job_id="123"
+)
+```
+
+Execute a test run of an integration job:
+
+```python
+# Test a job before saving it
+job = chronicle.get_integration_job(
+    integration_name="MyIntegration",
+    job_id="123"
+)
+
+test_result = chronicle.execute_integration_job_test(
+    integration_name="MyIntegration",
+    job=job
+)
+
+print(f"Output: {test_result.get('output')}")
+print(f"Debug: {test_result.get('debugOutput')}")
+
+# Test with a specific agent for remote execution
+test_result = chronicle.execute_integration_job_test(
+    integration_name="MyIntegration",
+    job=job,
+    agent_identifier="agent-123"
+)
+```
+
+Get a template for creating a job in an integration:
+
+```python
+template = chronicle.get_integration_job_template("MyIntegration")
 print(f"Template script: {template.get('script')}")
 ```
 

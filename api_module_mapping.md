@@ -7,8 +7,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 ## Implementation Statistics
 
 - **v1:** 17 endpoints implemented
-- **v1beta:** 20 endpoints implemented
-- **v1alpha:** 113 endpoints implemented
+- **v1beta:** 27 endpoints implemented
+- **v1alpha:** 120 endpoints implemented
 
 ## Endpoint Mapping
 
@@ -98,6 +98,13 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.connectors.get                                                    | v1beta  | chronicle.integration.connectors.get_integration_connector                                                                   |                                                |
 | integrations.connectors.list                                                   | v1beta  | chronicle.integration.connectors.list_integration_connectors                                                                 |                                                |
 | integrations.connectors.patch                                                  | v1beta  | chronicle.integration.connectors.update_integration_connector                                                                |                                                |
+| integrations.jobs.create                                                       | v1beta  | chronicle.integration.jobs.create_integration_job                                                                            |                                                |
+| integrations.jobs.delete                                                       | v1beta  | chronicle.integration.jobs.delete_integration_job                                                                            |                                                |
+| integrations.jobs.executeTest                                                  | v1beta  | chronicle.integration.jobs.execute_integration_job_test                                                                      |                                                |
+| integrations.jobs.fetchTemplate                                                | v1beta  | chronicle.integration.jobs.get_integration_job_template                                                                      |                                                |
+| integrations.jobs.get                                                          | v1beta  | chronicle.integration.jobs.get_integration_job                                                                               |                                                |
+| integrations.jobs.list                                                         | v1beta  | chronicle.integration.jobs.list_integration_jobs                                                                             |                                                |
+| integrations.jobs.patch                                                        | v1beta  | chronicle.integration.jobs.update_integration_job                                                                            |                                                |
 | marketplaceIntegrations.get                                                    | v1beta  | chronicle.marketplace_integrations.get_marketplace_integration                                                               | secops integration marketplace get             |
 | marketplaceIntegrations.getDiff                                                | v1beta  | chronicle.marketplace_integrations.get_marketplace_integration_diff                                                          | secops integration marketplace diff            |
 | marketplaceIntegrations.install                                                | v1beta  | chronicle.marketplace_integrations.install_marketplace_integration                                                           | secops integration marketplace install         |
@@ -308,6 +315,13 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.connectors.get                                                    | v1alpha | chronicle.integration.connectors.get_integration_connector(api_version=APIVersion.V1ALPHA)                                   |                                                |
 | integrations.connectors.list                                                   | v1alpha | chronicle.integration.connectors.list_integration_connectors(api_version=APIVersion.V1ALPHA)                                 |                                                |
 | integrations.connectors.patch                                                  | v1alpha | chronicle.integration.connectors.update_integration_connector(api_version=APIVersion.V1ALPHA)                                |                                                |
+| integrations.jobs.create                                                       | v1alpha | chronicle.integration.jobs.create_integration_job(api_version=APIVersion.V1ALPHA)                                            |                                                |
+| integrations.jobs.delete                                                       | v1alpha | chronicle.integration.jobs.delete_integration_job(api_version=APIVersion.V1ALPHA)                                            |                                                |
+| integrations.jobs.executeTest                                                  | v1alpha | chronicle.integration.jobs.execute_integration_job_test(api_version=APIVersion.V1ALPHA)                                      |                                                |
+| integrations.jobs.fetchTemplate                                                | v1alpha | chronicle.integration.jobs.get_integration_job_template(api_version=APIVersion.V1ALPHA)                                      |                                                |
+| integrations.jobs.get                                                          | v1alpha | chronicle.integration.jobs.get_integration_job(api_version=APIVersion.V1ALPHA)                                               |                                                |
+| integrations.jobs.list                                                         | v1alpha | chronicle.integration.jobs.list_integration_jobs(api_version=APIVersion.V1ALPHA)                                             |                                                |
+| integrations.jobs.patch                                                        | v1alpha | chronicle.integration.jobs.update_integration_job(api_version=APIVersion.V1ALPHA)                                            |                                                |
 | investigations.fetchAssociated                                                 | v1alpha | chronicle.investigations.fetch_associated_investigations                                                                     | secops investigation fetch-associated          |
 | investigations.get                                                             | v1alpha | chronicle.investigations.get_investigation                                                                                   | secops investigation get                       |
 | investigations.list                                                            | v1alpha | chronicle.investigations.list_investigations                                                                                 | secops investigation list                      |

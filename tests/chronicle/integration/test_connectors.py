@@ -22,7 +22,7 @@ from secops.chronicle.client import ChronicleClient
 from secops.chronicle.models import (
     APIVersion,
     ConnectorParameter,
-    ConnectorParamType,
+    ParamType,
     ConnectorParamMode,
     ConnectorRule,
     ConnectorRuleType,
@@ -324,7 +324,7 @@ def test_create_integration_connector_with_dataclass_parameters(chronicle_client
 
     param = ConnectorParameter(
         display_name="API Key",
-        type=ConnectorParamType.STRING,
+        type=ParamType.STRING,
         mode=ConnectorParamMode.REGULAR,
         mandatory=True,
         description="API key for authentication",
@@ -477,7 +477,7 @@ def test_update_integration_connector_with_parameters(chronicle_client):
 
     param = ConnectorParameter(
         display_name="Auth Token",
-        type=ConnectorParamType.STRING,
+        type=ParamType.STRING,
         mode=ConnectorParamMode.REGULAR,
         mandatory=True,
     )

@@ -228,8 +228,8 @@ class ActionParameter:
         return data
 
 
-class ConnectorParamType(str, Enum):
-    """Parameter types for Chronicle SOAR integration connectors."""
+class ParamType(str, Enum):
+    """Parameter types for Chronicle SOAR integration functions."""
 
     UNSPECIFIED = "PARAM_TYPE_UNSPECIFIED"
     BOOLEAN = "BOOLEAN"
@@ -248,6 +248,7 @@ class ConnectorParamType(str, Enum):
     MULTI_VALUES_SELECTION = "MULTI_VALUES_SELECTION"
     SCRIPT = "SCRIPT"
     FILTER_LIST = "FILTER_LIST"
+    NUMERICAL_VALUES = "NUMERICAL_VALUES"
 
 
 class ConnectorParamMode(str, Enum):
@@ -284,7 +285,7 @@ class ConnectorParameter:
     """
 
     display_name: str
-    type: ConnectorParamType
+    type: ParamType
     mode: ConnectorParamMode
     mandatory: bool
     default_value: str | None = None
@@ -305,6 +306,40 @@ class ConnectorParameter:
             data["description"] = self.description
         if self.advanced is not None:
             data["advanced"] = self.advanced
+        return data
+
+
+@dataclass
+class JobParameter:
+    """A parameter definition for a Chronicle SOAR integration job.
+
+    Attributes:
+        id: The parameter's id.
+        display_name: The parameter's display name.
+        description: The parameter's description.
+        mandatory: Whether the parameter is mandatory.
+        type: The parameter's type.
+        default_value: The default value of the parameter.
+    """
+
+    id: int
+    display_name: str
+    description: str
+    mandatory: bool
+    type: ParamType
+    default_value: str | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {
+            "id": self.id,
+            "displayName": self.display_name,
+            "description": self.description,
+            "mandatory": self.mandatory,
+            "type": str(self.type.value),
+        }
+        if self.default_value is not None:
+            data["defaultValue"] = self.default_value
         return data
 
 
