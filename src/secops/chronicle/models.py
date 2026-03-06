@@ -228,6 +228,106 @@ class ActionParameter:
         return data
 
 
+class ConnectorParamType(str, Enum):
+    """Parameter types for Chronicle SOAR integration connectors."""
+
+    UNSPECIFIED = "PARAM_TYPE_UNSPECIFIED"
+    BOOLEAN = "BOOLEAN"
+    INT = "INT"
+    STRING = "STRING"
+    PASSWORD = "PASSWORD"
+    IP = "IP"
+    IP_OR_HOST = "IP_OR_HOST"
+    URL = "URL"
+    DOMAIN = "DOMAIN"
+    EMAIL = "EMAIL"
+    VALUES_LIST = "VALUES_LIST"
+    VALUES_AS_SEMICOLON_SEPARATED_STRING = (
+        "VALUES_AS_SEMICOLON_SEPARATED_STRING"
+    )
+    MULTI_VALUES_SELECTION = "MULTI_VALUES_SELECTION"
+    SCRIPT = "SCRIPT"
+    FILTER_LIST = "FILTER_LIST"
+
+
+class ConnectorParamMode(str, Enum):
+    """Parameter modes for Chronicle SOAR integration connectors."""
+
+    UNSPECIFIED = "PARAM_MODE_UNSPECIFIED"
+    REGULAR = "REGULAR"
+    CONNECTIVITY = "CONNECTIVITY"
+    SCRIPT = "SCRIPT"
+
+
+class ConnectorRuleType(str, Enum):
+    """Rule types for Chronicle SOAR integration connectors."""
+
+    UNSPECIFIED = "RULE_TYPE_UNSPECIFIED"
+    ALLOW_LIST = "ALLOW_LIST"
+    BLOCK_LIST = "BLOCK_LIST"
+
+
+@dataclass
+class ConnectorParameter:
+    """A parameter definition for a Chronicle SOAR integration connector.
+
+    Attributes:
+        display_name: The parameter's display name.
+        type: The parameter's type.
+        mode: The parameter's mode.
+        mandatory: Whether the parameter is mandatory for configuring a
+            connector instance.
+        default_value: The default value of the parameter. Required for
+            boolean and mandatory parameters.
+        description: The parameter's description.
+        advanced: The parameter's advanced flag.
+    """
+
+    display_name: str
+    type: ConnectorParamType
+    mode: ConnectorParamMode
+    mandatory: bool
+    default_value: str | None = None
+    description: str | None = None
+    advanced: bool | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {
+            "displayName": self.display_name,
+            "type": str(self.type.value),
+            "mode": str(self.mode.value),
+            "mandatory": self.mandatory,
+        }
+        if self.default_value is not None:
+            data["defaultValue"] = self.default_value
+        if self.description is not None:
+            data["description"] = self.description
+        if self.advanced is not None:
+            data["advanced"] = self.advanced
+        return data
+
+
+@dataclass
+class ConnectorRule:
+    """A rule definition for a Chronicle SOAR integration connector.
+
+    Attributes:
+        display_name: Connector's rule data name.
+        type: Connector's rule data type.
+    """
+
+    display_name: str
+    type: ConnectorRuleType
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        return {
+            "displayName": self.display_name,
+            "type": str(self.type.value),
+        }
+
+
 @dataclass
 class TimeInterval:
     """Time interval with start and end times."""

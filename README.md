@@ -2074,6 +2074,152 @@ Get a template for creating an action in an integration
 template = chronicle.get_integration_action_template("MyIntegration")
 ```
 
+### Integration Connectors
+
+List all available connectors for an integration:
+
+```python
+# Get all connectors for an integration
+connectors = chronicle.list_integration_connectors("AWSSecurityHub")
+
+# Get all connectors as a list
+connectors = chronicle.list_integration_connectors("AWSSecurityHub", as_list=True)
+
+# Get only enabled connectors
+connectors = chronicle.list_integration_connectors(
+    "AWSSecurityHub",
+    filter_string="enabled = true"
+)
+
+# Exclude staging connectors
+connectors = chronicle.list_integration_connectors(
+    "AWSSecurityHub",
+    exclude_staging=True
+)
+```
+
+Get details of a specific connector:
+
+```python
+connector = chronicle.get_integration_connector(
+    integration_name="AWSSecurityHub",
+    connector_id="123"
+)
+```
+
+Create an integration connector:
+
+```python
+from secops.chronicle.models import (
+    ConnectorParameter,
+    ConnectorParamType,
+    ConnectorParamMode,
+    ConnectorRule,
+    ConnectorRuleType
+)
+
+new_connector = chronicle.create_integration_connector(
+    integration_name="MyIntegration",
+    display_name="New Connector",
+    description="This is a new connector",
+    script="print('Fetching data...')",
+    timeout_seconds=300,
+    enabled=True,
+    product_field_name="product",
+    event_field_name="event_type",
+    parameters=[
+        ConnectorParameter(
+            display_name="API Key",
+            type=ConnectorParamType.PASSWORD,
+            mode=ConnectorParamMode.CONNECTIVITY,
+            mandatory=True,
+            description="API key for authentication"
+        )
+    ],
+    rules=[
+        ConnectorRule(
+            display_name="Allow List",
+            type=ConnectorRuleType.ALLOW_LIST
+        )
+    ]
+)
+```
+
+Update an integration connector:
+
+```python
+from secops.chronicle.models import (
+    ConnectorParameter,
+    ConnectorParamType,
+    ConnectorParamMode
+)
+
+updated_connector = chronicle.update_integration_connector(
+    integration_name="MyIntegration",
+    connector_id="123",
+    display_name="Updated Connector Name",
+    description="Updated description",
+    enabled=False,
+    timeout_seconds=600,
+    parameters=[
+        ConnectorParameter(
+            display_name="API Token",
+            type=ConnectorParamType.PASSWORD,
+            mode=ConnectorParamMode.CONNECTIVITY,
+            mandatory=True,
+            description="Updated authentication token"
+        )
+    ],
+    script="print('Updated connector script')"
+)
+```
+
+Delete an integration connector:
+
+```python
+chronicle.delete_integration_connector(
+    integration_name="MyIntegration",
+    connector_id="123"
+)
+```
+
+Execute a test run of an integration connector:
+
+```python
+# Test a connector before saving it
+connector_config = {
+    "displayName": "Test Connector",
+    "script": "print('Testing connector')",
+    "enabled": True,
+    "timeoutSeconds": 300,
+    "productFieldName": "product",
+    "eventFieldName": "event_type"
+}
+
+test_result = chronicle.execute_integration_connector_test(
+    integration_name="MyIntegration",
+    connector=connector_config
+)
+
+print(f"Output: {test_result.get('outputMessage')}")
+print(f"Debug: {test_result.get('debugOutputMessage')}")
+
+# Test with a specific agent for remote execution
+test_result = chronicle.execute_integration_connector_test(
+    integration_name="MyIntegration",
+    connector=connector_config,
+    agent_identifier="agent-123"
+)
+```
+
+Get a template for creating a connector in an integration:
+
+```python
+template = chronicle.get_integration_connector_template("MyIntegration")
+print(f"Template script: {template.get('script')}")
+```
+
+
 ## Rule Management
 
 The SDK provides comprehensive support for managing Chronicle detection rules:

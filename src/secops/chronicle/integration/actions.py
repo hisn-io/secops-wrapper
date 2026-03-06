@@ -223,7 +223,7 @@ def create_integration_action(
         client,
         method="POST",
         endpoint_path=f"integrations/{format_resource_id(integration_name)}"
-                      f"/actions",
+        f"/actions",
         api_version=api_version,
         json=body,
     )
@@ -318,7 +318,7 @@ def update_integration_action(
         client,
         method="PATCH",
         endpoint_path=f"integrations/{format_resource_id(integration_name)}"
-                      f"/actions/{action_id}",
+        f"/actions/{action_id}",
         api_version=api_version,
         json=body,
         params=params,
@@ -370,7 +370,7 @@ def execute_integration_action_test(
         client,
         method="POST",
         endpoint_path=f"integrations/{format_resource_id(integration_name)}"
-                      f"/actions:executeTest",
+        f"/actions:executeTest",
         api_version=api_version,
         json=body,
     )
@@ -411,7 +411,7 @@ def get_integration_actions_by_environment(
         client,
         method="GET",
         endpoint_path=f"integrations/{format_resource_id(integration_name)}"
-                      f"/actions:fetchActionsByEnvironment",
+        f"/actions:fetchActionsByEnvironment",
         api_version=api_version,
         params=params,
     )
@@ -446,7 +446,7 @@ def get_integration_action_template(
         client,
         method="GET",
         endpoint_path=f"integrations/{format_resource_id(integration_name)}"
-                      f"/actions:fetchTemplate",
+        f"/actions:fetchTemplate",
         api_version=api_version,
         params={"async": is_async},
     )

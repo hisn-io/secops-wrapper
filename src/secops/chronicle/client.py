@@ -164,9 +164,20 @@ from secops.chronicle.integration.actions import (
     list_integration_actions as _list_integration_actions,
     update_integration_action as _update_integration_action,
 )
+from secops.chronicle.integration.connectors import (
+    create_integration_connector as _create_integration_connector,
+    delete_integration_connector as _delete_integration_connector,
+    execute_integration_connector_test as _execute_integration_connector_test,
+    get_integration_connector as _get_integration_connector,
+    get_integration_connector_template as _get_integration_connector_template,
+    list_integration_connectors as _list_integration_connectors,
+    update_integration_connector as _update_integration_connector,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
+    ConnectorParameter,
+    ConnectorRule,
     DashboardChart,
     DashboardQuery,
     DiffType,
@@ -1747,6 +1758,312 @@ class ChronicleClient:
             self,
             integration_name,
             is_async=is_async,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Integration Connector methods
+    # -------------------------------------------------------------------------
+
+    def list_integration_connectors(
+        self,
+        integration_name: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        exclude_staging: bool | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all connectors defined for a specific integration.
+
+        Args:
+            integration_name: Name of the integration to list connectors
+                for.
+            page_size: Maximum number of connectors to return. Defaults
+                to 50, maximum is 1000.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter connectors.
+            order_by: Field to sort the connectors by.
+            exclude_staging: Whether to exclude staging connectors from
+                the response. By default, staging connectors are included.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of connectors instead of a
+                dict with connectors list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of connectors.
+            If as_list is False: Dict with connectors list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_connectors(
+            self,
+            integration_name,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            exclude_staging=exclude_staging,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_integration_connector(
+        self,
+        integration_name: str,
+        connector_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a single connector for a given integration.
+
+        Use this method to retrieve the Python script, configuration parameters,
+        and field mapping logic for a specific connector.
+
+        Args:
+            integration_name: Name of the integration the connector belongs to.
+            connector_id: ID of the connector to retrieve.
+            api_version: API version to use for the request. Default is V1BETA.
+
+        Returns:
+            Dict containing details of the specified IntegrationConnector.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_connector(
+            self,
+            integration_name,
+            connector_id,
+            api_version=api_version,
+        )
+
+    def delete_integration_connector(
+        self,
+        integration_name: str,
+        connector_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific custom connector from a given integration.
+
+        Only custom connectors can be deleted; commercial connectors are
+        immutable.
+
+        Args:
+            integration_name: Name of the integration the connector belongs to.
+            connector_id: ID of the connector to delete.
+            api_version: API version to use for the request. Default is V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_connector(
+            self,
+            integration_name,
+            connector_id,
+            api_version=api_version,
+        )
+
+    def create_integration_connector(
+        self,
+        integration_name: str,
+        display_name: str,
+        script: str,
+        timeout_seconds: int,
+        enabled: bool,
+        product_field_name: str,
+        event_field_name: str,
+        description: str | None = None,
+        parameters: list[dict[str, Any] | ConnectorParameter] | None = None,
+        rules: list[dict[str, Any] | ConnectorRule] | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new custom connector for a given integration.
+
+        Use this method to define how to fetch and parse alerts from a
+        unique or unofficial data source. Each connector must have a
+        unique display name and a functional Python script.
+
+        Args:
+            integration_name: Name of the integration to create the
+                connector for.
+            display_name: Connector's display name. Required.
+            script: Connector's Python script. Required.
+            timeout_seconds: Timeout in seconds for a single script run.
+                Required.
+            enabled: Whether the connector is enabled or disabled.
+                Required.
+            product_field_name: Field name used to determine the device
+                product. Required.
+            event_field_name: Field name used to determine the event
+                name (sub-type). Required.
+            description: Connector's description. Optional.
+            parameters: List of ConnectorParameter instances or dicts.
+                Optional.
+            rules: List of ConnectorRule instances or dicts. Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created IntegrationConnector
+                resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_connector(
+            self,
+            integration_name,
+            display_name,
+            script,
+            timeout_seconds,
+            enabled,
+            product_field_name,
+            event_field_name,
+            description=description,
+            parameters=parameters,
+            rules=rules,
+            api_version=api_version,
+        )
+
+    def update_integration_connector(
+        self,
+        integration_name: str,
+        connector_id: str,
+        display_name: str | None = None,
+        script: str | None = None,
+        timeout_seconds: int | None = None,
+        enabled: bool | None = None,
+        product_field_name: str | None = None,
+        event_field_name: str | None = None,
+        description: str | None = None,
+        parameters: list[dict[str, Any] | ConnectorParameter] | None = None,
+        rules: list[dict[str, Any] | ConnectorRule] | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Update an existing custom connector for a given integration.
+
+        Only custom connectors can be updated; commercial connectors are
+        immutable.
+
+        Args:
+            integration_name: Name of the integration the connector belongs to.
+            connector_id: ID of the connector to update.
+            display_name: Connector's display name.
+            script: Connector's Python script.
+            timeout_seconds: Timeout in seconds for a single script run.
+            enabled: Whether the connector is enabled or disabled.
+            product_field_name: Field name used to determine the device product.
+            event_field_name: Field name used to determine the event name
+                (sub-type).
+            description: Connector's description.
+            parameters: List of ConnectorParameter instances or dicts.
+            rules: List of ConnectorRule instances or dicts.
+            update_mask: Comma-separated list of fields to update. If omitted,
+                the mask is auto-generated from whichever fields are provided.
+                Example: "displayName,script".
+            api_version: API version to use for the request. Default is V1BETA.
+
+        Returns:
+            Dict containing the updated IntegrationConnector resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _update_integration_connector(
+            self,
+            integration_name,
+            connector_id,
+            display_name=display_name,
+            script=script,
+            timeout_seconds=timeout_seconds,
+            enabled=enabled,
+            product_field_name=product_field_name,
+            event_field_name=event_field_name,
+            description=description,
+            parameters=parameters,
+            rules=rules,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def execute_integration_connector_test(
+        self,
+        integration_name: str,
+        connector: dict[str, Any],
+        agent_identifier: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Execute a test run of a connector's Python script.
+
+        Use this method to verify data fetching logic, authentication,
+        and parsing logic before enabling the connector for production
+        ingestion. The full connector object is required as the test
+        can be run without saving the connector first.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector: Dict containing the IntegrationConnector to test.
+            agent_identifier: Agent identifier for remote testing.
+                Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the test execution results with the
+                following fields:
+                - outputMessage: Human-readable output message set by
+                    the script.
+                - debugOutputMessage: The script debug output.
+                - resultJson: The result JSON if it exists (optional).
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _execute_integration_connector_test(
+            self,
+            integration_name,
+            connector,
+            agent_identifier=agent_identifier,
+            api_version=api_version,
+        )
+
+    def get_integration_connector_template(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Retrieve a default Python script template for a new
+        integration connector.
+
+        Use this method to rapidly initialize the development of a new
+        connector.
+
+        Args:
+            integration_name: Name of the integration to fetch the
+                template for.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the IntegrationConnector template.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_connector_template(
+            self,
+            integration_name,
             api_version=api_version,
         )
 
