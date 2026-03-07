@@ -2527,6 +2527,76 @@ chronicle.delete_integration_manager_revision(
 )
 ```
 
+### Integration Job Revisions
+
+List all revisions for a specific job:
+
+```python
+# Get all revisions for a job
+revisions = chronicle.list_integration_job_revisions(
+    integration_name="MyIntegration",
+    job_id="456"
+)
+for revision in revisions.get("revisions", []):
+    print(f"Revision: {revision.get('name')}, Comment: {revision.get('comment')}")
+
+# Get all revisions as a list
+revisions = chronicle.list_integration_job_revisions(
+    integration_name="MyIntegration",
+    job_id="456",
+    as_list=True
+)
+
+# Filter revisions by version
+revisions = chronicle.list_integration_job_revisions(
+    integration_name="MyIntegration",
+    job_id="456",
+    filter_string='version = "2"',
+    order_by="createTime desc"
+)
+```
+
+Delete a job revision:
+
+```python
+chronicle.delete_integration_job_revision(
+    integration_name="MyIntegration",
+    job_id="456",
+    revision_id="r2"
+)
+```
+
+Create a new job revision snapshot:
+
+```python
+# Get the current job
+job = chronicle.get_integration_job(
+    integration_name="MyIntegration",
+    job_id="456"
+)
+
+# Create a revision before making changes
+revision = chronicle.create_integration_job_revision(
+    integration_name="MyIntegration",
+    job_id="456",
+    job=job,
+    comment="Backup before scheduled update"
+)
+print(f"Created revision: {revision.get('name')}")
+```
+
+Rollback to a previous job revision:
+
+```python
+# Rollback to a previous working version
+rollback_result = chronicle.rollback_integration_job_revision(
+    integration_name="MyIntegration",
+    job_id="456",
+    revision_id="r2"
+)
+print(f"Rolled back to: {rollback_result.get('name')}")
+```
+
 
 ## Rule Management
 

@@ -197,6 +197,12 @@ from secops.chronicle.integration.manager_revisions import (
     list_integration_manager_revisions as _list_integration_manager_revisions,
     rollback_integration_manager_revision as _rollback_integration_manager_revision,
 )
+from secops.chronicle.integration.job_revisions import (
+    create_integration_job_revision as _create_integration_job_revision,
+    delete_integration_job_revision as _delete_integration_job_revision,
+    list_integration_job_revisions as _list_integration_job_revisions,
+    rollback_integration_job_revision as _rollback_integration_job_revision,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -2816,6 +2822,170 @@ class ChronicleClient:
             self,
             integration_name,
             manager_id,
+            revision_id,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Integration Job Revisions methods
+    # -------------------------------------------------------------------------
+
+    def list_integration_job_revisions(
+        self,
+        integration_name: str,
+        job_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all revisions for a specific integration job.
+
+        Use this method to browse the version history of a job and
+        identify previous functional states.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job to list revisions for.
+            page_size: Maximum number of revisions to return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter revisions.
+            order_by: Field to sort the revisions by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of revisions instead of a
+                dict with revisions list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of revisions.
+            If as_list is False: Dict with revisions list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_job_revisions(
+            self,
+            integration_name,
+            job_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def delete_integration_job_revision(
+        self,
+        integration_name: str,
+        job_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific revision for a given integration job.
+
+        Use this method to clean up obsolete snapshots and manage the
+        historical record of jobs.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job the revision belongs to.
+            revision_id: ID of the revision to delete.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_job_revision(
+            self,
+            integration_name,
+            job_id,
+            revision_id,
+            api_version=api_version,
+        )
+
+    def create_integration_job_revision(
+        self,
+        integration_name: str,
+        job_id: str,
+        job: dict[str, Any],
+        comment: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new revision snapshot of the current integration
+        job.
+
+        Use this method to establish a recovery point before making
+        significant updates to a job.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job to create a revision for.
+            job: Dict containing the IntegrationJob to snapshot.
+            comment: Comment describing the revision. Maximum 400
+                characters. Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created IntegrationJobRevision
+                resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_job_revision(
+            self,
+            integration_name,
+            job_id,
+            job,
+            comment=comment,
+            api_version=api_version,
+        )
+
+    def rollback_integration_job_revision(
+        self,
+        integration_name: str,
+        job_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Revert the current job definition to a previously saved
+        revision.
+
+        Use this method to rapidly recover a functional state if an
+        update causes operational issues in scheduled or background
+        automation.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job to rollback.
+            revision_id: ID of the revision to rollback to.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the IntegrationJobRevision rolled back to.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _rollback_integration_job_revision(
+            self,
+            integration_name,
+            job_id,
             revision_id,
             api_version=api_version,
         )

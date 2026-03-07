@@ -259,6 +259,12 @@ from secops.chronicle.integration.manager_revisions import (
     create_integration_manager_revision,
     rollback_integration_manager_revision,
 )
+from secops.chronicle.integration.job_revisions import (
+    list_integration_job_revisions,
+    delete_integration_job_revision,
+    create_integration_job_revision,
+    rollback_integration_job_revision,
+)
 from secops.chronicle.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
@@ -484,6 +490,11 @@ __all__ = [
     "delete_integration_manager_revision",
     "create_integration_manager_revision",
     "rollback_integration_manager_revision",
+    # Integration Job Revisions
+    "list_integration_job_revisions",
+    "delete_integration_job_revision",
+    "create_integration_job_revision",
+    "rollback_integration_job_revision",
     # Marketplace Integrations
     "list_marketplace_integrations",
     "get_marketplace_integration",
