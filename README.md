@@ -2348,6 +2348,104 @@ template = chronicle.get_integration_job_template("MyIntegration")
 print(f"Template script: {template.get('script')}")
 ```
 
+### Integration Managers
+
+List all available managers for an integration:
+
+```python
+# Get all managers for an integration
+managers = chronicle.list_integration_managers("MyIntegration")
+for manager in managers.get("managers", []):
+    print(f"Manager: {manager.get('displayName')}, ID: {manager.get('name')}")
+
+# Get all managers as a list
+managers = chronicle.list_integration_managers("MyIntegration", as_list=True)
+
+# Filter managers by display name
+managers = chronicle.list_integration_managers(
+    "MyIntegration",
+    filter_string='displayName = "API Helper"'
+)
+
+# Sort managers by display name
+managers = chronicle.list_integration_managers(
+    "MyIntegration",
+    order_by="displayName"
+)
+```
+
+Get details of a specific manager:
+
+```python
+manager = chronicle.get_integration_manager(
+    integration_name="MyIntegration",
+    manager_id="123"
+)
+```
+
+Create an integration manager:
+
+```python
+new_manager = chronicle.create_integration_manager(
+    integration_name="MyIntegration",
+    display_name="API Helper",
+    description="Shared utility functions for API calls",
+    script="""
+def make_api_request(url, headers=None):
+    '''Helper function to make API requests'''
+    import requests
+    return requests.get(url, headers=headers)
+
+def parse_response(response):
+    '''Parse API response'''
+    return response.json()
+"""
+)
+```
+
+Update an integration manager:
+
+```python
+updated_manager = chronicle.update_integration_manager(
+    integration_name="MyIntegration",
+    manager_id="123",
+    display_name="Updated API Helper",
+    description="Updated shared utility functions",
+    script="""
+def make_api_request(url, headers=None, method='GET'):
+    '''Updated helper function with method parameter'''
+    import requests
+    if method == 'GET':
+        return requests.get(url, headers=headers)
+    elif method == 'POST':
+        return requests.post(url, headers=headers)
+"""
+)
+
+# Update only specific fields
+updated_manager = chronicle.update_integration_manager(
+    integration_name="MyIntegration",
+    manager_id="123",
+    description="New description only"
+)
+```
+
+Delete an integration manager:
+
+```python
+chronicle.delete_integration_manager(
+    integration_name="MyIntegration",
+    manager_id="123"
+)
+```
+
+Get a template for creating a manager in an integration:
+
+```python
+template = chronicle.get_integration_manager_template("MyIntegration")
+print(f"Template script: {template.get('script')}")
+```
+
 
 ## Rule Management
 

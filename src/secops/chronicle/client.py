@@ -182,6 +182,14 @@ from secops.chronicle.integration.jobs import (
     list_integration_jobs as _list_integration_jobs,
     update_integration_job as _update_integration_job,
 )
+from secops.chronicle.integration.managers import (
+    create_integration_manager as _create_integration_manager,
+    delete_integration_manager as _delete_integration_manager,
+    get_integration_manager as _get_integration_manager,
+    get_integration_manager_template as _get_integration_manager_template,
+    list_integration_managers as _list_integration_managers,
+    update_integration_manager as _update_integration_manager,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -2370,6 +2378,236 @@ class ChronicleClient:
             APIError: If the API request fails.
         """
         return _get_integration_job_template(
+            self,
+            integration_name,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Integration Manager methods
+    # -------------------------------------------------------------------------
+
+    def list_integration_managers(
+        self,
+        integration_name: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all managers defined for a specific integration.
+
+        Use this method to discover the library of managers available
+        within a particular integration's scope.
+
+        Args:
+            integration_name: Name of the integration to list managers
+                for.
+            page_size: Maximum number of managers to return. Defaults to
+                100, maximum is 100.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter managers.
+            order_by: Field to sort the managers by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of managers instead of a
+                dict with managers list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of managers.
+            If as_list is False: Dict with managers list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_managers(
+            self,
+            integration_name,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_integration_manager(
+        self,
+        integration_name: str,
+        manager_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a single manager for a given integration.
+
+        Use this method to retrieve the manager script and its metadata
+        for review or reference.
+
+        Args:
+            integration_name: Name of the integration the manager
+                belongs to.
+            manager_id: ID of the manager to retrieve.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing details of the specified IntegrationManager.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_manager(
+            self,
+            integration_name,
+            manager_id,
+            api_version=api_version,
+        )
+
+    def delete_integration_manager(
+        self,
+        integration_name: str,
+        manager_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific custom manager from a given integration.
+
+        Note that deleting a manager may break components (actions,
+        jobs) that depend on its code.
+
+        Args:
+            integration_name: Name of the integration the manager
+                belongs to.
+            manager_id: ID of the manager to delete.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_manager(
+            self,
+            integration_name,
+            manager_id,
+            api_version=api_version,
+        )
+
+    def create_integration_manager(
+        self,
+        integration_name: str,
+        display_name: str,
+        script: str,
+        description: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new custom manager for a given integration.
+
+        Use this method to add a new shared code utility. Each manager
+        must have a unique display name and a script containing valid
+        Python logic for reuse across actions, jobs, and connectors.
+
+        Args:
+            integration_name: Name of the integration to create the
+                manager for.
+            display_name: Manager's display name. Maximum 150
+                characters. Required.
+            script: Manager's Python script. Maximum 5MB. Required.
+            description: Manager's description. Maximum 400 characters.
+                Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created IntegrationManager
+                resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_manager(
+            self,
+            integration_name,
+            display_name,
+            script,
+            description=description,
+            api_version=api_version,
+        )
+
+    def update_integration_manager(
+        self,
+        integration_name: str,
+        manager_id: str,
+        display_name: str | None = None,
+        script: str | None = None,
+        description: str | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Update an existing custom manager for a given integration.
+
+        Use this method to modify the shared code, adjust its
+        description, or refine its logic across all components that
+        import it.
+
+        Args:
+            integration_name: Name of the integration the manager
+                belongs to.
+            manager_id: ID of the manager to update.
+            display_name: Manager's display name. Maximum 150
+                characters.
+            script: Manager's Python script. Maximum 5MB.
+            description: Manager's description. Maximum 400 characters.
+            update_mask: Comma-separated list of fields to update. If
+                omitted, the mask is auto-generated from whichever
+                fields are provided. Example: "displayName,script".
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the updated IntegrationManager resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _update_integration_manager(
+            self,
+            integration_name,
+            manager_id,
+            display_name=display_name,
+            script=script,
+            description=description,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def get_integration_manager_template(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Retrieve a default Python script template for a new
+        integration manager.
+
+        Use this method to quickly start developing new managers.
+
+        Args:
+            integration_name: Name of the integration to fetch the
+                template for.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the IntegrationManager template.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_manager_template(
             self,
             integration_name,
             api_version=api_version,
