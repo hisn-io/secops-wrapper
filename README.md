@@ -2446,6 +2446,87 @@ template = chronicle.get_integration_manager_template("MyIntegration")
 print(f"Template script: {template.get('script')}")
 ```
 
+### Integration Manager Revisions
+
+List all revisions for a specific manager:
+
+```python
+# Get all revisions for a manager
+revisions = chronicle.list_integration_manager_revisions(
+    integration_name="MyIntegration",
+    manager_id="123"
+)
+for revision in revisions.get("revisions", []):
+    print(f"Revision: {revision.get('name')}, Comment: {revision.get('comment')}")
+
+# Get all revisions as a list
+revisions = chronicle.list_integration_manager_revisions(
+    integration_name="MyIntegration",
+    manager_id="123",
+    as_list=True
+)
+
+# Filter revisions
+revisions = chronicle.list_integration_manager_revisions(
+    integration_name="MyIntegration",
+    manager_id="123",
+    filter_string='comment contains "backup"',
+    order_by="createTime desc"
+)
+```
+
+Get details of a specific revision:
+
+```python
+revision = chronicle.get_integration_manager_revision(
+    integration_name="MyIntegration",
+    manager_id="123",
+    revision_id="r1"
+)
+print(f"Revision script: {revision.get('manager', {}).get('script')}")
+```
+
+Create a new revision snapshot:
+
+```python
+# Get the current manager
+manager = chronicle.get_integration_manager(
+    integration_name="MyIntegration",
+    manager_id="123"
+)
+
+# Create a revision before making changes
+revision = chronicle.create_integration_manager_revision(
+    integration_name="MyIntegration",
+    manager_id="123",
+    manager=manager,
+    comment="Backup before major refactor"
+)
+print(f"Created revision: {revision.get('name')}")
+```
+
+Rollback to a previous revision:
+
+```python
+# Rollback to a previous working version
+rollback_result = chronicle.rollback_integration_manager_revision(
+    integration_name="MyIntegration",
+    manager_id="123",
+    revision_id="acb123de-abcd-1234-ef00-1234567890ab"
+)
+print(f"Rolled back to: {rollback_result.get('name')}")
+```
+
+Delete a revision:
+
+```python
+chronicle.delete_integration_manager_revision(
+    integration_name="MyIntegration",
+    manager_id="123",
+    revision_id="r1"
+)
+```
+
 
 ## Rule Management
 

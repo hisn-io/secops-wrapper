@@ -7,8 +7,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 ## Implementation Statistics
 
 - **v1:** 17 endpoints implemented
-- **v1beta:** 33 endpoints implemented
-- **v1alpha:** 126 endpoints implemented
+- **v1beta:** 38 endpoints implemented
+- **v1alpha:** 131 endpoints implemented
 
 ## Endpoint Mapping
 
@@ -111,6 +111,11 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.managers.get                                                      | v1beta  | chronicle.integration.managers.get_integration_manager                                                                       |                                                |
 | integrations.managers.list                                                     | v1beta  | chronicle.integration.managers.list_integration_managers                                                                     |                                                |
 | integrations.managers.patch                                                    | v1beta  | chronicle.integration.managers.update_integration_manager                                                                    |                                                |
+| integrations.managers.revisions.create                                         | v1beta  | chronicle.integration.manager_revisions.create_integration_manager_revision                                                  |                                                |
+| integrations.managers.revisions.delete                                         | v1beta  | chronicle.integration.manager_revisions.delete_integration_manager_revision                                                  |                                                |
+| integrations.managers.revisions.get                                            | v1beta  | chronicle.integration.manager_revisions.get_integration_manager_revision                                                     |                                                |
+| integrations.managers.revisions.list                                           | v1beta  | chronicle.integration.manager_revisions.list_integration_manager_revisions                                                   |                                                |
+| integrations.managers.revisions.rollback                                       | v1beta  | chronicle.integration.manager_revisions.rollback_integration_manager_revision                                                |                                                |
 | marketplaceIntegrations.get                                                    | v1beta  | chronicle.marketplace_integrations.get_marketplace_integration                                                               | secops integration marketplace get             |
 | marketplaceIntegrations.getDiff                                                | v1beta  | chronicle.marketplace_integrations.get_marketplace_integration_diff                                                          | secops integration marketplace diff            |
 | marketplaceIntegrations.install                                                | v1beta  | chronicle.marketplace_integrations.install_marketplace_integration                                                           | secops integration marketplace install         |
@@ -334,6 +339,11 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.managers.get                                                      | v1alpha | chronicle.integration.managers.get_integration_manager(api_version=APIVersion.V1ALPHA)                                       |                                                |
 | integrations.managers.list                                                     | v1alpha | chronicle.integration.managers.list_integration_managers(api_version=APIVersion.V1ALPHA)                                     |                                                |
 | integrations.managers.patch                                                    | v1alpha | chronicle.integration.managers.update_integration_manager(api_version=APIVersion.V1ALPHA)                                    |                                                |
+| integrations.managers.revisions.create                                         | v1alpha | chronicle.integration.manager_revisions.create_integration_manager_revision(api_version=APIVersion.V1ALPHA)                  |                                                |
+| integrations.managers.revisions.delete                                         | v1alpha | chronicle.integration.manager_revisions.delete_integration_manager_revision(api_version=APIVersion.V1ALPHA)                  |                                                |
+| integrations.managers.revisions.get                                            | v1alpha | chronicle.integration.manager_revisions.get_integration_manager_revision(api_version=APIVersion.V1ALPHA)                     |                                                |
+| integrations.managers.revisions.list                                           | v1alpha | chronicle.integration.manager_revisions.list_integration_manager_revisions(api_version=APIVersion.V1ALPHA)                   |                                                |
+| integrations.managers.revisions.rollback                                       | v1alpha | chronicle.integration.manager_revisions.rollback_integration_manager_revision(api_version=APIVersion.V1ALPHA)                |                                                |
 | investigations.fetchAssociated                                                 | v1alpha | chronicle.investigations.fetch_associated_investigations                                                                     | secops investigation fetch-associated          |
 | investigations.get                                                             | v1alpha | chronicle.investigations.get_investigation                                                                                   | secops investigation get                       |
 | investigations.list                                                            | v1alpha | chronicle.investigations.list_investigations                                                                                 | secops investigation list                      |
