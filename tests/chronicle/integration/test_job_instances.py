@@ -312,7 +312,7 @@ def test_create_integration_job_instance_with_optional_fields(chronicle_client):
 
         _, kwargs = mock_request.call_args
         assert kwargs["json"]["description"] == "Test job instance"
-        assert kwargs["json"]["parameters"] == [{"value": "test"}]
+        assert kwargs["json"]["parameters"] == [{"id": 1, "value": "test"}]
         assert kwargs["json"]["agent"] == "agent-123"
 
 
@@ -641,7 +641,7 @@ def test_run_integration_job_instance_on_demand_with_params(chronicle_client):
         assert result == expected
 
         _, kwargs = mock_request.call_args
-        assert kwargs["json"]["parameters"] == [{"value": "override"}]
+        assert kwargs["json"]["parameters"] == [{"id": 1, "value": "override"}]
 
 
 def test_run_integration_job_instance_on_demand_with_dataclass(chronicle_client):

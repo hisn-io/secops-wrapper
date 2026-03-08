@@ -2878,6 +2878,106 @@ result = chronicle.run_integration_job_instance_on_demand(
 )
 ```
 
+### Job Context Properties
+
+List all context properties for a job:
+
+```python
+# Get all context properties for a job
+context_properties = chronicle.list_job_context_properties(
+    integration_name="MyIntegration",
+    job_id="456"
+)
+for prop in context_properties.get("contextProperties", []):
+    print(f"Key: {prop.get('key')}, Value: {prop.get('value')}")
+
+# Get all context properties as a list
+context_properties = chronicle.list_job_context_properties(
+    integration_name="MyIntegration",
+    job_id="456",
+    as_list=True
+)
+
+# Filter context properties
+context_properties = chronicle.list_job_context_properties(
+    integration_name="MyIntegration",
+    job_id="456",
+    filter_string='key = "api-token"',
+    order_by="key"
+)
+```
+
+Get a specific context property:
+
+```python
+property_value = chronicle.get_job_context_property(
+    integration_name="MyIntegration",
+    job_id="456",
+    context_property_id="api-endpoint"
+)
+print(f"Value: {property_value.get('value')}")
+```
+
+Create a new context property:
+
+```python
+# Create with auto-generated key
+new_property = chronicle.create_job_context_property(
+    integration_name="MyIntegration",
+    job_id="456",
+    value="https://api.example.com/v2"
+)
+print(f"Created property: {new_property.get('key')}")
+
+# Create with custom key (must be 4-63 chars, match /[a-z][0-9]-/)
+new_property = chronicle.create_job_context_property(
+    integration_name="MyIntegration",
+    job_id="456",
+    value="my-secret-token",
+    key="apitoken"
+)
+```
+
+Update a context property:
+
+```python
+# Update the value of an existing property
+updated_property = chronicle.update_job_context_property(
+    integration_name="MyIntegration",
+    job_id="456",
+    context_property_id="api-endpoint",
+    value="https://api.example.com/v3"
+)
+print(f"Updated to: {updated_property.get('value')}")
+```
+
+Delete a context property:
+
+```python
+chronicle.delete_job_context_property(
+    integration_name="MyIntegration",
+    job_id="456",
+    context_property_id="api-endpoint"
+)
+```
+
+Delete all context properties:
+
+```python
+# Clear all context properties for a job
+chronicle.delete_all_job_context_properties(
+    integration_name="MyIntegration",
+    job_id="456"
+)
+
+# Clear all properties for a specific context ID
+chronicle.delete_all_job_context_properties(
+    integration_name="MyIntegration",
+    job_id="456",
+    context_id="mycontext"
+)
+```
+
 
 ## Rule Management
 

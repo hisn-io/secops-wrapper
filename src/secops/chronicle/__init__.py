@@ -283,6 +283,14 @@ from secops.chronicle.integration.job_instances import (
     update_integration_job_instance,
     run_integration_job_instance_on_demand,
 )
+from secops.chronicle.integration.job_context_properties import (
+    list_job_context_properties,
+    get_job_context_property,
+    delete_job_context_property,
+    create_job_context_property,
+    update_job_context_property,
+    delete_all_job_context_properties,
+)
 from secops.chronicle.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
@@ -530,6 +538,13 @@ __all__ = [
     "create_integration_job_instance",
     "update_integration_job_instance",
     "run_integration_job_instance_on_demand",
+    # Job Context Properties
+    "list_job_context_properties",
+    "get_job_context_property",
+    "delete_job_context_property",
+    "create_job_context_property",
+    "update_job_context_property",
+    "delete_all_job_context_properties",
     # Marketplace Integrations
     "list_marketplace_integrations",
     "get_marketplace_integration",

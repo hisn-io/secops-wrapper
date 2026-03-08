@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Integration manager functionality for Chronicle."""
+"""Integration job context property functionality for Chronicle."""
 
 from typing import Any, TYPE_CHECKING
 
@@ -30,9 +30,10 @@ if TYPE_CHECKING:
     from secops.chronicle.client import ChronicleClient
 
 
-def list_integration_managers(
+def list_job_context_properties(
     client: "ChronicleClient",
     integration_name: str,
+    job_id: str,
     page_size: int | None = None,
     page_token: str | None = None,
     filter_string: str | None = None,
@@ -40,26 +41,26 @@ def list_integration_managers(
     api_version: APIVersion | None = APIVersion.V1BETA,
     as_list: bool = False,
 ) -> dict[str, Any] | list[dict[str, Any]]:
-    """List all managers defined for a specific integration.
+    """List all context properties for a specific integration job.
 
-    Use this method to discover the library of managers available within a
-    particular integration's scope.
+    Use this method to discover all custom data points associated with a job.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration to list managers for.
-        page_size: Maximum number of managers to return. Defaults to 100,
-            maximum is 100.
+        integration_name: Name of the integration the job belongs to.
+        job_id: ID of the job to list context properties for.
+        page_size: Maximum number of context properties to return.
         page_token: Page token from a previous call to retrieve the next page.
-        filter_string: Filter expression to filter managers.
-        order_by: Field to sort the managers by.
+        filter_string: Filter expression to filter context properties.
+        order_by: Field to sort the context properties by.
         api_version: API version to use for the request. Default is V1BETA.
-        as_list: If True, return a list of managers instead of a dict with
-            managers list and nextPageToken.
+        as_list: If True, return a list of context properties instead of a
+            dict with context properties list and nextPageToken.
 
     Returns:
-        If as_list is True: List of managers.
-        If as_list is False: Dict with managers list and nextPageToken.
+        If as_list is True: List of context properties.
+        If as_list is False: Dict with context properties list and
+            nextPageToken.
 
     Raises:
         APIError: If the API request fails.
@@ -75,8 +76,11 @@ def list_integration_managers(
     return chronicle_paginated_request(
         client,
         api_version=api_version,
-        path=f"integrations/{format_resource_id(integration_name)}/managers",
-        items_key="managers",
+        path=(
+            f"integrations/{format_resource_id(integration_name)}/"
+            f"jobs/{job_id}/contextProperties"
+        ),
+        items_key="contextProperties",
         page_size=page_size,
         page_token=page_token,
         extra_params=extra_params,
@@ -84,25 +88,27 @@ def list_integration_managers(
     )
 
 
-def get_integration_manager(
+def get_job_context_property(
     client: "ChronicleClient",
     integration_name: str,
-    manager_id: str,
+    job_id: str,
+    context_property_id: str,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
-    """Get a single manager for a given integration.
+    """Get a single context property for a specific integration job.
 
-    Use this method to retrieve the manager script and its metadata for
-    review or reference.
+    Use this method to retrieve the value of a specific key within a job's
+    context.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration the manager belongs to.
-        manager_id: ID of the manager to retrieve.
+        integration_name: Name of the integration the job belongs to.
+        job_id: ID of the job the context property belongs to.
+        context_property_id: ID of the context property to retrieve.
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing details of the specified IntegrationManager.
+        Dict containing details of the specified ContextProperty.
 
     Raises:
         APIError: If the API request fails.
@@ -112,27 +118,29 @@ def get_integration_manager(
         method="GET",
         endpoint_path=(
             f"integrations/{format_resource_id(integration_name)}/"
-            f"managers/{manager_id}"
+            f"jobs/{job_id}/contextProperties/{context_property_id}"
         ),
         api_version=api_version,
     )
 
 
-def delete_integration_manager(
+def delete_job_context_property(
     client: "ChronicleClient",
     integration_name: str,
-    manager_id: str,
+    job_id: str,
+    context_property_id: str,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> None:
-    """Delete a specific custom manager from a given integration.
+    """Delete a specific context property for a given integration job.
 
-    Note that deleting a manager may break components (actions, jobs) that
-    depend on its code.
+    Use this method to remove a custom data point that is no longer relevant
+    to the job's context.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration the manager belongs to.
-        manager_id: ID of the manager to delete.
+        integration_name: Name of the integration the job belongs to.
+        job_id: ID of the job the context property belongs to.
+        context_property_id: ID of the context property to delete.
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
@@ -146,97 +154,90 @@ def delete_integration_manager(
         method="DELETE",
         endpoint_path=(
             f"integrations/{format_resource_id(integration_name)}/"
-            f"managers/{manager_id}"
+            f"jobs/{job_id}/contextProperties/{context_property_id}"
         ),
         api_version=api_version,
     )
 
 
-def create_integration_manager(
+def create_job_context_property(
     client: "ChronicleClient",
     integration_name: str,
-    display_name: str,
-    script: str,
-    description: str | None = None,
+    job_id: str,
+    value: str,
+    key: str | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
-    """Create a new custom manager for a given integration.
+    """Create a new context property for a specific integration job.
 
-    Use this method to add a new shared code utility. Each manager must have
-    a unique display name and a script containing valid Python logic for reuse
-    across actions, jobs, and connectors.
+    Use this method to attach custom data to a job's context. Property keys
+    must be unique within their context. Key values must be 4-63 characters
+    and match /[a-z][0-9]-/.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration to create the manager for.
-        display_name: Manager's display name. Maximum 150 characters. Required.
-        script: Manager's Python script. Maximum 5MB. Required.
-        description: Manager's description. Maximum 400 characters. Optional.
+        integration_name: Name of the integration the job belongs to.
+        job_id: ID of the job to create the context property for.
+        value: The property value. Required.
+        key: The context property ID to use. Must be 4-63 characters and
+            match /[a-z][0-9]-/. Optional.
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing the newly created IntegrationManager resource.
+        Dict containing the newly created ContextProperty resource.
 
     Raises:
         APIError: If the API request fails.
     """
-    body = {
-        "displayName": display_name,
-        "script": script,
-    }
+    body = {"value": value}
 
-    if description is not None:
-        body["description"] = description
+    if key is not None:
+        body["key"] = key
 
     return chronicle_request(
         client,
         method="POST",
         endpoint_path=(
-            f"integrations/{format_resource_id(integration_name)}/managers"
+            f"integrations/{format_resource_id(integration_name)}/"
+            f"jobs/{job_id}/contextProperties"
         ),
         api_version=api_version,
         json=body,
     )
 
 
-def update_integration_manager(
+def update_job_context_property(
     client: "ChronicleClient",
     integration_name: str,
-    manager_id: str,
-    display_name: str | None = None,
-    script: str | None = None,
-    description: str | None = None,
+    job_id: str,
+    context_property_id: str,
+    value: str,
     update_mask: str | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
-    """Update an existing custom manager for a given integration.
+    """Update an existing context property for a given integration job.
 
-    Use this method to modify the shared code, adjust its description, or
-    refine its logic across all components that import it.
+    Use this method to modify the value of a previously saved key.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration the manager belongs to.
-        manager_id: ID of the manager to update.
-        display_name: Manager's display name. Maximum 150 characters.
-        script: Manager's Python script. Maximum 5MB.
-        description: Manager's description. Maximum 400 characters.
-        update_mask: Comma-separated list of fields to update. If omitted,
-            the mask is auto-generated from whichever fields are provided.
-            Example: "displayName,script".
+        integration_name: Name of the integration the job belongs to.
+        job_id: ID of the job the context property belongs to.
+        context_property_id: ID of the context property to update.
+        value: The new property value. Required.
+        update_mask: Comma-separated list of fields to update. Only "value"
+            is supported. If omitted, defaults to "value".
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing the updated IntegrationManager resource.
+        Dict containing the updated ContextProperty resource.
 
     Raises:
         APIError: If the API request fails.
     """
     body, params = build_patch_body(
         field_map=[
-            ("displayName", "displayName", display_name),
-            ("script", "script", script),
-            ("description", "description", description),
+            ("value", "value", value),
         ],
         update_mask=update_mask,
     )
@@ -246,7 +247,7 @@ def update_integration_manager(
         method="PATCH",
         endpoint_path=(
             f"integrations/{format_resource_id(integration_name)}/"
-            f"managers/{manager_id}"
+            f"jobs/{job_id}/contextProperties/{context_property_id}"
         ),
         api_version=api_version,
         json=body,
@@ -254,32 +255,44 @@ def update_integration_manager(
     )
 
 
-def get_integration_manager_template(
+def delete_all_job_context_properties(
     client: "ChronicleClient",
     integration_name: str,
+    job_id: str,
+    context_id: str | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
-) -> dict[str, Any]:
-    """Retrieve a default Python script template for a new integration manager.
+) -> None:
+    """Delete all context properties for a specific integration job.
 
-    Use this method to quickly start developing new managers.
+    Use this method to quickly clear all supplemental data from a job's
+    context.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration to fetch the template for.
+        integration_name: Name of the integration the job belongs to.
+        job_id: ID of the job to clear context properties from.
+        context_id: The context ID to remove context properties from. Must be
+            4-63 characters and match /[a-z][0-9]-/. Optional.
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing the IntegrationManager template.
+        None
 
     Raises:
         APIError: If the API request fails.
     """
-    return chronicle_request(
+    body = {}
+
+    if context_id is not None:
+        body["contextId"] = context_id
+
+    chronicle_request(
         client,
-        method="GET",
+        method="POST",
         endpoint_path=(
             f"integrations/{format_resource_id(integration_name)}/"
-            "managers:fetchTemplate"
+            f"jobs/{job_id}/contextProperties:clearAll"
         ),
         api_version=api_version,
+        json=body,
     )

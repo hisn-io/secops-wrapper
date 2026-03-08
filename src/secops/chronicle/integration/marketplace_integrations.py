@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Marketplace integrations functionality for Chronicle."""
+"""Integrations functionality for Chronicle."""
 
 from typing import Any, TYPE_CHECKING
 
