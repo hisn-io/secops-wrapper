@@ -7,8 +7,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 ## Implementation Statistics
 
 - **v1:** 17 endpoints implemented
-- **v1beta:** 54 endpoints implemented
-- **v1alpha:** 147 endpoints implemented
+- **v1beta:** 56 endpoints implemented
+- **v1alpha:** 149 endpoints implemented
 
 ## Endpoint Mapping
 
@@ -132,6 +132,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.jobs.contextProperties.get                                        | v1beta  | chronicle.integration.job_context_properties.get_job_context_property                                                        |                                                |
 | integrations.jobs.contextProperties.list                                       | v1beta  | chronicle.integration.job_context_properties.list_job_context_properties                                                     |                                                |
 | integrations.jobs.contextProperties.patch                                      | v1beta  | chronicle.integration.job_context_properties.update_job_context_property                                                     |                                                |
+| integrations.jobs.jobInstances.logs.get                                        | v1beta  | chronicle.integration.job_instance_logs.get_job_instance_log                                                                 |                                                |
+| integrations.jobs.jobInstances.logs.list                                       | v1beta  | chronicle.integration.job_instance_logs.list_job_instance_logs                                                               |                                                |
 | marketplaceIntegrations.get                                                    | v1beta  | chronicle.marketplace_integrations.get_marketplace_integration                                                               | secops integration marketplace get             |
 | marketplaceIntegrations.getDiff                                                | v1beta  | chronicle.marketplace_integrations.get_marketplace_integration_diff                                                          | secops integration marketplace diff            |
 | marketplaceIntegrations.install                                                | v1beta  | chronicle.marketplace_integrations.install_marketplace_integration                                                           | secops integration marketplace install         |
@@ -376,6 +378,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.jobs.contextProperties.get                                        | v1alpha | chronicle.integration.job_context_properties.get_job_context_property(api_version=APIVersion.V1ALPHA)                        |                                                |
 | integrations.jobs.contextProperties.list                                       | v1alpha | chronicle.integration.job_context_properties.list_job_context_properties(api_version=APIVersion.V1ALPHA)                     |                                                |
 | integrations.jobs.contextProperties.patch                                      | v1alpha | chronicle.integration.job_context_properties.update_job_context_property(api_version=APIVersion.V1ALPHA)                     |                                                |
+| integrations.jobs.jobInstances.logs.get                                        | v1alpha | chronicle.integration.job_instance_logs.get_job_instance_log(api_version=APIVersion.V1ALPHA)                                 |                                                |
+| integrations.jobs.jobInstances.logs.list                                       | v1alpha | chronicle.integration.job_instance_logs.list_job_instance_logs(api_version=APIVersion.V1ALPHA)                               |                                                |
 | investigations.fetchAssociated                                                 | v1alpha | chronicle.investigations.fetch_associated_investigations                                                                     | secops investigation fetch-associated          |
 | investigations.get                                                             | v1alpha | chronicle.investigations.get_investigation                                                                                   | secops investigation get                       |
 | investigations.list                                                            | v1alpha | chronicle.investigations.list_investigations                                                                                 | secops investigation list                      |

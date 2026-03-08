@@ -219,6 +219,10 @@ from secops.chronicle.integration.job_context_properties import (
     list_job_context_properties as _list_job_context_properties,
     update_job_context_property as _update_job_context_property,
 )
+from secops.chronicle.integration.job_instance_logs import (
+    get_job_instance_log as _get_job_instance_log,
+    list_job_instance_logs as _list_job_instance_logs,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -3529,6 +3533,100 @@ class ChronicleClient:
             integration_name,
             job_id,
             context_id=context_id,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Job Instance Logs methods
+    # -------------------------------------------------------------------------
+
+    def list_job_instance_logs(
+        self,
+        integration_name: str,
+        job_id: str,
+        job_instance_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all execution logs for a specific job instance.
+
+        Use this method to browse the historical performance and
+        reliability of a background automation schedule.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job the instance belongs to.
+            job_instance_id: ID of the job instance to list logs for.
+            page_size: Maximum number of logs to return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter logs.
+            order_by: Field to sort the logs by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of logs instead of a dict
+                with logs list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of logs.
+            If as_list is False: Dict with logs list and nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_job_instance_logs(
+            self,
+            integration_name,
+            job_id,
+            job_instance_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_job_instance_log(
+        self,
+        integration_name: str,
+        job_id: str,
+        job_instance_id: str,
+        log_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a single log entry for a specific job instance.
+
+        Use this method to retrieve the detailed output message,
+        start/end times, and final status of a specific background task
+        execution.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job the instance belongs to.
+            job_instance_id: ID of the job instance the log belongs to.
+            log_id: ID of the log entry to retrieve.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing details of the specified JobInstanceLog.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_job_instance_log(
+            self,
+            integration_name,
+            job_id,
+            job_instance_id,
+            log_id,
             api_version=api_version,
         )
 

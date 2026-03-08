@@ -2978,6 +2978,102 @@ chronicle.delete_all_job_context_properties(
 )
 ```
 
+### Job Instance Logs
+
+List all execution logs for a job instance:
+
+```python
+# Get all logs for a job instance
+logs = chronicle.list_job_instance_logs(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1"
+)
+for log in logs.get("logs", []):
+    print(f"Log ID: {log.get('name')}, Status: {log.get('status')}")
+    print(f"Start: {log.get('startTime')}, End: {log.get('endTime')}")
+
+# Get all logs as a list
+logs = chronicle.list_job_instance_logs(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    as_list=True
+)
+
+# Filter logs by status
+logs = chronicle.list_job_instance_logs(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    filter_string="status = SUCCESS",
+    order_by="startTime desc"
+)
+```
+
+Get a specific log entry:
+
+```python
+log_entry = chronicle.get_job_instance_log(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    log_id="log123"
+)
+print(f"Status: {log_entry.get('status')}")
+print(f"Start Time: {log_entry.get('startTime')}")
+print(f"End Time: {log_entry.get('endTime')}")
+print(f"Output: {log_entry.get('output')}")
+```
+
+Browse historical execution logs to monitor job performance:
+
+```python
+# Get recent logs for monitoring
+recent_logs = chronicle.list_job_instance_logs(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    order_by="startTime desc",
+    page_size=10,
+    as_list=True
+)
+
+# Check for failures
+for log in recent_logs:
+    if log.get("status") == "FAILED":
+        print(f"Failed execution at {log.get('startTime')}")
+        log_details = chronicle.get_job_instance_log(
+            integration_name="MyIntegration",
+            job_id="456",
+            job_instance_id="ji1",
+            log_id=log.get("name").split("/")[-1]
+        )
+        print(f"Error output: {log_details.get('output')}")
+```
+
+Monitor job reliability and performance:
+
+```python
+# Get all logs to calculate success rate
+all_logs = chronicle.list_job_instance_logs(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    as_list=True
+)
+
+successful = sum(1 for log in all_logs if log.get("status") == "SUCCESS")
+failed = sum(1 for log in all_logs if log.get("status") == "FAILED")
+total = len(all_logs)
+
+if total > 0:
+    success_rate = (successful / total) * 100
+    print(f"Success Rate: {success_rate:.2f}%")
+    print(f"Total Executions: {total}")
+    print(f"Successful: {successful}, Failed: {failed}")
+```
+
 
 ## Rule Management
 

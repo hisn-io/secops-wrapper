@@ -291,6 +291,10 @@ from secops.chronicle.integration.job_context_properties import (
     update_job_context_property,
     delete_all_job_context_properties,
 )
+from secops.chronicle.integration.job_instance_logs import (
+    list_job_instance_logs,
+    get_job_instance_log,
+)
 from secops.chronicle.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
@@ -545,6 +549,9 @@ __all__ = [
     "create_job_context_property",
     "update_job_context_property",
     "delete_all_job_context_properties",
+    # Job Instance Logs
+    "list_job_instance_logs",
+    "get_job_instance_log",
     # Marketplace Integrations
     "list_marketplace_integrations",
     "get_marketplace_integration",
