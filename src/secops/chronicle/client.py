@@ -203,6 +203,14 @@ from secops.chronicle.integration.job_revisions import (
     list_integration_job_revisions as _list_integration_job_revisions,
     rollback_integration_job_revision as _rollback_integration_job_revision,
 )
+from secops.chronicle.integration.job_instances import (
+    create_integration_job_instance as _create_integration_job_instance,
+    delete_integration_job_instance as _delete_integration_job_instance,
+    get_integration_job_instance as _get_integration_job_instance,
+    list_integration_job_instances as _list_integration_job_instances,
+    run_integration_job_instance_on_demand as _run_integration_job_instance_on_demand,
+    update_integration_job_instance as _update_integration_job_instance,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -2987,6 +2995,288 @@ class ChronicleClient:
             integration_name,
             job_id,
             revision_id,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Integration Job Instances methods
+    # -------------------------------------------------------------------------
+
+    def list_integration_job_instances(
+        self,
+        integration_name: str,
+        job_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all job instances for a specific integration job.
+
+        Use this method to browse the active job instances and their
+        last execution status.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job to list instances for.
+            page_size: Maximum number of job instances to return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter job instances.
+            order_by: Field to sort the job instances by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of job instances instead of
+                a dict with job instances list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of job instances.
+            If as_list is False: Dict with job instances list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_job_instances(
+            self,
+            integration_name,
+            job_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_integration_job_instance(
+        self,
+        integration_name: str,
+        job_id: str,
+        job_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a single job instance for a specific integration job.
+
+        Use this method to retrieve configuration details and the
+        current schedule settings for a job instance.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job the instance belongs to.
+            job_instance_id: ID of the job instance to retrieve.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing details of the specified
+                IntegrationJobInstance.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_job_instance(
+            self,
+            integration_name,
+            job_id,
+            job_instance_id,
+            api_version=api_version,
+        )
+
+    def delete_integration_job_instance(
+        self,
+        integration_name: str,
+        job_id: str,
+        job_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific job instance for a given integration job.
+
+        Use this method to remove scheduled or configured job instances
+        that are no longer needed.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job the instance belongs to.
+            job_instance_id: ID of the job instance to delete.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_job_instance(
+            self,
+            integration_name,
+            job_id,
+            job_instance_id,
+            api_version=api_version,
+        )
+
+    def create_integration_job_instance(
+        self,
+        integration_name: str,
+        job_id: str,
+        display_name: str,
+        interval_seconds: int,
+        enabled: bool,
+        advanced: bool,
+        description: str | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        agent: str | None = None,
+        advanced_config: dict[str, Any] | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new job instance for a given integration job.
+
+        Use this method to schedule a job to run at regular intervals
+        or with advanced cron-style scheduling.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job to create an instance for.
+            display_name: Display name for the job instance.
+            interval_seconds: Interval in seconds between job runs.
+            enabled: Whether the job instance is enabled.
+            advanced: Whether advanced scheduling is used.
+            description: Description of the job instance. Optional.
+            parameters: List of parameter values for the job instance.
+                Optional.
+            agent: Agent identifier for remote execution. Optional.
+            advanced_config: Advanced scheduling configuration.
+                Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created IntegrationJobInstance
+                resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_job_instance(
+            self,
+            integration_name,
+            job_id,
+            display_name,
+            interval_seconds,
+            enabled,
+            advanced,
+            description=description,
+            parameters=parameters,
+            agent=agent,
+            advanced_config=advanced_config,
+            api_version=api_version,
+        )
+
+    def update_integration_job_instance(
+        self,
+        integration_name: str,
+        job_id: str,
+        job_instance_id: str,
+        display_name: str | None = None,
+        description: str | None = None,
+        interval_seconds: int | None = None,
+        enabled: bool | None = None,
+        advanced: bool | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        advanced_config: dict[str, Any] | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Update an existing job instance for a given integration job.
+
+        Use this method to modify scheduling, parameters, or enable/
+        disable a job instance.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job the instance belongs to.
+            job_instance_id: ID of the job instance to update.
+            display_name: Display name for the job instance. Optional.
+            description: Description of the job instance. Optional.
+            interval_seconds: Interval in seconds between job runs.
+                Optional.
+            enabled: Whether the job instance is enabled. Optional.
+            advanced: Whether advanced scheduling is used. Optional.
+            parameters: List of parameter values for the job instance.
+                Optional.
+            advanced_config: Advanced scheduling configuration.
+                Optional.
+            update_mask: Comma-separated field paths to update. If not
+                provided, will be auto-generated. Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the updated IntegrationJobInstance.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _update_integration_job_instance(
+            self,
+            integration_name,
+            job_id,
+            job_instance_id,
+            display_name=display_name,
+            description=description,
+            interval_seconds=interval_seconds,
+            enabled=enabled,
+            advanced=advanced,
+            parameters=parameters,
+            advanced_config=advanced_config,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def run_integration_job_instance_on_demand(
+        self,
+        integration_name: str,
+        job_id: str,
+        job_instance_id: str,
+        parameters: list[dict[str, Any]] | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Run a job instance immediately without waiting for the next
+        scheduled execution.
+
+        Use this method to manually trigger a job instance for testing
+        or immediate data collection.
+
+        Args:
+            integration_name: Name of the integration the job belongs
+                to.
+            job_id: ID of the job the instance belongs to.
+            job_instance_id: ID of the job instance to run.
+            parameters: Optional parameter overrides for this run.
+                Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the result of the on-demand run.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _run_integration_job_instance_on_demand(
+            self,
+            integration_name,
+            job_id,
+            job_instance_id,
+            parameters=parameters,
             api_version=api_version,
         )
 

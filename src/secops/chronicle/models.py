@@ -310,6 +310,231 @@ class ConnectorParameter:
 
 
 @dataclass
+class IntegrationJobInstanceParameter:
+    """A parameter instance for a Chronicle SOAR integration job instance.
+
+    Note: Most fields are output-only and will be populated by the API.
+    Only value needs to be provided when configuring a job instance.
+
+    Attributes:
+        value: The value of the parameter.
+    """
+
+    value: str | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {}
+        if self.value is not None:
+            data["value"] = self.value
+        return data
+
+
+class ScheduleType(str, Enum):
+    """Schedule types for Chronicle SOAR integration job
+    instance advanced config."""
+
+    UNSPECIFIED = "SCHEDULE_TYPE_UNSPECIFIED"
+    ONCE = "ONCE"
+    DAILY = "DAILY"
+    WEEKLY = "WEEKLY"
+    MONTHLY = "MONTHLY"
+
+
+class DayOfWeek(str, Enum):
+    """Days of the week for Chronicle SOAR weekly schedule details."""
+
+    UNSPECIFIED = "DAY_OF_WEEK_UNSPECIFIED"
+    MONDAY = "MONDAY"
+    TUESDAY = "TUESDAY"
+    WEDNESDAY = "WEDNESDAY"
+    THURSDAY = "THURSDAY"
+    FRIDAY = "FRIDAY"
+    SATURDAY = "SATURDAY"
+    SUNDAY = "SUNDAY"
+
+
+@dataclass
+class Date:
+    """A calendar date for Chronicle SOAR schedule details.
+
+    Attributes:
+        year: The year.
+        month: The month of the year (1-12).
+        day: The day of the month (1-31).
+    """
+
+    year: int
+    month: int
+    day: int
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        return {"year": self.year, "month": self.month, "day": self.day}
+
+
+@dataclass
+class TimeOfDay:
+    """A time of day for Chronicle SOAR schedule details.
+
+    Attributes:
+        hours: The hour of the day (0-23).
+        minutes: The minute of the hour (0-59).
+        seconds: The second of the minute (0-59).
+        nanos: The nanoseconds of the second (0-999999999).
+    """
+
+    hours: int
+    minutes: int
+    seconds: int = 0
+    nanos: int = 0
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        return {
+            "hours": self.hours,
+            "minutes": self.minutes,
+            "seconds": self.seconds,
+            "nanos": self.nanos,
+        }
+
+
+@dataclass
+class OneTimeScheduleDetails:
+    """One-time schedule details for a Chronicle SOAR job instance.
+
+    Attributes:
+        start_date: The date to run the job.
+        time: The time to run the job.
+    """
+
+    start_date: Date
+    time: TimeOfDay
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        return {
+            "startDate": self.start_date.to_dict(),
+            "time": self.time.to_dict(),
+        }
+
+
+@dataclass
+class DailyScheduleDetails:
+    """Daily schedule details for a Chronicle SOAR job instance.
+
+    Attributes:
+        start_date: The start date.
+        time: The time to run the job.
+        interval: The day interval.
+    """
+
+    start_date: Date
+    time: TimeOfDay
+    interval: int
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        return {
+            "startDate": self.start_date.to_dict(),
+            "time": self.time.to_dict(),
+            "interval": self.interval,
+        }
+
+
+@dataclass
+class WeeklyScheduleDetails:
+    """Weekly schedule details for a Chronicle SOAR job instance.
+
+    Attributes:
+        start_date: The start date.
+        days: The days of the week to run the job.
+        time: The time to run the job.
+        interval: The week interval.
+    """
+
+    start_date: Date
+    days: list[DayOfWeek]
+    time: TimeOfDay
+    interval: int
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        return {
+            "startDate": self.start_date.to_dict(),
+            "days": [d.value for d in self.days],
+            "time": self.time.to_dict(),
+            "interval": self.interval,
+        }
+
+
+@dataclass
+class MonthlyScheduleDetails:
+    """Monthly schedule details for a Chronicle SOAR job instance.
+
+    Attributes:
+        start_date: The start date.
+        day: The day of the month to run the job.
+        time: The time to run the job.
+        interval: The month interval.
+    """
+
+    start_date: Date
+    day: int
+    time: TimeOfDay
+    interval: int
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        return {
+            "startDate": self.start_date.to_dict(),
+            "day": self.day,
+            "time": self.time.to_dict(),
+            "interval": self.interval,
+        }
+
+
+@dataclass
+class AdvancedConfig:
+    """Advanced scheduling configuration for a Chronicle SOAR job instance.
+
+    Exactly one of the schedule detail fields should be provided, corresponding
+    to the schedule_type.
+
+    Attributes:
+        time_zone: The zone id.
+        schedule_type: The schedule type.
+        one_time_schedule: One-time schedule details. Use with ONCE.
+        daily_schedule: Daily schedule details. Use with DAILY.
+        weekly_schedule: Weekly schedule details. Use with WEEKLY.
+        monthly_schedule: Monthly schedule details. Use with MONTHLY.
+    """
+
+    time_zone: str
+    schedule_type: ScheduleType
+    one_time_schedule: OneTimeScheduleDetails | None = None
+    daily_schedule: DailyScheduleDetails | None = None
+    weekly_schedule: WeeklyScheduleDetails | None = None
+    monthly_schedule: MonthlyScheduleDetails | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {
+            "timeZone": self.time_zone,
+            "scheduleType": str(self.schedule_type.value),
+        }
+        if self.one_time_schedule is not None:
+            data["oneTimeSchedule"] = self.one_time_schedule.to_dict()
+        if self.daily_schedule is not None:
+            data["dailySchedule"] = self.daily_schedule.to_dict()
+        if self.weekly_schedule is not None:
+            data["weeklySchedule"] = self.weekly_schedule.to_dict()
+        if self.monthly_schedule is not None:
+            data["monthlySchedule"] = self.monthly_schedule.to_dict()
+        return data
+
+
+@dataclass
 class JobParameter:
     """A parameter definition for a Chronicle SOAR integration job.
 

@@ -2597,6 +2597,287 @@ rollback_result = chronicle.rollback_integration_job_revision(
 print(f"Rolled back to: {rollback_result.get('name')}")
 ```
 
+### Integration Job Instances
+
+List all job instances for a specific job:
+
+```python
+# Get all job instances for a job
+job_instances = chronicle.list_integration_job_instances(
+    integration_name="MyIntegration",
+    job_id="456"
+)
+for instance in job_instances.get("jobInstances", []):
+    print(f"Instance: {instance.get('displayName')}, Enabled: {instance.get('enabled')}")
+
+# Get all job instances as a list
+job_instances = chronicle.list_integration_job_instances(
+    integration_name="MyIntegration",
+    job_id="456",
+    as_list=True
+)
+
+# Filter job instances
+job_instances = chronicle.list_integration_job_instances(
+    integration_name="MyIntegration",
+    job_id="456",
+    filter_string="enabled = true",
+    order_by="displayName"
+)
+```
+
+Get details of a specific job instance:
+
+```python
+job_instance = chronicle.get_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1"
+)
+print(f"Interval: {job_instance.get('intervalSeconds')} seconds")
+```
+
+Create a new job instance:
+
+```python
+from secops.chronicle.models import IntegrationJobInstanceParameter
+
+# Create a job instance with basic scheduling (interval-based)
+new_job_instance = chronicle.create_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    display_name="Daily Data Sync",
+    description="Syncs data from external source daily",
+    interval_seconds=86400,  # 24 hours
+    enabled=True,
+    advanced=False,
+    parameters=[
+        IntegrationJobInstanceParameter(value="production"),
+        IntegrationJobInstanceParameter(value="https://api.example.com")
+    ]
+)
+```
+
+Create a job instance with advanced scheduling:
+
+```python
+from secops.chronicle.models import (
+    AdvancedConfig,
+    ScheduleType,
+    DailyScheduleDetails,
+    Date,
+    TimeOfDay
+)
+
+# Create with daily schedule
+advanced_job_instance = chronicle.create_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    display_name="Daily Backup at 2 AM",
+    interval_seconds=86400,
+    enabled=True,
+    advanced=True,
+    advanced_config=AdvancedConfig(
+        time_zone="America/New_York",
+        schedule_type=ScheduleType.DAILY,
+        daily_schedule=DailyScheduleDetails(
+            start_date=Date(year=2025, month=1, day=1),
+            time=TimeOfDay(hours=2, minutes=0),
+            interval=1  # Every 1 day
+        )
+    ),
+    agent="agent-123"  # For remote execution
+)
+```
+
+Create a job instance with weekly schedule:
+
+```python
+from secops.chronicle.models import (
+    AdvancedConfig,
+    ScheduleType,
+    WeeklyScheduleDetails,
+    DayOfWeek,
+    Date,
+    TimeOfDay
+)
+
+# Run every Monday and Friday at 9 AM
+weekly_job_instance = chronicle.create_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    display_name="Weekly Report",
+    interval_seconds=604800,  # 1 week
+    enabled=True,
+    advanced=True,
+    advanced_config=AdvancedConfig(
+        time_zone="UTC",
+        schedule_type=ScheduleType.WEEKLY,
+        weekly_schedule=WeeklyScheduleDetails(
+            start_date=Date(year=2025, month=1, day=1),
+            days=[DayOfWeek.MONDAY, DayOfWeek.FRIDAY],
+            time=TimeOfDay(hours=9, minutes=0),
+            interval=1  # Every 1 week
+        )
+    )
+)
+```
+
+Create a job instance with monthly schedule:
+
+```python
+from secops.chronicle.models import (
+    AdvancedConfig,
+    ScheduleType,
+    MonthlyScheduleDetails,
+    Date,
+    TimeOfDay
+)
+
+# Run on the 1st of every month at midnight
+monthly_job_instance = chronicle.create_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    display_name="Monthly Cleanup",
+    interval_seconds=2592000,  # ~30 days
+    enabled=True,
+    advanced=True,
+    advanced_config=AdvancedConfig(
+        time_zone="America/Los_Angeles",
+        schedule_type=ScheduleType.MONTHLY,
+        monthly_schedule=MonthlyScheduleDetails(
+            start_date=Date(year=2025, month=1, day=1),
+            day=1,  # Day of month (1-31)
+            time=TimeOfDay(hours=0, minutes=0),
+            interval=1  # Every 1 month
+        )
+    )
+)
+```
+
+Create a one-time job instance:
+
+```python
+from secops.chronicle.models import (
+    AdvancedConfig,
+    ScheduleType,
+    OneTimeScheduleDetails,
+    Date,
+    TimeOfDay
+)
+
+# Run once at a specific date and time
+onetime_job_instance = chronicle.create_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    display_name="One-Time Migration",
+    interval_seconds=0,  # Not used for one-time
+    enabled=True,
+    advanced=True,
+    advanced_config=AdvancedConfig(
+        time_zone="Europe/London",
+        schedule_type=ScheduleType.ONCE,
+        one_time_schedule=OneTimeScheduleDetails(
+            start_date=Date(year=2025, month=12, day=25),
+            time=TimeOfDay(hours=10, minutes=30)
+        )
+    )
+)
+```
+
+Update a job instance:
+
+```python
+from secops.chronicle.models import IntegrationJobInstanceParameter
+
+# Update scheduling and enable/disable
+updated_instance = chronicle.update_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    display_name="Updated Sync Job",
+    interval_seconds=43200,  # 12 hours
+    enabled=False
+)
+
+# Update parameters
+updated_instance = chronicle.update_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    parameters=[
+        IntegrationJobInstanceParameter(value="staging"),
+        IntegrationJobInstanceParameter(value="https://staging-api.example.com")
+    ]
+)
+
+# Update to use advanced scheduling
+from secops.chronicle.models import (
+    AdvancedConfig,
+    ScheduleType,
+    DailyScheduleDetails,
+    Date,
+    TimeOfDay
+)
+
+updated_instance = chronicle.update_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    advanced=True,
+    advanced_config=AdvancedConfig(
+        time_zone="UTC",
+        schedule_type=ScheduleType.DAILY,
+        daily_schedule=DailyScheduleDetails(
+            start_date=Date(year=2025, month=1, day=1),
+            time=TimeOfDay(hours=12, minutes=0),
+            interval=1
+        )
+    )
+)
+
+# Update only specific fields
+updated_instance = chronicle.update_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    enabled=True,
+    update_mask="enabled"
+)
+```
+
+Delete a job instance:
+
+```python
+chronicle.delete_integration_job_instance(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1"
+)
+```
+
+Run a job instance on demand:
+
+```python
+# Run immediately without waiting for schedule
+result = chronicle.run_integration_job_instance_on_demand(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1"
+)
+print(f"Job execution started: {result}")
+
+# Run with parameter overrides
+result = chronicle.run_integration_job_instance_on_demand(
+    integration_name="MyIntegration",
+    job_id="456",
+    job_instance_id="ji1",
+    parameters=[
+        IntegrationJobInstanceParameter(id=1, value="test-mode")
+    ]
+)
+```
+
 
 ## Rule Management
 
