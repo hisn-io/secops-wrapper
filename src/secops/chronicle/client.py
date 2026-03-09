@@ -284,7 +284,7 @@ from secops.chronicle.models import (
     TargetMode,
     TileType,
     IntegrationParam,
-    ConnectorInstanceParameter
+    ConnectorInstanceParameter,
 )
 from secops.chronicle.nl_search import (
     nl_search as _nl_search,
