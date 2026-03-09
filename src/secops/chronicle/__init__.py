@@ -251,6 +251,14 @@ from secops.chronicle.integration.connector_revisions import (
     create_integration_connector_revision,
     rollback_integration_connector_revision,
 )
+from secops.chronicle.integration.connector_context_properties import (
+    list_connector_context_properties,
+    get_connector_context_property,
+    delete_connector_context_property,
+    create_connector_context_property,
+    update_connector_context_property,
+    delete_all_connector_context_properties,
+)
 from secops.chronicle.integration.jobs import (
     list_integration_jobs,
     get_integration_job,
@@ -530,6 +538,13 @@ __all__ = [
     "delete_integration_connector_revision",
     "create_integration_connector_revision",
     "rollback_integration_connector_revision",
+    # Connector Context Properties
+    "list_connector_context_properties",
+    "get_connector_context_property",
+    "delete_connector_context_property",
+    "create_connector_context_property",
+    "update_connector_context_property",
+    "delete_all_connector_context_properties",
     # Integration Jobs
     "list_integration_jobs",
     "get_integration_job",

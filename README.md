@@ -2349,6 +2349,158 @@ else:
     print("Test passed, changes applied successfully")
 ```
 
+### Connector Context Properties
+
+List all context properties for a specific connector:
+
+```python
+# Get all context properties for a connector
+context_properties = chronicle.list_connector_context_properties(
+    integration_name="MyIntegration",
+    connector_id="c1"
+)
+for prop in context_properties.get("contextProperties", []):
+    print(f"Key: {prop.get('key')}, Value: {prop.get('value')}")
+
+# Get all context properties as a list
+context_properties = chronicle.list_connector_context_properties(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    as_list=True
+)
+
+# Filter context properties
+context_properties = chronicle.list_connector_context_properties(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    filter_string='key = "last_run_time"',
+    order_by="key"
+)
+```
+
+Get a specific context property:
+
+```python
+property_value = chronicle.get_connector_context_property(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    context_property_id="last_run_time"
+)
+print(f"Value: {property_value.get('value')}")
+```
+
+Create a new context property:
+
+```python
+# Create context property with auto-generated key
+new_property = chronicle.create_connector_context_property(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    value="2026-03-09T10:00:00Z"
+)
+
+# Create context property with custom key
+new_property = chronicle.create_connector_context_property(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    value="2026-03-09T10:00:00Z",
+    key="last-sync-time"
+)
+print(f"Created property: {new_property.get('name')}")
+```
+
+Update an existing context property:
+
+```python
+# Update property value
+updated_property = chronicle.update_connector_context_property(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    context_property_id="last-sync-time",
+    value="2026-03-09T11:00:00Z"
+)
+print(f"Updated value: {updated_property.get('value')}")
+```
+
+Delete a context property:
+
+```python
+chronicle.delete_connector_context_property(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    context_property_id="last-sync-time"
+)
+```
+
+Delete all context properties:
+
+```python
+# Clear all properties for a connector
+chronicle.delete_all_connector_context_properties(
+    integration_name="MyIntegration",
+    connector_id="c1"
+)
+
+# Clear all properties for a specific context ID
+chronicle.delete_all_connector_context_properties(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    context_id="my-context"
+)
+```
+
+Example workflow: Track connector state with context properties:
+
+```python
+# 1. Check if we have a last run time stored
+try:
+    last_run = chronicle.get_connector_context_property(
+        integration_name="MyIntegration",
+        connector_id="c1",
+        context_property_id="last-run-time"
+    )
+    print(f"Last run: {last_run.get('value')}")
+except APIError:
+    print("No previous run time found")
+    # Create initial property
+    chronicle.create_connector_context_property(
+        integration_name="MyIntegration",
+        connector_id="c1",
+        value="2026-01-01T00:00:00Z",
+        key="last-run-time"
+    )
+
+# 2. Run the connector and process data
+# ... connector execution logic ...
+
+# 3. Update the last run time after successful execution
+from datetime import datetime
+current_time = datetime.utcnow().isoformat() + "Z"
+chronicle.update_connector_context_property(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    context_property_id="last-run-time",
+    value=current_time
+)
+
+# 4. Store additional context like record count
+chronicle.create_connector_context_property(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    value="1500",
+    key="records-processed"
+)
+
+# 5. List all context to see connector state
+all_context = chronicle.list_connector_context_properties(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    as_list=True
+)
+for prop in all_context:
+    print(f"{prop.get('key')}: {prop.get('value')}")
+```
+
 ### Integration Jobs
 
 List all available jobs for an integration:
