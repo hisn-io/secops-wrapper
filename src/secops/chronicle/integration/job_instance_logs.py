@@ -17,9 +17,7 @@
 from typing import Any, TYPE_CHECKING
 
 from secops.chronicle.models import APIVersion
-from secops.chronicle.utils.format_utils import (
-    format_resource_id
-)
+from secops.chronicle.utils.format_utils import format_resource_id
 from secops.chronicle.utils.request_utils import (
     chronicle_paginated_request,
     chronicle_request,

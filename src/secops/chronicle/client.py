@@ -223,6 +223,16 @@ from secops.chronicle.integration.job_instance_logs import (
     get_job_instance_log as _get_job_instance_log,
     list_job_instance_logs as _list_job_instance_logs,
 )
+from secops.chronicle.integration.integration_instances import (
+    create_integration_instance as _create_integration_instance,
+    delete_integration_instance as _delete_integration_instance,
+    execute_integration_instance_test as _execute_integration_instance_test,
+    get_default_integration_instance as _get_default_integration_instance,
+    get_integration_instance as _get_integration_instance,
+    get_integration_instance_affected_items as _get_integration_instance_affected_items,
+    list_integration_instances as _list_integration_instances,
+    update_integration_instance as _update_integration_instance,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -233,6 +243,7 @@ from secops.chronicle.models import (
     DiffType,
     EntitySummary,
     InputInterval,
+    IntegrationInstanceParameter,
     IntegrationType,
     JobParameter,
     PythonVersion,
@@ -3627,6 +3638,339 @@ class ChronicleClient:
             job_id,
             job_instance_id,
             log_id,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Integration Instances methods
+    # -------------------------------------------------------------------------
+
+    def list_integration_instances(
+        self,
+        integration_name: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all instances for a specific integration.
+
+        Use this method to browse the configured integration instances
+        available for a custom or third-party product across different
+        environments.
+
+        Args:
+            integration_name: Name of the integration to list instances
+                for.
+            page_size: Maximum number of integration instances to
+                return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter integration
+                instances.
+            order_by: Field to sort the integration instances by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of integration instances
+                instead of a dict with integration instances list and
+                nextPageToken.
+
+        Returns:
+            If as_list is True: List of integration instances.
+            If as_list is False: Dict with integration instances list
+                and nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_instances(
+            self,
+            integration_name,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_integration_instance(
+        self,
+        integration_name: str,
+        integration_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a single instance for a specific integration.
+
+        Use this method to retrieve the specific configuration,
+        connection status, and environment mapping for an active
+        integration.
+
+        Args:
+            integration_name: Name of the integration the instance
+                belongs to.
+            integration_instance_id: ID of the integration instance to
+                retrieve.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing details of the specified
+                IntegrationInstance.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_instance(
+            self,
+            integration_name,
+            integration_instance_id,
+            api_version=api_version,
+        )
+
+    def delete_integration_instance(
+        self,
+        integration_name: str,
+        integration_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific integration instance.
+
+        Use this method to permanently remove an integration instance
+        and stop all associated automated tasks (connectors or jobs)
+        using this instance.
+
+        Args:
+            integration_name: Name of the integration the instance
+                belongs to.
+            integration_instance_id: ID of the integration instance to
+                delete.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_instance(
+            self,
+            integration_name,
+            integration_instance_id,
+            api_version=api_version,
+        )
+
+    def create_integration_instance(
+        self,
+        integration_name: str,
+        environment: str,
+        display_name: str | None = None,
+        description: str | None = None,
+        parameters: (
+            list[dict[str, Any] | IntegrationInstanceParameter] | None
+        ) = None,
+        agent: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new integration instance for a specific
+        integration.
+
+        Use this method to establish a new integration instance to a
+        custom or third-party security product for a specific
+        environment. All mandatory parameters required by the
+        integration definition must be provided.
+
+        Args:
+            integration_name: Name of the integration to create the
+                instance for.
+            environment: The integration instance environment. Required.
+            display_name: The display name of the integration instance.
+                Automatically generated if not provided. Maximum 110
+                characters.
+            description: The integration instance description. Maximum
+                1500 characters.
+            parameters: List of IntegrationInstanceParameter instances
+                or dicts.
+            agent: Agent identifier for a remote integration instance.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created IntegrationInstance
+                resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_instance(
+            self,
+            integration_name,
+            environment,
+            display_name=display_name,
+            description=description,
+            parameters=parameters,
+            agent=agent,
+            api_version=api_version,
+        )
+
+    def update_integration_instance(
+        self,
+        integration_name: str,
+        integration_instance_id: str,
+        environment: str | None = None,
+        display_name: str | None = None,
+        description: str | None = None,
+        parameters: (
+            list[dict[str, Any] | IntegrationInstanceParameter] | None
+        ) = None,
+        agent: str | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Update an existing integration instance.
+
+        Use this method to modify connection parameters (e.g., rotate
+        an API key), change the display name, or update the description
+        of a configured integration instance.
+
+        Args:
+            integration_name: Name of the integration the instance
+                belongs to.
+            integration_instance_id: ID of the integration instance to
+                update.
+            environment: The integration instance environment.
+            display_name: The display name of the integration instance.
+                Maximum 110 characters.
+            description: The integration instance description. Maximum
+                1500 characters.
+            parameters: List of IntegrationInstanceParameter instances
+                or dicts.
+            agent: Agent identifier for a remote integration instance.
+            update_mask: Comma-separated list of fields to update. If
+                omitted, the mask is auto-generated from whichever
+                fields are provided. Example:
+                "displayName,description".
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the updated IntegrationInstance resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _update_integration_instance(
+            self,
+            integration_name,
+            integration_instance_id,
+            environment=environment,
+            display_name=display_name,
+            description=description,
+            parameters=parameters,
+            agent=agent,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def execute_integration_instance_test(
+        self,
+        integration_name: str,
+        integration_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Execute a connectivity test for a specific integration
+        instance.
+
+        Use this method to verify that SecOps can successfully
+        communicate with the third-party security product using the
+        provided credentials.
+
+        Args:
+            integration_name: Name of the integration the instance
+                belongs to.
+            integration_instance_id: ID of the integration instance to
+                test.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the test results with the following fields:
+                - successful: Indicates if the test was successful.
+                - message: Test result message (optional).
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _execute_integration_instance_test(
+            self,
+            integration_name,
+            integration_instance_id,
+            api_version=api_version,
+        )
+
+    def get_integration_instance_affected_items(
+        self,
+        integration_name: str,
+        integration_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """List all playbooks that depend on a specific integration
+        instance.
+
+        Use this method to perform impact analysis before deleting or
+        significantly changing a connection configuration.
+
+        Args:
+            integration_name: Name of the integration the instance
+                belongs to.
+            integration_instance_id: ID of the integration instance to
+                fetch affected items for.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing a list of AffectedPlaybookResponse objects
+                that depend on the specified integration instance.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_instance_affected_items(
+            self,
+            integration_name,
+            integration_instance_id,
+            api_version=api_version,
+        )
+
+    def get_default_integration_instance(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get the system default configuration for a specific
+        integration.
+
+        Use this method to retrieve the baseline integration instance
+        details provided for a commercial product.
+
+        Args:
+            integration_name: Name of the integration to fetch the
+                default instance for.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the default IntegrationInstance resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_default_integration_instance(
+            self,
+            integration_name,
             api_version=api_version,
         )
 

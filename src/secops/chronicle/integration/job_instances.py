@@ -19,7 +19,7 @@ from typing import Any, TYPE_CHECKING
 from secops.chronicle.models import (
     APIVersion,
     AdvancedConfig,
-    IntegrationJobInstanceParameter
+    IntegrationJobInstanceParameter,
 )
 from secops.chronicle.utils.format_utils import (
     format_resource_id,
@@ -163,7 +163,7 @@ def delete_integration_job_instance(
     )
 
 
-#pylint: disable=line-too-long
+# pylint: disable=line-too-long
 def create_integration_job_instance(
     client: "ChronicleClient",
     integration_name: str,
@@ -173,12 +173,14 @@ def create_integration_job_instance(
     enabled: bool,
     advanced: bool,
     description: str | None = None,
-    parameters: list[dict[str, Any] | IntegrationJobInstanceParameter] | None = None,
+    parameters: (
+        list[dict[str, Any] | IntegrationJobInstanceParameter] | None
+    ) = None,
     advanced_config: dict[str, Any] | AdvancedConfig | None = None,
     agent: str | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
-    #pylint: enable=line-too-long
+    # pylint: enable=line-too-long
     """Create a new job instance for a specific integration job.
 
     Use this method to schedule a new recurring background job. You must
@@ -209,8 +211,10 @@ def create_integration_job_instance(
         APIError: If the API request fails.
     """
     resolved_parameters = (
-        [p.to_dict() if isinstance(p, IntegrationJobInstanceParameter) else p
-         for p in parameters]
+        [
+            p.to_dict() if isinstance(p, IntegrationJobInstanceParameter) else p
+            for p in parameters
+        ]
         if parameters is not None
         else None
     )
@@ -245,7 +249,8 @@ def create_integration_job_instance(
         json=body,
     )
 
-#pylint: disable=line-too-long
+
+# pylint: disable=line-too-long
 def update_integration_job_instance(
     client: "ChronicleClient",
     integration_name: str,
@@ -256,7 +261,9 @@ def update_integration_job_instance(
     enabled: bool | None = None,
     advanced: bool | None = None,
     description: str | None = None,
-    parameters: list[dict[str, Any] | IntegrationJobInstanceParameter] | None = None,
+    parameters: (
+        list[dict[str, Any] | IntegrationJobInstanceParameter] | None
+    ) = None,
     advanced_config: dict[str, Any] | AdvancedConfig | None = None,
     update_mask: str | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
@@ -295,8 +302,10 @@ def update_integration_job_instance(
         APIError: If the API request fails.
     """
     resolved_parameters = (
-        [p.to_dict() if isinstance(p, IntegrationJobInstanceParameter) else p
-         for p in parameters]
+        [
+            p.to_dict() if isinstance(p, IntegrationJobInstanceParameter) else p
+            for p in parameters
+        ]
         if parameters is not None
         else None
     )
@@ -331,13 +340,16 @@ def update_integration_job_instance(
         params=params,
     )
 
-#pylint: disable=line-too-long
+
+# pylint: disable=line-too-long
 def run_integration_job_instance_on_demand(
     client: "ChronicleClient",
     integration_name: str,
     job_id: str,
     job_instance_id: str,
-    parameters: list[dict[str, Any] | IntegrationJobInstanceParameter] | None = None,
+    parameters: (
+        list[dict[str, Any] | IntegrationJobInstanceParameter] | None
+    ) = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
     # pylint: enable=line-too-long
@@ -363,8 +375,10 @@ def run_integration_job_instance_on_demand(
         APIError: If the API request fails.
     """
     resolved_parameters = (
-        [p.to_dict() if isinstance(p, IntegrationJobInstanceParameter) else p
-         for p in parameters]
+        [
+            p.to_dict() if isinstance(p, IntegrationJobInstanceParameter) else p
+            for p in parameters
+        ]
         if parameters is not None
         else None
     )

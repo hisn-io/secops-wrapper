@@ -3074,6 +3074,148 @@ if total > 0:
     print(f"Successful: {successful}, Failed: {failed}")
 ```
 
+### Integration Instances
+
+List all instances for a specific integration:
+
+```python
+# Get all instances for an integration
+instances = chronicle.list_integration_instances("MyIntegration")
+for instance in instances.get("integrationInstances", []):
+    print(f"Instance: {instance.get('displayName')}, ID: {instance.get('name')}")
+    print(f"Environment: {instance.get('environment')}")
+
+# Get all instances as a list
+instances = chronicle.list_integration_instances("MyIntegration", as_list=True)
+
+# Get instances for a specific environment
+instances = chronicle.list_integration_instances(
+    "MyIntegration",
+    filter_string="environment = 'production'"
+)
+```
+
+Get details of a specific integration instance:
+
+```python
+instance = chronicle.get_integration_instance(
+    integration_name="MyIntegration",
+    integration_instance_id="ii1"
+)
+print(f"Display Name: {instance.get('displayName')}")
+print(f"Environment: {instance.get('environment')}")
+print(f"Agent: {instance.get('agent')}")
+```
+
+Create a new integration instance:
+
+```python
+from secops.chronicle.models import IntegrationInstanceParameter
+
+# Create instance with required fields only
+new_instance = chronicle.create_integration_instance(
+    integration_name="MyIntegration",
+    environment="production"
+)
+
+# Create instance with all fields
+new_instance = chronicle.create_integration_instance(
+    integration_name="MyIntegration",
+    environment="production",
+    display_name="Production Instance",
+    description="Main production integration instance",
+    parameters=[
+        IntegrationInstanceParameter(
+            value="api_key_value"
+        ),
+        IntegrationInstanceParameter(
+            value="https://api.example.com"
+        )
+    ],
+    agent="agent-123"
+)
+```
+
+Update an existing integration instance:
+
+```python
+from secops.chronicle.models import IntegrationInstanceParameter
+
+# Update instance display name
+updated_instance = chronicle.update_integration_instance(
+    integration_name="MyIntegration",
+    integration_instance_id="ii1",
+    display_name="Updated Production Instance"
+)
+
+# Update multiple fields including parameters
+updated_instance = chronicle.update_integration_instance(
+    integration_name="MyIntegration",
+    integration_instance_id="ii1",
+    display_name="Updated Instance",
+    description="Updated description",
+    environment="staging",
+    parameters=[
+        IntegrationInstanceParameter(
+            value="new_api_key"
+        )
+    ]
+)
+
+# Use custom update mask
+updated_instance = chronicle.update_integration_instance(
+    integration_name="MyIntegration",
+    integration_instance_id="ii1",
+    display_name="New Name",
+    update_mask="displayName"
+)
+```
+
+Delete an integration instance:
+
+```python
+chronicle.delete_integration_instance(
+    integration_name="MyIntegration",
+    integration_instance_id="ii1"
+)
+```
+
+Execute a connectivity test for an integration instance:
+
+```python
+# Test if the instance can connect to the third-party service
+test_result = chronicle.execute_integration_instance_test(
+    integration_name="MyIntegration",
+    integration_instance_id="ii1"
+)
+print(f"Test Successful: {test_result.get('successful')}")
+print(f"Message: {test_result.get('message')}")
+```
+
+Get affected items (playbooks) that depend on an integration instance:
+
+```python
+# Perform impact analysis before deleting or modifying an instance
+affected_items = chronicle.get_integration_instance_affected_items(
+    integration_name="MyIntegration",
+    integration_instance_id="ii1"
+)
+for playbook in affected_items.get("affectedPlaybooks", []):
+    print(f"Playbook: {playbook.get('displayName')}")
+    print(f"  ID: {playbook.get('name')}")
+```
+
+Get the default integration instance:
+
+```python
+# Get the system default configuration for a commercial product
+default_instance = chronicle.get_default_integration_instance(
+    integration_name="AWSSecurityHub"
+)
+print(f"Default Instance: {default_instance.get('displayName')}")
+print(f"Environment: {default_instance.get('environment')}")
+```
+
 
 ## Rule Management
 

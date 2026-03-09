@@ -568,6 +568,49 @@ class JobParameter:
         return data
 
 
+class IntegrationParameterType(str, Enum):
+    """Parameter types for Chronicle SOAR integration instances."""
+
+    UNSPECIFIED = "INTEGRATION_PARAMETER_TYPE_UNSPECIFIED"
+    BOOLEAN = "BOOLEAN"
+    INT = "INT"
+    STRING = "STRING"
+    PASSWORD = "PASSWORD"
+    IP = "IP"
+    IP_OR_HOST = "IP_OR_HOST"
+    URL = "URL"
+    DOMAIN = "DOMAIN"
+    EMAIL = "EMAIL"
+    VALUES_LIST = "VALUES_LIST"
+    VALUES_AS_SEMICOLON_SEPARATED_STRING = (
+        "VALUES_AS_SEMICOLON_SEPARATED_STRING"
+    )
+    MULTI_VALUES_SELECTION = "MULTI_VALUES_SELECTION"
+    SCRIPT = "SCRIPT"
+    FILTER_LIST = "FILTER_LIST"
+
+
+@dataclass
+class IntegrationInstanceParameter:
+    """A parameter instance for a Chronicle SOAR integration instance.
+
+    Note: Most fields are output-only and will be populated by the API.
+    Only value needs to be provided when configuring an integration instance.
+
+    Attributes:
+        value: The parameter's value.
+    """
+
+    value: str | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {}
+        if self.value is not None:
+            data["value"] = self.value
+        return data
+
+
 @dataclass
 class ConnectorRule:
     """A rule definition for a Chronicle SOAR integration connector.

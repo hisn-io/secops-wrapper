@@ -295,6 +295,16 @@ from secops.chronicle.integration.job_instance_logs import (
     list_job_instance_logs,
     get_job_instance_log,
 )
+from secops.chronicle.integration.integration_instances import (
+    list_integration_instances,
+    get_integration_instance,
+    delete_integration_instance,
+    create_integration_instance,
+    update_integration_instance,
+    execute_integration_instance_test,
+    get_integration_instance_affected_items,
+    get_default_integration_instance,
+)
 from secops.chronicle.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
@@ -552,6 +562,15 @@ __all__ = [
     # Job Instance Logs
     "list_job_instance_logs",
     "get_job_instance_log",
+    # Integration Instances
+    "list_integration_instances",
+    "get_integration_instance",
+    "delete_integration_instance",
+    "create_integration_instance",
+    "update_integration_instance",
+    "execute_integration_instance_test",
+    "get_integration_instance_affected_items",
+    "get_default_integration_instance",
     # Marketplace Integrations
     "list_marketplace_integrations",
     "get_marketplace_integration",
