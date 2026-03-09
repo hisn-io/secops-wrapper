@@ -259,6 +259,10 @@ from secops.chronicle.integration.connector_context_properties import (
     update_connector_context_property,
     delete_all_connector_context_properties,
 )
+from secops.chronicle.integration.connector_instance_logs import (
+    list_connector_instance_logs,
+    get_connector_instance_log,
+)
 from secops.chronicle.integration.jobs import (
     list_integration_jobs,
     get_integration_job,
@@ -545,6 +549,9 @@ __all__ = [
     "create_connector_context_property",
     "update_connector_context_property",
     "delete_all_connector_context_properties",
+    # Connector Instance Logs
+    "list_connector_instance_logs",
+    "get_connector_instance_log",
     # Integration Jobs
     "list_integration_jobs",
     "get_integration_job",

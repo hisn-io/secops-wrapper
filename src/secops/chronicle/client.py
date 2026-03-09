@@ -187,6 +187,10 @@ from secops.chronicle.integration.connector_context_properties import (
     list_connector_context_properties as _list_connector_context_properties,
     update_connector_context_property as _update_connector_context_property,
 )
+from secops.chronicle.integration.connector_instance_logs import (
+    get_connector_instance_log as _get_connector_instance_log,
+    list_connector_instance_logs as _list_connector_instance_logs,
+)
 from secops.chronicle.integration.jobs import (
     create_integration_job as _create_integration_job,
     delete_integration_job as _delete_integration_job,
@@ -2557,6 +2561,104 @@ class ChronicleClient:
             integration_name,
             connector_id,
             context_id=context_id,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Connector Instance Logs methods
+    # -------------------------------------------------------------------------
+
+    def list_connector_instance_logs(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector_instance_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all logs for a specific connector instance.
+
+        Use this method to browse the execution history and diagnostic
+        output of a connector. Supports filtering and pagination to
+        efficiently navigate large volumes of log data.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the instance belongs to.
+            connector_instance_id: ID of the connector instance to list
+                logs for.
+            page_size: Maximum number of logs to return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter logs.
+            order_by: Field to sort the logs by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of logs instead of a dict
+                with logs list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of logs.
+            If as_list is False: Dict with logs list and nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_connector_instance_logs(
+            self,
+            integration_name,
+            connector_id,
+            connector_instance_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_connector_instance_log(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector_instance_id: str,
+        log_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a single log entry for a specific connector instance.
+
+        Use this method to retrieve a specific log entry from a
+        connector instance's execution, including its message,
+        timestamp, and severity level. Useful for auditing and detailed
+        troubleshooting of a specific connector run.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the instance belongs to.
+            connector_instance_id: ID of the connector instance the log
+                belongs to.
+            log_id: ID of the log entry to retrieve.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing details of the specified ConnectorLog.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_connector_instance_log(
+            self,
+            integration_name,
+            connector_id,
+            connector_instance_id,
+            log_id,
             api_version=api_version,
         )
 

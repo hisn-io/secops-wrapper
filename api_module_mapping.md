@@ -7,8 +7,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 ## Implementation Statistics
 
 - **v1:** 17 endpoints implemented
-- **v1beta:** 74 endpoints implemented
-- **v1alpha:** 167 endpoints implemented
+- **v1beta:** 76 endpoints implemented
+- **v1alpha:** 169 endpoints implemented
 
 ## Endpoint Mapping
 
@@ -108,6 +108,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.connectors.contextProperties.get                                  | v1beta  | chronicle.integration.connector_context_properties.get_connector_context_property                                            |                                                |
 | integrations.connectors.contextProperties.list                                 | v1beta  | chronicle.integration.connector_context_properties.list_connector_context_properties                                         |                                                |
 | integrations.connectors.contextProperties.patch                                | v1beta  | chronicle.integration.connector_context_properties.update_connector_context_property                                         |                                                |
+| integrations.connectors.connectorInstances.logs.get                            | v1beta  | chronicle.integration.connector_instance_logs.get_connector_instance_log                                                     |                                                |
+| integrations.connectors.connectorInstances.logs.list                           | v1beta  | chronicle.integration.connector_instance_logs.list_connector_instance_logs                                                   |                                                |
 | integrations.integrationInstances.create                                       | v1beta  | chronicle.integration.integration_instances.create_integration_instance                                                      |                                                |
 | integrations.integrationInstances.delete                                       | v1beta  | chronicle.integration.integration_instances.delete_integration_instance                                                      |                                                |
 | integrations.integrationInstances.executeTest                                  | v1beta  | chronicle.integration.integration_instances.execute_integration_instance_test                                                |                                                |
@@ -372,6 +374,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.connectors.contextProperties.get                                  | v1alpha | chronicle.integration.connector_context_properties.get_connector_context_property(api_version=APIVersion.V1ALPHA)            |                                                |
 | integrations.connectors.contextProperties.list                                 | v1alpha | chronicle.integration.connector_context_properties.list_connector_context_properties(api_version=APIVersion.V1ALPHA)         |                                                |
 | integrations.connectors.contextProperties.patch                                | v1alpha | chronicle.integration.connector_context_properties.update_connector_context_property(api_version=APIVersion.V1ALPHA)         |                                                |
+| integrations.connectors.connectorInstances.logs.get                            | v1alpha | chronicle.integration.connector_instance_logs.get_connector_instance_log(api_version=APIVersion.V1ALPHA)                     |                                                |
+| integrations.connectors.connectorInstances.logs.list                           | v1alpha | chronicle.integration.connector_instance_logs.list_connector_instance_logs(api_version=APIVersion.V1ALPHA)                   |                                                |
 | integrations.integrationInstances.create                                       | v1alpha | chronicle.integration.integration_instances.create_integration_instance(api_version=APIVersion.V1ALPHA)                      |                                                |
 | integrations.integrationInstances.delete                                       | v1alpha | chronicle.integration.integration_instances.delete_integration_instance(api_version=APIVersion.V1ALPHA)                      |                                                |
 | integrations.integrationInstances.executeTest                                  | v1alpha | chronicle.integration.integration_instances.execute_integration_instance_test(api_version=APIVersion.V1ALPHA)                |                                                |

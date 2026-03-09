@@ -2501,6 +2501,102 @@ for prop in all_context:
     print(f"{prop.get('key')}: {prop.get('value')}")
 ```
 
+### Connector Instance Logs
+
+List all execution logs for a connector instance:
+
+```python
+# Get all logs for a connector instance
+logs = chronicle.list_connector_instance_logs(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector_instance_id="ci1"
+)
+for log in logs.get("logs", []):
+    print(f"Log ID: {log.get('name')}, Severity: {log.get('severity')}")
+    print(f"Timestamp: {log.get('timestamp')}")
+    print(f"Message: {log.get('message')}")
+
+# Get all logs as a list
+logs = chronicle.list_connector_instance_logs(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector_instance_id="ci1",
+    as_list=True
+)
+
+# Filter logs by severity
+logs = chronicle.list_connector_instance_logs(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector_instance_id="ci1",
+    filter_string='severity = "ERROR"',
+    order_by="timestamp desc"
+)
+```
+
+Get a specific log entry:
+
+```python
+log_entry = chronicle.get_connector_instance_log(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector_instance_id="ci1",
+    log_id="log123"
+)
+print(f"Severity: {log_entry.get('severity')}")
+print(f"Timestamp: {log_entry.get('timestamp')}")
+print(f"Message: {log_entry.get('message')}")
+```
+
+Monitor connector execution and troubleshooting:
+
+```python
+# Get recent logs for monitoring
+recent_logs = chronicle.list_connector_instance_logs(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector_instance_id="ci1",
+    order_by="timestamp desc",
+    page_size=10,
+    as_list=True
+)
+
+# Check for errors
+for log in recent_logs:
+    if log.get("severity") in ["ERROR", "CRITICAL"]:
+        print(f"Error at {log.get('timestamp')}")
+        log_details = chronicle.get_connector_instance_log(
+            integration_name="MyIntegration",
+            connector_id="c1",
+            connector_instance_id="ci1",
+            log_id=log.get("name").split("/")[-1]
+        )
+        print(f"Error message: {log_details.get('message')}")
+```
+
+Analyze connector performance and reliability:
+
+```python
+# Get all logs to calculate error rate
+all_logs = chronicle.list_connector_instance_logs(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector_instance_id="ci1",
+    as_list=True
+)
+
+errors = sum(1 for log in all_logs if log.get("severity") in ["ERROR", "CRITICAL"])
+warnings = sum(1 for log in all_logs if log.get("severity") == "WARNING")
+total = len(all_logs)
+
+if total > 0:
+    error_rate = (errors / total) * 100
+    print(f"Error Rate: {error_rate:.2f}%")
+    print(f"Total Logs: {total}")
+    print(f"Errors: {errors}, Warnings: {warnings}")
+```
+
 ### Integration Jobs
 
 List all available jobs for an integration:
