@@ -7,8 +7,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 ## Implementation Statistics
 
 - **v1:** 17 endpoints implemented
-- **v1beta:** 84 endpoints implemented
-- **v1alpha:** 177 endpoints implemented
+- **v1beta:** 88 endpoints implemented
+- **v1alpha:** 181 endpoints implemented
 
 ## Endpoint Mapping
 
@@ -91,6 +91,10 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.actions.get                                                       | v1beta  | chronicle.integration.actions.get_integration_action                                                                         |                                                |
 | integrations.actions.list                                                      | v1beta  | chronicle.integration.actions.list_integration_actions                                                                       |                                                |
 | integrations.actions.patch                                                     | v1beta  | chronicle.integration.actions.update_integration_action                                                                      |                                                |
+| integrations.actions.revisions.create                                          | v1beta  | chronicle.integration.action_revisions.create_integration_action_revision                                                    |                                                |
+| integrations.actions.revisions.delete                                          | v1beta  | chronicle.integration.action_revisions.delete_integration_action_revision                                                    |                                                |
+| integrations.actions.revisions.list                                            | v1beta  | chronicle.integration.action_revisions.list_integration_action_revisions                                                     |                                                |
+| integrations.actions.revisions.rollback                                        | v1beta  | chronicle.integration.action_revisions.rollback_integration_action_revision                                                  |                                                |
 | integrations.connectors.create                                                 | v1beta  | chronicle.integration.connectors.create_integration_connector                                                                |                                                |
 | integrations.connectors.delete                                                 | v1beta  | chronicle.integration.connectors.delete_integration_connector                                                                |                                                |
 | integrations.connectors.executeTest                                            | v1beta  | chronicle.integration.connectors.execute_integration_connector_test                                                          |                                                |
@@ -365,6 +369,10 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.actions.get                                                       | v1alpha | chronicle.integration.actions.get_integration_action(api_version=APIVersion.V1ALPHA)                                         |                                                |
 | integrations.actions.list                                                      | v1alpha | chronicle.integration.actions.list_integration_actions(api_version=APIVersion.V1ALPHA)                                       |                                                |
 | integrations.actions.patch                                                     | v1alpha | chronicle.integration.actions.update_integration_action(api_version=APIVersion.V1ALPHA)                                      |                                                |
+| integrations.actions.revisions.create                                          | v1alpha | chronicle.integration.action_revisions.create_integration_action_revision(api_version=APIVersion.V1ALPHA)                    |                                                |
+| integrations.actions.revisions.delete                                          | v1alpha | chronicle.integration.action_revisions.delete_integration_action_revision(api_version=APIVersion.V1ALPHA)                    |                                                |
+| integrations.actions.revisions.list                                            | v1alpha | chronicle.integration.action_revisions.list_integration_action_revisions(api_version=APIVersion.V1ALPHA)                     |                                                |
+| integrations.actions.revisions.rollback                                        | v1alpha | chronicle.integration.action_revisions.rollback_integration_action_revision(api_version=APIVersion.V1ALPHA)                  |                                                |
 | integrations.connectors.create                                                 | v1alpha | chronicle.integration.connectors.create_integration_connector(api_version=APIVersion.V1ALPHA)                                |                                                |
 | integrations.connectors.delete                                                 | v1alpha | chronicle.integration.connectors.delete_integration_connector(api_version=APIVersion.V1ALPHA)                                |                                                |
 | integrations.connectors.executeTest                                            | v1alpha | chronicle.integration.connectors.execute_integration_connector_test(api_version=APIVersion.V1ALPHA)                          |                                                |

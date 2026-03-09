@@ -236,6 +236,12 @@ from secops.chronicle.integration.actions import (
     get_integration_actions_by_environment,
     get_integration_action_template,
 )
+from secops.chronicle.integration.action_revisions import (
+    list_integration_action_revisions,
+    delete_integration_action_revision,
+    create_integration_action_revision,
+    rollback_integration_action_revision,
+)
 from secops.chronicle.integration.connectors import (
     list_integration_connectors,
     get_integration_connector,
@@ -539,6 +545,11 @@ __all__ = [
     "execute_integration_action_test",
     "get_integration_actions_by_environment",
     "get_integration_action_template",
+    # Integration Action Revisions
+    "list_integration_action_revisions",
+    "delete_integration_action_revision",
+    "create_integration_action_revision",
+    "rollback_integration_action_revision",
     # Integration Connectors
     "list_integration_connectors",
     "get_integration_connector",

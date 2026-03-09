@@ -2076,6 +2076,132 @@ Get a template for creating an action in an integration
 template = chronicle.get_integration_action_template("MyIntegration")
 ```
 
+### Integration Action Revisions
+
+List all revisions for an action:
+
+```python
+# Get all revisions for an action
+revisions = chronicle.list_integration_action_revisions(
+    integration_name="MyIntegration",
+    action_id="123"
+)
+for revision in revisions.get("revisions", []):
+    print(f"Revision: {revision.get('name')}, Comment: {revision.get('comment')}")
+
+# Get all revisions as a list
+revisions = chronicle.list_integration_action_revisions(
+    integration_name="MyIntegration",
+    action_id="123",
+    as_list=True
+)
+
+# Filter revisions
+revisions = chronicle.list_integration_action_revisions(
+    integration_name="MyIntegration",
+    action_id="123",
+    filter_string='version = "1.0"',
+    order_by="createTime desc"
+)
+```
+
+Delete a specific action revision:
+
+```python
+chronicle.delete_integration_action_revision(
+    integration_name="MyIntegration",
+    action_id="123",
+    revision_id="rev-456"
+)
+```
+
+Create a new revision before making changes:
+
+```python
+# Get the current action
+action = chronicle.get_integration_action(
+    integration_name="MyIntegration",
+    action_id="123"
+)
+
+# Create a backup revision
+new_revision = chronicle.create_integration_action_revision(
+    integration_name="MyIntegration",
+    action_id="123",
+    action=action,
+    comment="Backup before major refactor"
+)
+print(f"Created revision: {new_revision.get('name')}")
+
+# Create revision with custom comment
+new_revision = chronicle.create_integration_action_revision(
+    integration_name="MyIntegration",
+    action_id="123",
+    action=action,
+    comment="Version 2.0 - Added error handling"
+)
+```
+
+Rollback to a previous revision:
+
+```python
+# Rollback to a previous working version
+rollback_result = chronicle.rollback_integration_action_revision(
+    integration_name="MyIntegration",
+    action_id="123",
+    revision_id="rev-456"
+)
+print(f"Rolled back to: {rollback_result.get('name')}")
+```
+
+Example workflow: Safe action updates with revision control:
+
+```python
+# 1. Get the current action
+action = chronicle.get_integration_action(
+    integration_name="MyIntegration",
+    action_id="123"
+)
+
+# 2. Create a backup revision
+backup = chronicle.create_integration_action_revision(
+    integration_name="MyIntegration",
+    action_id="123",
+    action=action,
+    comment="Backup before updating logic"
+)
+
+# 3. Make changes to the action
+updated_action = chronicle.update_integration_action(
+    integration_name="MyIntegration",
+    action_id="123",
+    display_name="Updated Action",
+    script="""
+def main(context):
+    # New logic here
+    return {"status": "success"}
+"""
+)
+
+# 4. Test the updated action
+test_result = chronicle.execute_integration_action_test(
+    integration_name="MyIntegration",
+    action_id="123",
+    action=updated_action
+)
+
+# 5. If test fails, rollback to backup
+if not test_result.get("successful"):
+    print("Test failed - rolling back")
+    chronicle.rollback_integration_action_revision(
+        integration_name="MyIntegration",
+        action_id="123",
+        revision_id=backup.get("name").split("/")[-1]
+    )
+else:
+    print("Test passed - changes saved")
+```
+
 ### Integration Connectors
 
 List all available connectors for an integration:

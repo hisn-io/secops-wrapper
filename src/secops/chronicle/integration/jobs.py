@@ -323,7 +323,7 @@ def execute_integration_job_test(
     Raises:
         APIError: If the API request fails.
     """
-    body: dict[str, Any] = {"job": job}
+    body = {"job": job}
 
     if agent_identifier is not None:
         body["agentIdentifier"] = agent_identifier

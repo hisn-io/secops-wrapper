@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-"""Integration connector revisions functionality for Chronicle."""
+"""Integration action revisions functionality for Chronicle."""
 
 from typing import Any, TYPE_CHECKING
 
@@ -27,10 +27,10 @@ if TYPE_CHECKING:
     from secops.chronicle.client import ChronicleClient
 
 
-def list_integration_connector_revisions(
+def list_integration_action_revisions(
     client: "ChronicleClient",
     integration_name: str,
-    connector_id: str,
+    action_id: str,
     page_size: int | None = None,
     page_token: str | None = None,
     filter_string: str | None = None,
@@ -38,15 +38,15 @@ def list_integration_connector_revisions(
     api_version: APIVersion | None = APIVersion.V1BETA,
     as_list: bool = False,
 ) -> dict[str, Any] | list[dict[str, Any]]:
-    """List all revisions for a specific integration connector.
+    """List all revisions for a specific integration action.
 
-    Use this method to browse the version history and identify potential
-    rollback targets.
+    Use this method to browse the version history and identify previous
+    configurations of an automated task.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration the connector belongs to.
-        connector_id: ID of the connector to list revisions for.
+        integration_name: Name of the integration the action belongs to.
+        action_id: ID of the action to list revisions for.
         page_size: Maximum number of revisions to return.
         page_token: Page token from a previous call to retrieve the next page.
         filter_string: Filter expression to filter revisions.
@@ -75,7 +75,7 @@ def list_integration_connector_revisions(
         api_version=api_version,
         path=(
             f"integrations/{format_resource_id(integration_name)}/"
-            f"connectors/{connector_id}/revisions"
+            f"actions/{action_id}/revisions"
         ),
         items_key="revisions",
         page_size=page_size,
@@ -85,22 +85,21 @@ def list_integration_connector_revisions(
     )
 
 
-def delete_integration_connector_revision(
+def delete_integration_action_revision(
     client: "ChronicleClient",
     integration_name: str,
-    connector_id: str,
+    action_id: str,
     revision_id: str,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> None:
-    """Delete a specific revision for a given integration connector.
+    """Delete a specific revision for a given integration action.
 
-    Use this method to clean up old or incorrect snapshots from the version
-    history.
+    Use this method to clean up obsolete action revisions.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration the connector belongs to.
-        connector_id: ID of the connector the revision belongs to.
+        integration_name: Name of the integration the action belongs to.
+        action_id: ID of the action the revision belongs to.
         revision_id: ID of the revision to delete.
         api_version: API version to use for the request. Default is V1BETA.
 
@@ -115,41 +114,41 @@ def delete_integration_connector_revision(
         method="DELETE",
         endpoint_path=(
             f"integrations/{format_resource_id(integration_name)}/"
-            f"connectors/{connector_id}/revisions/{revision_id}"
+            f"actions/{action_id}/revisions/{revision_id}"
         ),
         api_version=api_version,
     )
 
 
-def create_integration_connector_revision(
+def create_integration_action_revision(
     client: "ChronicleClient",
     integration_name: str,
-    connector_id: str,
-    connector: dict[str, Any],
+    action_id: str,
+    action: dict[str, Any],
     comment: str | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
-    """Create a new revision snapshot of the current integration connector.
+    """Create a new revision snapshot of the current integration action.
 
-    Use this method to save a stable configuration before making experimental
-    changes. Only custom connectors can be versioned.
+    Use this method to establish a recovery point before making significant
+    changes to a security operation's script or parameters.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration the connector belongs to.
-        connector_id: ID of the connector to create a revision for.
-        connector: Dict containing the IntegrationConnector to snapshot.
+        integration_name: Name of the integration the action belongs to.
+        action_id: ID of the action to create a revision for.
+        action: Dict containing the IntegrationAction to snapshot.
         comment: Comment describing the revision. Maximum 400 characters.
             Optional.
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing the newly created ConnectorRevision resource.
+        Dict containing the newly created IntegrationActionRevision resource.
 
     Raises:
         APIError: If the API request fails.
     """
-    body = {"connector": connector}
+    body = {"action": action}
 
     if comment is not None:
         body["comment"] = comment
@@ -159,34 +158,34 @@ def create_integration_connector_revision(
         method="POST",
         endpoint_path=(
             f"integrations/{format_resource_id(integration_name)}/"
-            f"connectors/{connector_id}/revisions"
+            f"actions/{action_id}/revisions"
         ),
         api_version=api_version,
         json=body,
     )
 
 
-def rollback_integration_connector_revision(
+def rollback_integration_action_revision(
     client: "ChronicleClient",
     integration_name: str,
-    connector_id: str,
+    action_id: str,
     revision_id: str,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> dict[str, Any]:
-    """Revert the current connector definition to a previously saved revision.
+    """Revert the current action definition to a previously saved revision.
 
-    Use this method to quickly revert to a known good configuration if an
-    investigation or update is unsuccessful.
+    Use this method to rapidly recover a functional automation state if an
+    update causes operational issues.
 
     Args:
         client: ChronicleClient instance.
-        integration_name: Name of the integration the connector belongs to.
-        connector_id: ID of the connector to rollback.
+        integration_name: Name of the integration the action belongs to.
+        action_id: ID of the action to rollback.
         revision_id: ID of the revision to rollback to.
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
-        Dict containing the ConnectorRevision rolled back to.
+        Dict containing the IntegrationActionRevision rolled back to.
 
     Raises:
         APIError: If the API request fails.
@@ -196,7 +195,7 @@ def rollback_integration_connector_revision(
         method="POST",
         endpoint_path=(
             f"integrations/{format_resource_id(integration_name)}/"
-            f"connectors/{connector_id}/revisions/{revision_id}:rollback"
+            f"actions/{action_id}/revisions/{revision_id}:rollback"
         ),
         api_version=api_version,
     )

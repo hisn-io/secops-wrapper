@@ -164,6 +164,12 @@ from secops.chronicle.integration.actions import (
     list_integration_actions as _list_integration_actions,
     update_integration_action as _update_integration_action,
 )
+from secops.chronicle.integration.action_revisions import (
+    create_integration_action_revision as _create_integration_action_revision,
+    delete_integration_action_revision as _delete_integration_action_revision,
+    list_integration_action_revisions as _list_integration_action_revisions,
+    rollback_integration_action_revision as _rollback_integration_action_revision,
+)
 from secops.chronicle.integration.connectors import (
     create_integration_connector as _create_integration_connector,
     delete_integration_connector as _delete_integration_connector,
@@ -1849,6 +1855,167 @@ class ChronicleClient:
             self,
             integration_name,
             is_async=is_async,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Integration Action Revisions methods
+    # -------------------------------------------------------------------------
+
+    def list_integration_action_revisions(
+        self,
+        integration_name: str,
+        action_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all revisions for a specific integration action.
+
+        Use this method to view the history of changes to an action,
+        enabling version control and the ability to rollback to
+        previous configurations.
+
+        Args:
+            integration_name: Name of the integration the action
+                belongs to.
+            action_id: ID of the action to list revisions for.
+            page_size: Maximum number of revisions to return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter revisions.
+            order_by: Field to sort the revisions by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of revisions instead of a
+                dict with revisions list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of action revisions.
+            If as_list is False: Dict with action revisions list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_action_revisions(
+            self,
+            integration_name,
+            action_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def delete_integration_action_revision(
+        self,
+        integration_name: str,
+        action_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific action revision.
+
+        Use this method to permanently remove a revision from the
+        action's history.
+
+        Args:
+            integration_name: Name of the integration the action
+                belongs to.
+            action_id: ID of the action the revision belongs to.
+            revision_id: ID of the revision to delete.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_action_revision(
+            self,
+            integration_name,
+            action_id,
+            revision_id,
+            api_version=api_version,
+        )
+
+    def create_integration_action_revision(
+        self,
+        integration_name: str,
+        action_id: str,
+        action: dict[str, Any],
+        comment: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new revision for an integration action.
+
+        Use this method to save a snapshot of the current action
+        configuration before making changes, enabling easy rollback if
+        needed.
+
+        Args:
+            integration_name: Name of the integration the action
+                belongs to.
+            action_id: ID of the action to create a revision for.
+            action: The action object to save as a revision.
+            comment: Optional comment describing the revision.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created ActionRevision resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_action_revision(
+            self,
+            integration_name,
+            action_id,
+            action,
+            comment=comment,
+            api_version=api_version,
+        )
+
+    def rollback_integration_action_revision(
+        self,
+        integration_name: str,
+        action_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Rollback an integration action to a previous revision.
+
+        Use this method to restore an action to a previously saved
+        state, reverting any changes made since that revision.
+
+        Args:
+            integration_name: Name of the integration the action
+                belongs to.
+            action_id: ID of the action to rollback.
+            revision_id: ID of the revision to rollback to.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the rolled back IntegrationAction resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _rollback_integration_action_revision(
+            self,
+            integration_name,
+            action_id,
+            revision_id,
             api_version=api_version,
         )
 

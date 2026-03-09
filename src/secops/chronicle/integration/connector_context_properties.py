@@ -190,7 +190,7 @@ def create_connector_context_property(
     Raises:
         APIError: If the API request fails.
     """
-    body: dict[str, Any] = {"value": value}
+    body = {"value": value}
 
     if key is not None:
         body["key"] = key
@@ -282,7 +282,7 @@ def delete_all_connector_context_properties(
     Raises:
         APIError: If the API request fails.
     """
-    body: dict[str, Any] = {}
+    body = {}
 
     if context_id is not None:
         body["contextId"] = context_id

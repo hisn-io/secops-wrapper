@@ -358,7 +358,7 @@ def execute_integration_connector_test(
     Raises:
         APIError: If the API request fails.
     """
-    body: dict[str, Any] = {"connector": connector}
+    body = {"connector": connector}
 
     if agent_identifier is not None:
         body["agentIdentifier"] = agent_identifier
