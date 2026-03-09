@@ -173,6 +173,12 @@ from secops.chronicle.integration.connectors import (
     list_integration_connectors as _list_integration_connectors,
     update_integration_connector as _update_integration_connector,
 )
+from secops.chronicle.integration.connector_revisions import (
+    create_integration_connector_revision as _create_integration_connector_revision,
+    delete_integration_connector_revision as _delete_integration_connector_revision,
+    list_integration_connector_revisions as _list_integration_connector_revisions,
+    rollback_integration_connector_revision as _rollback_integration_connector_revision,
+)
 from secops.chronicle.integration.jobs import (
     create_integration_job as _create_integration_job,
     delete_integration_job as _delete_integration_job,
@@ -2126,6 +2132,171 @@ class ChronicleClient:
         return _get_integration_connector_template(
             self,
             integration_name,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Integration Connector Revisions methods
+    # -------------------------------------------------------------------------
+
+    def list_integration_connector_revisions(
+        self,
+        integration_name: str,
+        connector_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all revisions for a specific integration connector.
+
+        Use this method to browse the version history and identify
+        potential rollback targets.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector to list revisions for.
+            page_size: Maximum number of revisions to return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter revisions.
+            order_by: Field to sort the revisions by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of revisions instead of a
+                dict with revisions list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of revisions.
+            If as_list is False: Dict with revisions list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_connector_revisions(
+            self,
+            integration_name,
+            connector_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def delete_integration_connector_revision(
+        self,
+        integration_name: str,
+        connector_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific revision for a given integration
+        connector.
+
+        Use this method to clean up old or incorrect snapshots from the
+        version history.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the revision belongs to.
+            revision_id: ID of the revision to delete.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_connector_revision(
+            self,
+            integration_name,
+            connector_id,
+            revision_id,
+            api_version=api_version,
+        )
+
+    def create_integration_connector_revision(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector: dict[str, Any],
+        comment: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new revision snapshot of the current integration
+        connector.
+
+        Use this method to save a stable configuration before making
+        experimental changes. Only custom connectors can be versioned.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector to create a revision for.
+            connector: Dict containing the IntegrationConnector to
+                snapshot.
+            comment: Comment describing the revision. Maximum 400
+                characters. Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created ConnectorRevision
+                resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_connector_revision(
+            self,
+            integration_name,
+            connector_id,
+            connector,
+            comment=comment,
+            api_version=api_version,
+        )
+
+    def rollback_integration_connector_revision(
+        self,
+        integration_name: str,
+        connector_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Revert the current connector definition to a previously
+        saved revision.
+
+        Use this method to quickly revert to a known good configuration
+        if an investigation or update is unsuccessful.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector to rollback.
+            revision_id: ID of the revision to rollback to.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the ConnectorRevision rolled back to.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _rollback_integration_connector_revision(
+            self,
+            integration_name,
+            connector_id,
+            revision_id,
             api_version=api_version,
         )
 

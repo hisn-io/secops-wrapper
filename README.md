@@ -2221,6 +2221,134 @@ template = chronicle.get_integration_connector_template("MyIntegration")
 print(f"Template script: {template.get('script')}")
 ```
 
+### Integration Connector Revisions
+
+List all revisions for a specific integration connector:
+
+```python
+# Get all revisions for a connector
+revisions = chronicle.list_integration_connector_revisions(
+    integration_name="MyIntegration",
+    connector_id="c1"
+)
+for revision in revisions.get("revisions", []):
+    print(f"Revision ID: {revision.get('name')}")
+    print(f"Comment: {revision.get('comment')}")
+    print(f"Created: {revision.get('createTime')}")
+
+# Get all revisions as a list
+revisions = chronicle.list_integration_connector_revisions(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    as_list=True
+)
+
+# Filter revisions with order
+revisions = chronicle.list_integration_connector_revisions(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    order_by="createTime desc",
+    page_size=10
+)
+```
+
+Delete a specific connector revision:
+
+```python
+# Clean up old revision from version history
+chronicle.delete_integration_connector_revision(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    revision_id="r1"
+)
+```
+
+Create a new connector revision snapshot:
+
+```python
+# Get the current connector configuration
+connector = chronicle.get_integration_connector(
+    integration_name="MyIntegration",
+    connector_id="c1"
+)
+
+# Create a revision without comment
+new_revision = chronicle.create_integration_connector_revision(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector=connector
+)
+
+# Create a revision with descriptive comment
+new_revision = chronicle.create_integration_connector_revision(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector=connector,
+    comment="Stable version before adding new field mapping"
+)
+
+print(f"Created revision: {new_revision.get('name')}")
+```
+
+Rollback a connector to a previous revision:
+
+```python
+# Revert to a known good configuration
+rolled_back = chronicle.rollback_integration_connector_revision(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    revision_id="r1"
+)
+
+print(f"Rolled back to revision: {rolled_back.get('name')}")
+print(f"Connector script restored")
+```
+
+Example workflow: Safe connector updates with revisions:
+
+```python
+# 1. Get current connector
+connector = chronicle.get_integration_connector(
+    integration_name="MyIntegration",
+    connector_id="c1"
+)
+
+# 2. Create backup revision before changes
+backup = chronicle.create_integration_connector_revision(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    connector=connector,
+    comment="Backup before timeout increase"
+)
+print(f"Backup created: {backup.get('name')}")
+
+# 3. Update the connector
+updated_connector = chronicle.update_integration_connector(
+    integration_name="MyIntegration",
+    connector_id="c1",
+    timeout_seconds=600,
+    description="Increased timeout for large data pulls"
+)
+
+# 4. Test the updated connector
+test_result = chronicle.execute_integration_connector_test(
+    integration_name="MyIntegration",
+    connector=updated_connector
+)
+
+# 5. If test fails, rollback to the backup
+if not test_result.get("outputMessage"):
+    print("Test failed, rolling back...")
+    chronicle.rollback_integration_connector_revision(
+        integration_name="MyIntegration",
+        connector_id="c1",
+        revision_id=backup.get("name").split("/")[-1]
+    )
+    print("Rollback complete")
+else:
+    print("Test passed, changes applied successfully")
+```
+
 ### Integration Jobs
 
 List all available jobs for an integration:

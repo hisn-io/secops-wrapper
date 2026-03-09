@@ -245,6 +245,12 @@ from secops.chronicle.integration.connectors import (
     execute_integration_connector_test,
     get_integration_connector_template,
 )
+from secops.chronicle.integration.connector_revisions import (
+    list_integration_connector_revisions,
+    delete_integration_connector_revision,
+    create_integration_connector_revision,
+    rollback_integration_connector_revision,
+)
 from secops.chronicle.integration.jobs import (
     list_integration_jobs,
     get_integration_job,
@@ -519,6 +525,11 @@ __all__ = [
     "update_integration_connector",
     "execute_integration_connector_test",
     "get_integration_connector_template",
+    # Integration Connector Revisions
+    "list_integration_connector_revisions",
+    "delete_integration_connector_revision",
+    "create_integration_connector_revision",
+    "rollback_integration_connector_revision",
     # Integration Jobs
     "list_integration_jobs",
     "get_integration_job",
