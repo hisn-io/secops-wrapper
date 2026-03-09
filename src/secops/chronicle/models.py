@@ -611,6 +611,34 @@ class IntegrationInstanceParameter:
         return data
 
 
+class ConnectorConnectivityStatus(str, Enum):
+    """Connectivity status for Chronicle SOAR connector instances."""
+
+    LIVE = "LIVE"
+    NOT_LIVE = "NOT_LIVE"
+
+
+@dataclass
+class ConnectorInstanceParameter:
+    """A parameter instance for a Chronicle SOAR connector instance.
+
+    Note: Most fields are output-only and will be populated by the API.
+    Only value needs to be provided when configuring a connector instance.
+
+    Attributes:
+        value: The value of the parameter.
+    """
+
+    value: str | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {}
+        if self.value is not None:
+            data["value"] = self.value
+        return data
+
+
 @dataclass
 class ConnectorRule:
     """A rule definition for a Chronicle SOAR integration connector.

@@ -7,8 +7,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 ## Implementation Statistics
 
 - **v1:** 17 endpoints implemented
-- **v1beta:** 76 endpoints implemented
-- **v1alpha:** 169 endpoints implemented
+- **v1beta:** 84 endpoints implemented
+- **v1alpha:** 177 endpoints implemented
 
 ## Endpoint Mapping
 
@@ -110,6 +110,14 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.connectors.contextProperties.patch                                | v1beta  | chronicle.integration.connector_context_properties.update_connector_context_property                                         |                                                |
 | integrations.connectors.connectorInstances.logs.get                            | v1beta  | chronicle.integration.connector_instance_logs.get_connector_instance_log                                                     |                                                |
 | integrations.connectors.connectorInstances.logs.list                           | v1beta  | chronicle.integration.connector_instance_logs.list_connector_instance_logs                                                   |                                                |
+| integrations.connectors.connectorInstances.create                              | v1beta  | chronicle.integration.connector_instances.create_connector_instance                                                          |                                                |
+| integrations.connectors.connectorInstances.delete                              | v1beta  | chronicle.integration.connector_instances.delete_connector_instance                                                          |                                                |
+| integrations.connectors.connectorInstances.fetchLatestDefinition               | v1beta  | chronicle.integration.connector_instances.get_connector_instance_latest_definition                                           |                                                |
+| integrations.connectors.connectorInstances.get                                 | v1beta  | chronicle.integration.connector_instances.get_connector_instance                                                             |                                                |
+| integrations.connectors.connectorInstances.list                                | v1beta  | chronicle.integration.connector_instances.list_connector_instances                                                           |                                                |
+| integrations.connectors.connectorInstances.patch                               | v1beta  | chronicle.integration.connector_instances.update_connector_instance                                                          |                                                |
+| integrations.connectors.connectorInstances.runOnDemand                         | v1beta  | chronicle.integration.connector_instances.run_connector_instance_on_demand                                                   |                                                |
+| integrations.connectors.connectorInstances.setLogsCollection                   | v1beta  | chronicle.integration.connector_instances.set_connector_instance_logs_collection                                             |                                                |
 | integrations.integrationInstances.create                                       | v1beta  | chronicle.integration.integration_instances.create_integration_instance                                                      |                                                |
 | integrations.integrationInstances.delete                                       | v1beta  | chronicle.integration.integration_instances.delete_integration_instance                                                      |                                                |
 | integrations.integrationInstances.executeTest                                  | v1beta  | chronicle.integration.integration_instances.execute_integration_instance_test                                                |                                                |
@@ -376,6 +384,14 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.connectors.contextProperties.patch                                | v1alpha | chronicle.integration.connector_context_properties.update_connector_context_property(api_version=APIVersion.V1ALPHA)         |                                                |
 | integrations.connectors.connectorInstances.logs.get                            | v1alpha | chronicle.integration.connector_instance_logs.get_connector_instance_log(api_version=APIVersion.V1ALPHA)                     |                                                |
 | integrations.connectors.connectorInstances.logs.list                           | v1alpha | chronicle.integration.connector_instance_logs.list_connector_instance_logs(api_version=APIVersion.V1ALPHA)                   |                                                |
+| integrations.connectors.connectorInstances.create                              | v1alpha | chronicle.integration.connector_instances.create_connector_instance(api_version=APIVersion.V1ALPHA)                          |                                                |
+| integrations.connectors.connectorInstances.delete                              | v1alpha | chronicle.integration.connector_instances.delete_connector_instance(api_version=APIVersion.V1ALPHA)                          |                                                |
+| integrations.connectors.connectorInstances.fetchLatestDefinition               | v1alpha | chronicle.integration.connector_instances.get_connector_instance_latest_definition(api_version=APIVersion.V1ALPHA)           |                                                |
+| integrations.connectors.connectorInstances.get                                 | v1alpha | chronicle.integration.connector_instances.get_connector_instance(api_version=APIVersion.V1ALPHA)                             |                                                |
+| integrations.connectors.connectorInstances.list                                | v1alpha | chronicle.integration.connector_instances.list_connector_instances(api_version=APIVersion.V1ALPHA)                           |                                                |
+| integrations.connectors.connectorInstances.patch                               | v1alpha | chronicle.integration.connector_instances.update_connector_instance(api_version=APIVersion.V1ALPHA)                          |                                                |
+| integrations.connectors.connectorInstances.runOnDemand                         | v1alpha | chronicle.integration.connector_instances.run_connector_instance_on_demand(api_version=APIVersion.V1ALPHA)                   |                                                |
+| integrations.connectors.connectorInstances.setLogsCollection                   | v1alpha | chronicle.integration.connector_instances.set_connector_instance_logs_collection(api_version=APIVersion.V1ALPHA)             |                                                |
 | integrations.integrationInstances.create                                       | v1alpha | chronicle.integration.integration_instances.create_integration_instance(api_version=APIVersion.V1ALPHA)                      |                                                |
 | integrations.integrationInstances.delete                                       | v1alpha | chronicle.integration.integration_instances.delete_integration_instance(api_version=APIVersion.V1ALPHA)                      |                                                |
 | integrations.integrationInstances.executeTest                                  | v1alpha | chronicle.integration.integration_instances.execute_integration_instance_test(api_version=APIVersion.V1ALPHA)                |                                                |

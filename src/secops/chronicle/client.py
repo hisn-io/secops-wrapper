@@ -191,6 +191,16 @@ from secops.chronicle.integration.connector_instance_logs import (
     get_connector_instance_log as _get_connector_instance_log,
     list_connector_instance_logs as _list_connector_instance_logs,
 )
+from secops.chronicle.integration.connector_instances import (
+    create_connector_instance as _create_connector_instance,
+    delete_connector_instance as _delete_connector_instance,
+    get_connector_instance as _get_connector_instance,
+    get_connector_instance_latest_definition as _get_connector_instance_latest_definition,
+    list_connector_instances as _list_connector_instances,
+    run_connector_instance_on_demand as _run_connector_instance_on_demand,
+    set_connector_instance_logs_collection as _set_connector_instance_logs_collection,
+    update_connector_instance as _update_connector_instance,
+)
 from secops.chronicle.integration.jobs import (
     create_integration_job as _create_integration_job,
     delete_integration_job as _delete_integration_job,
@@ -268,6 +278,7 @@ from secops.chronicle.models import (
     TargetMode,
     TileType,
     IntegrationParam,
+    ConnectorInstanceParameter
 )
 from secops.chronicle.nl_search import (
     nl_search as _nl_search,
@@ -2659,6 +2670,402 @@ class ChronicleClient:
             connector_id,
             connector_instance_id,
             log_id,
+            api_version=api_version,
+        )
+
+    # -------------------------------------------------------------------------
+    # Connector Instance methods
+    # -------------------------------------------------------------------------
+
+    def list_connector_instances(
+        self,
+        integration_name: str,
+        connector_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all instances for a specific integration connector.
+
+        Use this method to discover all configured instances of a
+        connector.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector to list instances for.
+            page_size: Maximum number of instances to return.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter instances.
+            order_by: Field to sort the instances by.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+            as_list: If True, return a list of instances instead of a
+                dict with instances list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of connector instances.
+            If as_list is False: Dict with connector instances list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_connector_instances(
+            self,
+            integration_name,
+            connector_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_connector_instance(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Get a single connector instance by ID.
+
+        Use this method to retrieve the configuration of a specific
+        connector instance, including its parameters, schedule, and
+        runtime settings.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the instance belongs to.
+            connector_instance_id: ID of the connector instance to
+                retrieve.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing details of the specified ConnectorInstance.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_connector_instance(
+            self,
+            integration_name,
+            connector_id,
+            connector_instance_id,
+            api_version=api_version,
+        )
+
+    def delete_connector_instance(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> None:
+        """Delete a specific connector instance.
+
+        Use this method to permanently remove a connector instance and
+        its configuration.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the instance belongs to.
+            connector_instance_id: ID of the connector instance to
+                delete.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_connector_instance(
+            self,
+            integration_name,
+            connector_id,
+            connector_instance_id,
+            api_version=api_version,
+        )
+
+    def create_connector_instance(
+        self,
+        integration_name: str,
+        connector_id: str,
+        environment: str,
+        display_name: str,
+        interval_seconds: int,
+        timeout_seconds: int,
+        description: str | None = None,
+        parameters: list[ConnectorInstanceParameter | dict] | None = None,
+        agent: str | None = None,
+        allow_list: list[str] | None = None,
+        product_field_name: str | None = None,
+        event_field_name: str | None = None,
+        integration_version: str | None = None,
+        version: str | None = None,
+        logging_enabled_until_unix_ms: str | None = None,
+        connector_instance_id: str | None = None,
+        enabled: bool | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Create a new connector instance.
+
+        Use this method to configure a new instance of a connector with
+        specific parameters and schedule settings.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector to create an instance for.
+            environment: Environment for the instance (e.g.,
+                "production").
+            display_name: Display name for the instance. Required.
+            interval_seconds: Interval in seconds for recurring
+                execution. Required.
+            timeout_seconds: Timeout in seconds for execution. Required.
+            description: Description of the instance. Optional.
+            parameters: List of parameters for the instance. Optional.
+            agent: Agent identifier for remote execution. Optional.
+            allow_list: List of allowed IP addresses. Optional.
+            product_field_name: Product field name. Optional.
+            event_field_name: Event field name. Optional.
+            integration_version: Integration version. Optional.
+            version: Version. Optional.
+            logging_enabled_until_unix_ms: Logging enabled until
+                timestamp. Optional.
+            connector_instance_id: Custom ID for the instance. Optional.
+            enabled: Whether the instance is enabled. Optional.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the newly created ConnectorInstance resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_connector_instance(
+            self,
+            integration_name,
+            connector_id,
+            environment,
+            display_name,
+            interval_seconds,
+            timeout_seconds,
+            description=description,
+            parameters=parameters,
+            agent=agent,
+            allow_list=allow_list,
+            product_field_name=product_field_name,
+            event_field_name=event_field_name,
+            integration_version=integration_version,
+            version=version,
+            logging_enabled_until_unix_ms=logging_enabled_until_unix_ms,
+            connector_instance_id=connector_instance_id,
+            enabled=enabled,
+            api_version=api_version,
+        )
+
+    def update_connector_instance(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector_instance_id: str,
+        display_name: str | None = None,
+        description: str | None = None,
+        interval_seconds: int | None = None,
+        timeout_seconds: int | None = None,
+        parameters: list[ConnectorInstanceParameter | dict] | None = None,
+        allow_list: list[str] | None = None,
+        product_field_name: str | None = None,
+        event_field_name: str | None = None,
+        integration_version: str | None = None,
+        version: str | None = None,
+        logging_enabled_until_unix_ms: str | None = None,
+        enabled: bool | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Update an existing connector instance.
+
+        Use this method to modify the configuration, parameters, or
+        schedule of a connector instance.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the instance belongs to.
+            connector_instance_id: ID of the connector instance to
+                update.
+            display_name: Display name for the instance. Optional.
+            description: Description of the instance. Optional.
+            interval_seconds: Interval in seconds for recurring
+                execution. Optional.
+            timeout_seconds: Timeout in seconds for execution. Optional.
+            parameters: List of parameters for the instance. Optional.
+            agent: Agent identifier for remote execution. Optional.
+            allow_list: List of allowed IP addresses. Optional.
+            product_field_name: Product field name. Optional.
+            event_field_name: Event field name. Optional.
+            integration_version: Integration version. Optional.
+            version: Version. Optional.
+            logging_enabled_until_unix_ms: Logging enabled until
+                timestamp. Optional.
+            enabled: Whether the instance is enabled. Optional.
+            update_mask: Comma-separated list of fields to update. If
+                omitted, all provided fields will be updated.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the updated ConnectorInstance resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _update_connector_instance(
+            self,
+            integration_name,
+            connector_id,
+            connector_instance_id,
+            display_name=display_name,
+            description=description,
+            interval_seconds=interval_seconds,
+            timeout_seconds=timeout_seconds,
+            parameters=parameters,
+            allow_list=allow_list,
+            product_field_name=product_field_name,
+            event_field_name=event_field_name,
+            integration_version=integration_version,
+            version=version,
+            logging_enabled_until_unix_ms=logging_enabled_until_unix_ms,
+            enabled=enabled,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def get_connector_instance_latest_definition(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector_instance_id: str,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Fetch the latest definition for a connector instance.
+
+        Use this method to refresh a connector instance with the latest
+        connector definition from the marketplace.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the instance belongs to.
+            connector_instance_id: ID of the connector instance to
+                refresh.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the refreshed ConnectorInstance with latest
+                definition.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_connector_instance_latest_definition(
+            self,
+            integration_name,
+            connector_id,
+            connector_instance_id,
+            api_version=api_version,
+        )
+
+    def set_connector_instance_logs_collection(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector_instance_id: str,
+        enabled: bool,
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Enable or disable logs collection for a connector instance.
+
+        Use this method to control whether execution logs are collected
+        for a specific connector instance.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the instance belongs to.
+            connector_instance_id: ID of the connector instance to
+                configure.
+            enabled: Whether to enable or disable logs collection.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the updated logs collection status.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _set_connector_instance_logs_collection(
+            self,
+            integration_name,
+            connector_id,
+            connector_instance_id,
+            enabled,
+            api_version=api_version,
+        )
+
+    def run_connector_instance_on_demand(
+        self,
+        integration_name: str,
+        connector_id: str,
+        connector_instance_id: str,
+        connector_instance: dict[str, Any],
+        api_version: APIVersion | None = APIVersion.V1BETA,
+    ) -> dict[str, Any]:
+        """Run a connector instance on demand for testing.
+
+        Use this method to execute a connector instance immediately
+        without waiting for its scheduled run. Useful for testing
+        configuration changes.
+
+        Args:
+            integration_name: Name of the integration the connector
+                belongs to.
+            connector_id: ID of the connector the instance belongs to.
+            connector_instance_id: ID of the connector instance to run.
+            connector_instance: The connector instance configuration to
+                test. Should include parameters and other settings.
+            api_version: API version to use for the request. Default is
+                V1BETA.
+
+        Returns:
+            Dict containing the execution result, including success
+                status and debug output.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _run_connector_instance_on_demand(
+            self,
+            integration_name,
+            connector_id,
+            connector_instance_id,
+            connector_instance,
             api_version=api_version,
         )
 

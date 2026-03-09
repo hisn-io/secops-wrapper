@@ -263,6 +263,16 @@ from secops.chronicle.integration.connector_instance_logs import (
     list_connector_instance_logs,
     get_connector_instance_log,
 )
+from secops.chronicle.integration.connector_instances import (
+    list_connector_instances,
+    get_connector_instance,
+    delete_connector_instance,
+    create_connector_instance,
+    update_connector_instance,
+    get_connector_instance_latest_definition,
+    set_connector_instance_logs_collection,
+    run_connector_instance_on_demand,
+)
 from secops.chronicle.integration.jobs import (
     list_integration_jobs,
     get_integration_job,
@@ -552,6 +562,15 @@ __all__ = [
     # Connector Instance Logs
     "list_connector_instance_logs",
     "get_connector_instance_log",
+    # Connector Instances
+    "list_connector_instances",
+    "get_connector_instance",
+    "delete_connector_instance",
+    "create_connector_instance",
+    "update_connector_instance",
+    "get_connector_instance_latest_definition",
+    "set_connector_instance_logs_collection",
+    "run_connector_instance_on_demand",
     # Integration Jobs
     "list_integration_jobs",
     "get_integration_job",
