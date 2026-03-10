@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.0] - 2026-03-10
+### Added
+- Raw log search functionality with `search_raw_logs()` method
+- CLI command `secops search raw-logs` for searching raw logs
+
 ## [0.35.3] - 2026-03-03
 ### Updated
 - Dashboard methods to use centralized `chronicle_request` helper function for improved code consistency and maintainability
