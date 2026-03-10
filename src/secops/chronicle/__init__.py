@@ -363,6 +363,12 @@ from secops.chronicle.integration.logical_operators import (
     execute_integration_logical_operator_test,
     get_integration_logical_operator_template,
 )
+from secops.chronicle.integration.logical_operator_revisions import (
+    list_integration_logical_operator_revisions,
+    delete_integration_logical_operator_revision,
+    create_integration_logical_operator_revision,
+    rollback_integration_logical_operator_revision,
+)
 from secops.chronicle.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
@@ -679,6 +685,11 @@ __all__ = [
     "update_integration_logical_operator",
     "execute_integration_logical_operator_test",
     "get_integration_logical_operator_template",
+    # Integration Logical Operator Revisions
+    "list_integration_logical_operator_revisions",
+    "delete_integration_logical_operator_revision",
+    "create_integration_logical_operator_revision",
+    "rollback_integration_logical_operator_revision",
     # Marketplace Integrations
     "list_marketplace_integrations",
     "get_marketplace_integration",

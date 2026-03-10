@@ -35,6 +35,7 @@ from secops.cli.commands.integration import (
     transformers,
     transformer_revisions,
     logical_operators,
+    logical_operator_revisions,
 )
 
 
@@ -53,6 +54,7 @@ def setup_integrations_command(subparsers):
     transformers.setup_transformers_command(lvl1)
     transformer_revisions.setup_transformer_revisions_command(lvl1)
     logical_operators.setup_logical_operators_command(lvl1)
+    logical_operator_revisions.setup_logical_operator_revisions_command(lvl1)
     actions.setup_actions_command(lvl1)
     action_revisions.setup_action_revisions_command(lvl1)
     connectors.setup_connectors_command(lvl1)

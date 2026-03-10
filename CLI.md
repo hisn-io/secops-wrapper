@@ -2453,6 +2453,108 @@ secops integration logical-operators list \
   --as-list
 ```
 
+#### Logical Operator Revisions
+
+List logical operator revisions:
+
+```bash
+# List all revisions for a logical operator
+secops integration logical-operator-revisions list \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1"
+
+# List revisions as a direct list
+secops integration logical-operator-revisions list \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --as-list
+
+# List with pagination
+secops integration logical-operator-revisions list \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --page-size 10
+
+# List with filtering and ordering
+secops integration logical-operator-revisions list \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --filter-string "version = '1.0'" \
+  --order-by "createTime desc"
+```
+
+Delete a logical operator revision:
+
+```bash
+# Delete a specific revision
+secops integration logical-operator-revisions delete \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --revision-id "rev-456"
+```
+
+Create a new revision:
+
+```bash
+# Create a backup revision before making changes
+secops integration logical-operator-revisions create \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --comment "Backup before refactoring evaluation logic"
+
+# Create a revision with descriptive comment
+secops integration logical-operator-revisions create \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --comment "Version 2.0 - Enhanced comparison logic"
+```
+
+Rollback to a previous revision:
+
+```bash
+# Rollback logical operator to a specific revision
+secops integration logical-operator-revisions rollback \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --revision-id "rev-456"
+```
+
+Example workflow: Safe logical operator updates with revision control:
+
+```bash
+# 1. Create a backup revision
+secops integration logical-operator-revisions create \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --comment "Backup before updating conditional logic"
+
+# 2. Update the logical operator
+secops integration logical-operators update \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --script "def evaluate(a, b): return a >= b" \
+  --description "Updated with greater-than-or-equal logic"
+
+# 3. Test the updated logical operator
+secops integration logical-operators test \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1"
+
+# 4. If test fails, rollback to the backup revision
+# First, list revisions to get the backup revision ID
+secops integration logical-operator-revisions list \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --order-by "createTime desc" \
+  --page-size 1
+
+# Then rollback using the revision ID
+secops integration logical-operator-revisions rollback \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --revision-id "rev-backup-id"
+```
+
 ### Rule Management
 
 List detection rules:

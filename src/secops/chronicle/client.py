@@ -291,6 +291,12 @@ from secops.chronicle.integration.logical_operators import (
     list_integration_logical_operators as _list_integration_logical_operators,
     update_integration_logical_operator as _update_integration_logical_operator,
 )
+from secops.chronicle.integration.logical_operator_revisions import (
+    create_integration_logical_operator_revision as _create_integration_logical_operator_revision,
+    delete_integration_logical_operator_revision as _delete_integration_logical_operator_revision,
+    list_integration_logical_operator_revisions as _list_integration_logical_operator_revisions,
+    rollback_integration_logical_operator_revision as _rollback_integration_logical_operator_revision,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -5876,6 +5882,170 @@ class ChronicleClient:
         return _get_integration_logical_operator_template(
             self,
             integration_name,
+            api_version=api_version,
+        )
+
+    # -- Integration Logical Operator Revisions methods --
+
+    def list_integration_logical_operator_revisions(
+        self,
+        integration_name: str,
+        logical_operator_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all revisions for a specific logical operator.
+
+        Use this method to view the revision history of a logical operator,
+        enabling you to track changes and potentially rollback to previous
+        versions.
+
+        Args:
+            integration_name: Name of the integration the logical operator
+                belongs to.
+            logical_operator_id: ID of the logical operator to list
+                revisions for.
+            page_size: Maximum number of revisions to return. Defaults to
+                100, maximum is 200.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter revisions.
+            order_by: Field to sort the revisions by.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+            as_list: If True, automatically fetches all pages and returns
+                a list of revisions. If False, returns dict with revisions
+                and nextPageToken.
+
+        Returns:
+            If as_list is True: List of logical operator revisions.
+            If as_list is False: Dict with revisions list and nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_logical_operator_revisions(
+            self,
+            integration_name,
+            logical_operator_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def delete_integration_logical_operator_revision(
+        self,
+        integration_name: str,
+        logical_operator_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> None:
+        """Delete a specific logical operator revision.
+
+        Use this method to remove obsolete or incorrect revisions from
+        a logical operator's history.
+
+        Args:
+            integration_name: Name of the integration the logical operator
+                belongs to.
+            logical_operator_id: ID of the logical operator.
+            revision_id: ID of the revision to delete.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_logical_operator_revision(
+            self,
+            integration_name,
+            logical_operator_id,
+            revision_id,
+            api_version=api_version,
+        )
+
+    def create_integration_logical_operator_revision(
+        self,
+        integration_name: str,
+        logical_operator_id: str,
+        logical_operator: dict[str, Any],
+        comment: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Create a new revision for a logical operator.
+
+        Use this method to create a snapshot of the logical operator's
+        current state before making changes, enabling you to rollback if
+        needed.
+
+        Args:
+            integration_name: Name of the integration the logical operator
+                belongs to.
+            logical_operator_id: ID of the logical operator to create a
+                revision for.
+            logical_operator: Dict containing the LogicalOperator
+                definition to save as a revision.
+            comment: Optional comment describing the revision or changes.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the newly created LogicalOperatorRevision
+                resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_logical_operator_revision(
+            self,
+            integration_name,
+            logical_operator_id,
+            logical_operator,
+            comment=comment,
+            api_version=api_version,
+        )
+
+    def rollback_integration_logical_operator_revision(
+        self,
+        integration_name: str,
+        logical_operator_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Rollback a logical operator to a previous revision.
+
+        Use this method to restore a logical operator to a previous
+        working state by rolling back to a specific revision.
+
+        Args:
+            integration_name: Name of the integration the logical operator
+                belongs to.
+            logical_operator_id: ID of the logical operator to rollback.
+            revision_id: ID of the revision to rollback to.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the updated LogicalOperator resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _rollback_integration_logical_operator_revision(
+            self,
+            integration_name,
+            logical_operator_id,
+            revision_id,
             api_version=api_version,
         )
 

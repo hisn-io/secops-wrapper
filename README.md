@@ -5036,6 +5036,153 @@ for op in all_operators:
     print(f"  - {op.get('displayName')} (Enabled: {op.get('enabled')})")
 ```
 
+### Integration Logical Operator Revisions
+
+List all revisions for a logical operator:
+
+```python
+# Get all revisions for a logical operator
+revisions = chronicle.list_integration_logical_operator_revisions(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1"
+)
+for revision in revisions.get("revisions", []):
+    print(f"Revision: {revision.get('name')}, Comment: {revision.get('comment')}")
+
+# Get all revisions as a list
+revisions = chronicle.list_integration_logical_operator_revisions(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    as_list=True
+)
+
+# Filter revisions
+revisions = chronicle.list_integration_logical_operator_revisions(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    filter_string='version = "1.0"',
+    order_by="createTime desc"
+)
+```
+
+Delete a specific logical operator revision:
+
+```python
+chronicle.delete_integration_logical_operator_revision(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    revision_id="rev-456"
+)
+```
+
+Create a new revision before making changes:
+
+```python
+# Get the current logical operator
+logical_operator = chronicle.get_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1"
+)
+
+# Create a backup revision
+new_revision = chronicle.create_integration_logical_operator_revision(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    logical_operator=logical_operator,
+    comment="Backup before refactoring conditional logic"
+)
+print(f"Created revision: {new_revision.get('name')}")
+
+# Create revision with custom comment
+new_revision = chronicle.create_integration_logical_operator_revision(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    logical_operator=logical_operator,
+    comment="Version 2.0 - Enhanced comparison logic"
+)
+```
+
+Rollback to a previous revision:
+
+```python
+# Rollback to a previous working version
+rollback_result = chronicle.rollback_integration_logical_operator_revision(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    revision_id="rev-456"
+)
+print(f"Rolled back to: {rollback_result.get('name')}")
+```
+
+Example workflow: Safe logical operator updates with revision control:
+
+```python
+# 1. Get the current logical operator
+logical_operator = chronicle.get_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1"
+)
+
+# 2. Create a backup revision
+backup = chronicle.create_integration_logical_operator_revision(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    logical_operator=logical_operator,
+    comment="Backup before updating evaluation logic"
+)
+
+# 3. Make changes to the logical operator
+updated_operator = chronicle.update_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    display_name="Enhanced Conditional Operator",
+    script="""
+def evaluate(severity, threshold, include_medium=False):
+    severity_levels = {
+        'LOW': 1,
+        'MEDIUM': 2,
+        'HIGH': 3,
+        'CRITICAL': 4
+    }
+    
+    current = severity_levels.get(severity.upper(), 0)
+    min_level = severity_levels.get(threshold.upper(), 0)
+    
+    if include_medium and current >= severity_levels['MEDIUM']:
+        return True
+    
+    return current >= min_level
+"""
+)
+
+# 4. Test the updated logical operator
+test_result = chronicle.execute_integration_logical_operator_test(
+    integration_name="MyIntegration",
+    logical_operator=updated_operator
+)
+
+# 5. If test fails, rollback to backup
+if test_result.get("resultValue") is None or "error" in test_result.get("debugOutputMessage", "").lower():
+    print("Test failed - rolling back")
+    chronicle.rollback_integration_logical_operator_revision(
+        integration_name="MyIntegration",
+        logical_operator_id="lo1",
+        revision_id=backup.get("name").split("/")[-1]
+    )
+else:
+    print("Test passed - logical operator updated successfully")
+
+# 6. List all revisions to see history
+all_revisions = chronicle.list_integration_logical_operator_revisions(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    as_list=True
+)
+print(f"Total revisions: {len(all_revisions)}")
+for rev in all_revisions:
+    print(f"  - {rev.get('comment', 'No comment')} (ID: {rev.get('name').split('/')[-1]})")
+```
+
 
 ## Rule Management
 
