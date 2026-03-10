@@ -2484,6 +2484,7 @@ class ChronicleClient:
         parser_extension_code: str,
         logs: list,
         statedump_allowed: bool = False,
+        parse_statedump: bool = False,
     ):
         """Run parser against sample logs.
 
@@ -2494,6 +2495,8 @@ class ChronicleClient:
             parser_extension_code: Content of the parser extension
             logs: list of logs to test parser against
             statedump_allowed: Statedump filter is enabled or not for a config
+            parse_statedump: Whether to parse statedump results into
+                structured format.
 
         Returns:
             Dictionary containing the parser result
@@ -2508,6 +2511,7 @@ class ChronicleClient:
             parser_extension_code=parser_extension_code,
             logs=logs,
             statedump_allowed=statedump_allowed,
+            parse_statedump=parse_statedump,
         )
 
     # Rule Set methods
@@ -4134,6 +4138,7 @@ class ChronicleClient:
         description: str | None = None,
         filters: list[dict[str, Any]] | str | None = None,
         charts: list[dict[str, Any]] | str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
     ) -> dict[str, Any]:
         """Create a new native dashboard.
 
@@ -4145,6 +4150,7 @@ class ChronicleClient:
                 (JSON or JSON string)
             charts: List of charts to include in the dashboard
                 (JSON or JSON string)
+            api_version: Preferred API version to use. Defaults to V1ALPHA
 
         Returns:
             Dictionary containing the created dashboard details
@@ -4164,13 +4170,19 @@ class ChronicleClient:
             description=description,
             filters=filters,
             charts=charts,
+            api_version=api_version,
         )
 
-    def import_dashboard(self, dashboard: dict[str, Any]) -> dict[str, Any]:
+    def import_dashboard(
+        self,
+        dashboard: dict[str, Any],
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
         """Create a new native dashboard.
 
         Args:
             dashboard: ImportNativeDashboardsInlineSource
+            api_version: Preferred API version to use. Defaults to V1ALPHA
 
         Returns:
             Dictionary containing the created dashboard details
@@ -4178,15 +4190,21 @@ class ChronicleClient:
         Raises:
             APIError: If the API request fails
         """
+        return _import_dashboard(
+            self, dashboard=dashboard, api_version=api_version
+        )
 
-        return _import_dashboard(self, dashboard=dashboard)
-
-    def export_dashboard(self, dashboard_names: list[str]) -> dict[str, Any]:
+    def export_dashboard(
+        self,
+        dashboard_names: list[str],
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
         """Export native dashboards.
         It supports single dashboard export operation only.
 
         Args:
             dashboard_names: List of dashboard resource names to export.
+            api_version: Preferred API version to use. Defaults to V1ALPHA
 
         Returns:
             Dictionary containing the exported dashboards.
@@ -4194,33 +4212,46 @@ class ChronicleClient:
         Raises:
             APIError: If the API request fails
         """
-
-        return _export_dashboard(self, dashboard_names=dashboard_names)
+        return _export_dashboard(
+            self, dashboard_names=dashboard_names, api_version=api_version
+        )
 
     def list_dashboards(
         self,
         page_size: int | None = None,
         page_token: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+        as_list: bool = False,
     ) -> dict[str, Any]:
-        """List all available dashboards.
+        """List all available dashboards in Basic View.
 
         Args:
             page_size: Maximum number of results to return
             page_token: Token for pagination
+            api_version: Preferred API version to use. Defaults to V1ALPHA
+            as_list: Whether to return results as a list or dictionary
 
         Returns:
-            Dictionary containing dashboard list and pagination info
+            If as_list is True: List of dashboards.
+            If as_list is False: Dictionary containing list of dashboards
+                and pagination info.
+
+        Raises:
+            APIError: If the API request fails
         """
         return _list_dashboards(
             self,
             page_size=page_size,
             page_token=page_token,
+            api_version=api_version,
+            as_list=as_list,
         )
 
     def get_dashboard(
         self,
         dashboard_id: str,
         view: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
     ) -> dict[str, Any]:
         """Get information about a specific dashboard.
 
@@ -4228,9 +4259,13 @@ class ChronicleClient:
             dashboard_id: ID of the dashboard to retrieve
             view: Level of detail to include in the response
                 Defaults to BASIC
+            api_version: Preferred API version to use. Defaults to V1ALPHA
 
         Returns:
             Dictionary containing dashboard details
+
+        Raises:
+            APIError: If the API request fails
         """
         if view:
             try:
@@ -4242,6 +4277,7 @@ class ChronicleClient:
             self,
             dashboard_id=dashboard_id,
             view=view,
+            api_version=api_version,
         )
 
     def update_dashboard(
@@ -4251,6 +4287,7 @@ class ChronicleClient:
         description: str | None = None,
         filters: list[dict[str, Any]] | str | None = None,
         charts: list[dict[str, Any]] | str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
     ) -> dict[str, Any]:
         """Update an existing dashboard.
 
@@ -4260,6 +4297,7 @@ class ChronicleClient:
             description: New description for the dashboard (optional)
             filters: New filters for the dashboard (optional)
             charts: New charts for the dashboard (optional)
+            api_version: Preferred API version to use. Defaults to V1ALPHA
 
         Returns:
             Dictionary containing the updated dashboard details
@@ -4271,15 +4309,29 @@ class ChronicleClient:
             description=description,
             filters=filters,
             charts=charts,
+            api_version=api_version,
         )
 
-    def delete_dashboard(self, dashboard_id: str) -> dict[str, Any]:
+    def delete_dashboard(
+        self,
+        dashboard_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
         """Delete an existing dashboard.
 
         Args:
             dashboard_id: ID of the dashboard to delete
+            api_version: Preferred API version to use. Defaults to V1ALPHA
+
+        Returns:
+            Empty dictionary if deletion is successful
+
+        Raises:
+            APIError: If the API request fails
         """
-        return _delete_dashboard(self, dashboard_id=dashboard_id)
+        return _delete_dashboard(
+            self, dashboard_id=dashboard_id, api_version=api_version
+        )
 
     def add_chart(
         self,
@@ -4293,6 +4345,7 @@ class ChronicleClient:
         description: str | None = None,
         query: str | None = None,
         interval: InputInterval | dict[str, Any] | str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
         **kwargs,
     ) -> dict[str, Any]:
         """Add a chart to an existing dashboard.
@@ -4311,6 +4364,7 @@ class ChronicleClient:
             description: Description for the chart
             query: Query for the chart
             interval: Query input interval for the chart
+            api_version: Preferred API version to use. Defaults to V1ALPHA
             **kwargs: Additional keyword arguments
                 (Will be added to request payload)
 
@@ -4335,6 +4389,7 @@ class ChronicleClient:
             description=description,
             query=query,
             interval=interval,
+            api_version=api_version,
             **kwargs,
         )
 
@@ -4344,17 +4399,23 @@ class ChronicleClient:
         display_name: str,
         access_type: str,
         description: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
     ) -> dict[str, Any]:
         """Duplicate an existing dashboard.
 
         Args:
-            dashboard_id: Id of the dashboard to duplicate
-            display_name: Display name for the new dashboard
-            access_type: Access type for the new dashboard (PRIVATE or PUBLIC)
-            description: Description for the new dashboard
+            dashboard_id: ID of the dashboard to duplicate
+            display_name: New name for the duplicated dashboard
+            access_type: Access type for the duplicated dashboard
+                    (DashboardAccessType.PRIVATE or DashboardAccessType.PUBLIC)
+            description: Description for the duplicated dashboard
+            api_version: Preferred API version to use. Defaults to V1ALPHA
 
         Returns:
-            Dictionary containing the updated dashboard details
+            Dictionary containing the duplicated dashboard details
+
+        Raises:
+            APIError: If the API request fails
         """
         try:
             access_type = DashboardAccessType[access_type.upper()]
@@ -4367,18 +4428,21 @@ class ChronicleClient:
             display_name=display_name,
             access_type=access_type,
             description=description,
+            api_version=api_version,
         )
 
     def remove_chart(
         self,
         dashboard_id: str,
         chart_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
     ) -> dict[str, Any]:
         """Remove a chart from a dashboard.
 
         Args:
             dashboard_id: ID of the dashboard containing the chart
             chart_id: ID of the chart to remove
+            api_version: Preferred API version to use. Defaults to V1ALPHA
 
         Returns:
             Dictionary containing the updated dashboard
@@ -4390,24 +4454,34 @@ class ChronicleClient:
             self,
             dashboard_id=dashboard_id,
             chart_id=chart_id,
+            api_version=api_version,
         )
 
-    def get_chart(self, chart_id: str) -> dict[str, Any]:
-        """Get information about a specific chart.
+    def get_chart(
+        self,
+        chart_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Get detail for dashboard chart.
 
         Args:
-            chart_id: ID of the chart to retrieve
+            chart_id: ID of the chart
+            api_version: Preferred API version to use. Defaults to V1ALPHA
 
         Returns:
-            Dictionary containing chart details
+            Dict[str, Any]: Dictionary containing chart details
+
+        Raises:
+            APIError: If the API request fails
         """
-        return _get_chart(self, chart_id)
+        return _get_chart(self, chart_id, api_version)
 
     def edit_chart(
         self,
         dashboard_id: str,
         dashboard_chart: None | (dict[str, Any] | DashboardChart | str) = None,
         dashboard_query: None | (dict[str, Any] | DashboardQuery | str) = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
     ) -> dict[str, Any]:
         """Edit an existing chart in a dashboard.
 
@@ -4430,8 +4504,13 @@ class ChronicleClient:
                     "input": {},
                     "etag":"123131231321321"
                 }
+            api_version: Preferred API version to use. Defaults to V1ALPHA
+
         Returns:
             Dictionary containing the updated dashboard with edited chart
+
+        Raises:
+            APIError: If the API request fails
         """
 
         return _edit_chart(
@@ -4439,6 +4518,7 @@ class ChronicleClient:
             dashboard_id=dashboard_id,
             dashboard_chart=dashboard_chart,
             dashboard_query=dashboard_query,
+            api_version=api_version,
         )
 
     def execute_dashboard_query(
