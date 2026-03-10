@@ -348,6 +348,21 @@ from secops.chronicle.integration.transformers import (
     execute_integration_transformer_test,
     get_integration_transformer_template,
 )
+from secops.chronicle.integration.transformer_revisions import (
+    list_integration_transformer_revisions,
+    delete_integration_transformer_revision,
+    create_integration_transformer_revision,
+    rollback_integration_transformer_revision,
+)
+from secops.chronicle.integration.logical_operators import (
+    list_integration_logical_operators,
+    get_integration_logical_operator,
+    delete_integration_logical_operator,
+    create_integration_logical_operator,
+    update_integration_logical_operator,
+    execute_integration_logical_operator_test,
+    get_integration_logical_operator_template,
+)
 from secops.chronicle.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
@@ -651,6 +666,19 @@ __all__ = [
     "update_integration_transformer",
     "execute_integration_transformer_test",
     "get_integration_transformer_template",
+    # Integration Transformer Revisions
+    "list_integration_transformer_revisions",
+    "delete_integration_transformer_revision",
+    "create_integration_transformer_revision",
+    "rollback_integration_transformer_revision",
+    # Integration Logical Operators
+    "list_integration_logical_operators",
+    "get_integration_logical_operator",
+    "delete_integration_logical_operator",
+    "create_integration_logical_operator",
+    "update_integration_logical_operator",
+    "execute_integration_logical_operator_test",
+    "get_integration_logical_operator_template",
     # Marketplace Integrations
     "list_marketplace_integrations",
     "get_marketplace_integration",

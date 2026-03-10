@@ -2187,6 +2187,272 @@ Get transformer template:
 secops integration transformers template --integration-name "MyIntegration"
 ```
 
+#### Transformer Revisions
+
+List transformer revisions:
+
+```bash
+# List all revisions for a transformer
+secops integration transformer-revisions list \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1"
+
+# List revisions as a direct list
+secops integration transformer-revisions list \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --as-list
+
+# List with pagination
+secops integration transformer-revisions list \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --page-size 10
+
+# List with filtering and ordering
+secops integration transformer-revisions list \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --filter-string "version = '1.0'" \
+  --order-by "createTime desc"
+```
+
+Delete a transformer revision:
+
+```bash
+# Delete a specific revision
+secops integration transformer-revisions delete \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --revision-id "rev-456"
+```
+
+Create a new revision:
+
+```bash
+# Create a backup revision before making changes
+secops integration transformer-revisions create \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --comment "Backup before major refactor"
+
+# Create a revision with descriptive comment
+secops integration transformer-revisions create \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --comment "Version 2.0 - Enhanced error handling"
+```
+
+Rollback to a previous revision:
+
+```bash
+# Rollback transformer to a specific revision
+secops integration transformer-revisions rollback \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --revision-id "rev-456"
+```
+
+Example workflow: Safe transformer updates with revision control:
+
+```bash
+# 1. Create a backup revision
+secops integration transformer-revisions create \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --comment "Backup before updating transformation logic"
+
+# 2. Update the transformer
+secops integration transformers update \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --script "def transform(data): return data.upper()" \
+  --description "Updated with new transformation"
+
+# 3. Test the updated transformer
+secops integration transformers test \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1"
+
+# 4. If test fails, rollback to the backup revision
+# First, list revisions to get the backup revision ID
+secops integration transformer-revisions list \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --order-by "createTime desc" \
+  --page-size 1
+
+# Then rollback using the revision ID
+secops integration transformer-revisions rollback \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --revision-id "rev-backup-id"
+```
+
+#### Logical Operators
+
+List logical operators:
+
+```bash
+# List all logical operators for an integration
+secops integration logical-operators list --integration-name "MyIntegration"
+
+# List logical operators as a direct list
+secops integration logical-operators list \
+  --integration-name "MyIntegration" \
+  --as-list
+
+# List with pagination
+secops integration logical-operators list \
+  --integration-name "MyIntegration" \
+  --page-size 50
+
+# List with filtering
+secops integration logical-operators list \
+  --integration-name "MyIntegration" \
+  --filter-string "enabled = true"
+
+# Exclude staging logical operators
+secops integration logical-operators list \
+  --integration-name "MyIntegration" \
+  --exclude-staging
+
+# List with expanded details
+secops integration logical-operators list \
+  --integration-name "MyIntegration" \
+  --expand "parameters"
+```
+
+Get logical operator details:
+
+```bash
+# Get basic logical operator details
+secops integration logical-operators get \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1"
+
+# Get logical operator with expanded parameters
+secops integration logical-operators get \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --expand "parameters"
+```
+
+Create a new logical operator:
+
+```bash
+# Create a basic equality operator
+secops integration logical-operators create \
+  --integration-name "MyIntegration" \
+  --display-name "Equals Operator" \
+  --script "def evaluate(a, b): return a == b" \
+  --script-timeout "60s" \
+  --enabled
+
+# Create logical operator with description
+secops integration logical-operators create \
+  --integration-name "MyIntegration" \
+  --display-name "Threshold Checker" \
+  --script "def evaluate(value, threshold): return value > threshold" \
+  --script-timeout "30s" \
+  --description "Checks if value exceeds threshold" \
+  --enabled
+```
+
+> **Note:** When creating a logical operator:
+> - `--script-timeout` should be specified with a unit (e.g., "60s", "2m")
+> - Use `--enabled` flag to enable the operator on creation (default is disabled)
+> - The script must be valid Python code with an `evaluate()` function
+
+Update an existing logical operator:
+
+```bash
+# Update display name
+secops integration logical-operators update \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --display-name "Updated Operator Name"
+
+# Update script
+secops integration logical-operators update \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --script "def evaluate(a, b): return a != b"
+
+# Update multiple fields
+secops integration logical-operators update \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --display-name "Enhanced Operator" \
+  --description "Updated with better logic" \
+  --script-timeout "45s" \
+  --enabled true
+
+# Update with custom update mask
+secops integration logical-operators update \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --display-name "New Name" \
+  --description "New description" \
+  --update-mask "displayName,description"
+```
+
+Delete a logical operator:
+
+```bash
+secops integration logical-operators delete \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1"
+```
+
+Test a logical operator:
+
+```bash
+# Test an existing logical operator to verify it works correctly
+secops integration logical-operators test \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1"
+```
+
+Get logical operator template:
+
+```bash
+# Get a boilerplate template for creating a new logical operator
+secops integration logical-operators template --integration-name "MyIntegration"
+```
+
+Example workflow: Building conditional logic:
+
+```bash
+# 1. Get a template to start with
+secops integration logical-operators template \
+  --integration-name "MyIntegration"
+
+# 2. Create a severity checker operator
+secops integration logical-operators create \
+  --integration-name "MyIntegration" \
+  --display-name "Severity Level Check" \
+  --script "def evaluate(severity, min_level): return severity >= min_level" \
+  --script-timeout "30s" \
+  --description "Checks if severity meets minimum threshold"
+
+# 3. Test the operator
+secops integration logical-operators test \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1"
+
+# 4. Enable the operator if test passes
+secops integration logical-operators update \
+  --integration-name "MyIntegration" \
+  --logical-operator-id "lo1" \
+  --enabled true
+
+# 5. List all operators to see what's available
+secops integration logical-operators list \
+  --integration-name "MyIntegration" \
+  --as-list
+```
+
 ### Rule Management
 
 List detection rules:

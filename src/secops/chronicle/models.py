@@ -684,6 +684,57 @@ class TransformerDefinitionParameter:
         return data
 
 
+class LogicalOperatorType(str, Enum):
+    """Logical operator types for Chronicle SOAR
+    integration logical operators."""
+
+    UNSPECIFIED = "LOGICAL_OPERATOR_TYPE_UNSPECIFIED"
+    BUILT_IN = "BUILT_IN"
+    CUSTOM = "CUSTOM"
+
+
+@dataclass
+class IntegrationLogicalOperatorParameter:
+    """A parameter definition for a Chronicle SOAR logical operator.
+
+    Attributes:
+        display_name: The parameter's display name. May contain letters,
+            numbers, and underscores. Maximum 150 characters.
+        mandatory: Whether the parameter is mandatory for configuring a
+            logical operator instance.
+        id: The parameter's id. Server-generated on creation; must be
+            provided when updating an existing parameter.
+        default_value: The default value of the parameter. Required for
+            boolean and mandatory parameters.
+        order: The parameter's order in the parameters list.
+        description: The parameter's description. Maximum 2050 characters.
+    """
+
+    display_name: str
+    mandatory: bool
+    id: str | None = None
+    default_value: str | None = None
+    order: int | None = None
+    description: str | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {
+            "displayName": self.display_name,
+            "mandatory": self.mandatory,
+        }
+        if self.id is not None:
+            data["id"] = self.id
+        if self.default_value is not None:
+            data["defaultValue"] = self.default_value
+        if self.order is not None:
+            data["order"] = self.order
+        if self.description is not None:
+            data["description"] = self.description
+        return data
+
+
+
 @dataclass
 class ConnectorRule:
     """A rule definition for a Chronicle SOAR integration connector.

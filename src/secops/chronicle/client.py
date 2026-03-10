@@ -276,6 +276,21 @@ from secops.chronicle.integration.transformers import (
     list_integration_transformers as _list_integration_transformers,
     update_integration_transformer as _update_integration_transformer,
 )
+from secops.chronicle.integration.transformer_revisions import (
+    create_integration_transformer_revision as _create_integration_transformer_revision,
+    delete_integration_transformer_revision as _delete_integration_transformer_revision,
+    list_integration_transformer_revisions as _list_integration_transformer_revisions,
+    rollback_integration_transformer_revision as _rollback_integration_transformer_revision,
+)
+from secops.chronicle.integration.logical_operators import (
+    create_integration_logical_operator as _create_integration_logical_operator,
+    delete_integration_logical_operator as _delete_integration_logical_operator,
+    execute_integration_logical_operator_test as _execute_integration_logical_operator_test,
+    get_integration_logical_operator as _get_integration_logical_operator,
+    get_integration_logical_operator_template as _get_integration_logical_operator_template,
+    list_integration_logical_operators as _list_integration_logical_operators,
+    update_integration_logical_operator as _update_integration_logical_operator,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -5396,6 +5411,469 @@ class ChronicleClient:
             APIError: If the API request fails.
         """
         return _get_integration_transformer_template(
+            self,
+            integration_name,
+            api_version=api_version,
+        )
+
+    # -- Integration Transformer Revisions methods --
+
+    def list_integration_transformer_revisions(
+        self,
+        integration_name: str,
+        transformer_id: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all revisions for a specific transformer.
+
+        Use this method to view the revision history of a transformer,
+        enabling you to track changes and potentially rollback to previous
+        versions.
+
+        Args:
+            integration_name: Name of the integration the transformer
+                belongs to.
+            transformer_id: ID of the transformer to list revisions for.
+            page_size: Maximum number of revisions to return. Defaults to
+                100, maximum is 200.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter revisions.
+            order_by: Field to sort the revisions by.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+            as_list: If True, automatically fetches all pages and returns
+                a list of revisions. If False, returns dict with revisions
+                and nextPageToken.
+
+        Returns:
+            If as_list is True: List of transformer revisions.
+            If as_list is False: Dict with revisions list and nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_transformer_revisions(
+            self,
+            integration_name,
+            transformer_id,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def delete_integration_transformer_revision(
+        self,
+        integration_name: str,
+        transformer_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> None:
+        """Delete a specific transformer revision.
+
+        Use this method to remove obsolete or incorrect revisions from
+        a transformer's history.
+
+        Args:
+            integration_name: Name of the integration the transformer
+                belongs to.
+            transformer_id: ID of the transformer.
+            revision_id: ID of the revision to delete.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_transformer_revision(
+            self,
+            integration_name,
+            transformer_id,
+            revision_id,
+            api_version=api_version,
+        )
+
+    def create_integration_transformer_revision(
+        self,
+        integration_name: str,
+        transformer_id: str,
+        transformer: dict[str, Any],
+        comment: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Create a new revision for a transformer.
+
+        Use this method to create a snapshot of the transformer's current
+        state before making changes, enabling you to rollback if needed.
+
+        Args:
+            integration_name: Name of the integration the transformer
+                belongs to.
+            transformer_id: ID of the transformer to create a revision for.
+            transformer: Dict containing the TransformerDefinition to save
+                as a revision.
+            comment: Optional comment describing the revision or changes.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the newly created TransformerRevision resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_transformer_revision(
+            self,
+            integration_name,
+            transformer_id,
+            transformer,
+            comment=comment,
+            api_version=api_version,
+        )
+
+    def rollback_integration_transformer_revision(
+        self,
+        integration_name: str,
+        transformer_id: str,
+        revision_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Rollback a transformer to a previous revision.
+
+        Use this method to restore a transformer to a previous working
+        state by rolling back to a specific revision.
+
+        Args:
+            integration_name: Name of the integration the transformer
+                belongs to.
+            transformer_id: ID of the transformer to rollback.
+            revision_id: ID of the revision to rollback to.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the updated TransformerDefinition resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _rollback_integration_transformer_revision(
+            self,
+            integration_name,
+            transformer_id,
+            revision_id,
+            api_version=api_version,
+        )
+
+    # -- Integration Logical Operators methods --
+
+    def list_integration_logical_operators(
+        self,
+        integration_name: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        exclude_staging: bool | None = None,
+        expand: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all logical operator definitions for a specific integration.
+
+        Use this method to browse the available logical operators that can
+        be used for conditional logic in your integration workflows.
+
+        Args:
+            integration_name: Name of the integration to list logical
+                operators for.
+            page_size: Maximum number of logical operators to return.
+                Defaults to 100, maximum is 200.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter logical operators.
+            order_by: Field to sort the logical operators by.
+            exclude_staging: Whether to exclude staging logical operators
+                from the response. By default, staging operators are included.
+            expand: Expand the response with the full logical operator
+                details.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+            as_list: If True, automatically fetches all pages and returns
+                a list. If False, returns dict with list and nextPageToken.
+
+        Returns:
+            If as_list is True: List of logical operators.
+            If as_list is False: Dict with logicalOperators list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_logical_operators(
+            self,
+            integration_name,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            exclude_staging=exclude_staging,
+            expand=expand,
+            api_version=api_version,
+            as_list=as_list,
+        )
+
+    def get_integration_logical_operator(
+        self,
+        integration_name: str,
+        logical_operator_id: str,
+        expand: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Get a single logical operator definition for a specific integration.
+
+        Use this method to retrieve the Python script, input parameters,
+        and evaluation logic for a specific logical operator within an
+        integration.
+
+        Args:
+            integration_name: Name of the integration the logical operator
+                belongs to.
+            logical_operator_id: ID of the logical operator to retrieve.
+            expand: Expand the response with the full logical operator
+                details. Optional.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing details of the specified LogicalOperator
+                definition.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_logical_operator(
+            self,
+            integration_name,
+            logical_operator_id,
+            expand=expand,
+            api_version=api_version,
+        )
+
+    def delete_integration_logical_operator(
+        self,
+        integration_name: str,
+        logical_operator_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> None:
+        """Delete a custom logical operator definition from a given integration.
+
+        Use this method to permanently remove an obsolete logical operator
+        from an integration.
+
+        Args:
+            integration_name: Name of the integration the logical operator
+                belongs to.
+            logical_operator_id: ID of the logical operator to delete.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_logical_operator(
+            self,
+            integration_name,
+            logical_operator_id,
+            api_version=api_version,
+        )
+
+    def create_integration_logical_operator(
+        self,
+        integration_name: str,
+        display_name: str,
+        script: str,
+        script_timeout: str,
+        enabled: bool,
+        description: str | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Create a new logical operator definition for a given integration.
+
+        Use this method to define a logical operator, specifying its
+        functional Python script and necessary input parameters for
+        conditional evaluations.
+
+        Args:
+            integration_name: Name of the integration to create the
+                logical operator for.
+            display_name: Logical operator's display name. Maximum 150
+                characters. Required.
+            script: Logical operator's Python script. Required.
+            script_timeout: Timeout in seconds for a single script run.
+                Default is 60. Required.
+            enabled: Whether the logical operator is enabled or disabled.
+                Required.
+            description: Logical operator's description. Maximum 2050
+                characters. Optional.
+            parameters: List of logical operator parameter dicts. Optional.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the newly created LogicalOperator resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_logical_operator(
+            self,
+            integration_name,
+            display_name,
+            script,
+            script_timeout,
+            enabled,
+            description=description,
+            parameters=parameters,
+            api_version=api_version,
+        )
+
+    def update_integration_logical_operator(
+        self,
+        integration_name: str,
+        logical_operator_id: str,
+        display_name: str | None = None,
+        script: str | None = None,
+        script_timeout: str | None = None,
+        enabled: bool | None = None,
+        description: str | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Update an existing logical operator definition for a given
+        integration.
+
+        Use this method to modify a logical operator's Python script,
+        adjust its description, or refine its parameter definitions.
+
+        Args:
+            integration_name: Name of the integration the logical operator
+                belongs to.
+            logical_operator_id: ID of the logical operator to update.
+            display_name: Logical operator's display name. Maximum 150
+                characters.
+            script: Logical operator's Python script.
+            script_timeout: Timeout in seconds for a single script run.
+            enabled: Whether the logical operator is enabled or disabled.
+            description: Logical operator's description. Maximum 2050
+                characters.
+            parameters: List of logical operator parameter dicts. When
+                updating existing parameters, id must be provided in each
+                parameter.
+            update_mask: Comma-separated list of fields to update. If
+                omitted, the mask is auto-generated from whichever fields
+                are provided. Example: "displayName,script".
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the updated LogicalOperator resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _update_integration_logical_operator(
+            self,
+            integration_name,
+            logical_operator_id,
+            display_name=display_name,
+            script=script,
+            script_timeout=script_timeout,
+            enabled=enabled,
+            description=description,
+            parameters=parameters,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def execute_integration_logical_operator_test(
+        self,
+        integration_name: str,
+        logical_operator: dict[str, Any],
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Execute a test run of a logical operator's Python script.
+
+        Use this method to verify logical operator evaluation logic and
+        ensure conditions are being assessed correctly before saving or
+        deploying the operator. The full logical operator object is
+        required as the test can be run without saving the operator first.
+
+        Args:
+            integration_name: Name of the integration the logical operator
+                belongs to.
+            logical_operator: Dict containing the LogicalOperator
+                definition to test.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the test execution results with the following
+                fields:
+                - outputMessage: Human-readable output message set by the
+                  script.
+                - debugOutputMessage: The script debug output.
+                - resultValue: The script result value (True/False).
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _execute_integration_logical_operator_test(
+            self,
+            integration_name,
+            logical_operator,
+            api_version=api_version,
+        )
+
+    def get_integration_logical_operator_template(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Retrieve a default Python script template for a new logical operator.
+
+        Use this method to jumpstart the development of a custom
+        conditional logic by providing boilerplate code.
+
+        Args:
+            integration_name: Name of the integration to fetch the template
+                for.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the LogicalOperator template.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_logical_operator_template(
             self,
             integration_name,
             api_version=api_version,

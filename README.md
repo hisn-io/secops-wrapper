@@ -4480,6 +4480,562 @@ def transform(data, delimiter=','):
 )
 ```
 
+### Integration Transformer Revisions
+
+List all revisions for a transformer:
+
+```python
+# Get all revisions for a transformer
+revisions = chronicle.list_integration_transformer_revisions(
+    integration_name="MyIntegration",
+    transformer_id="t1"
+)
+for revision in revisions.get("revisions", []):
+    print(f"Revision: {revision.get('name')}, Comment: {revision.get('comment')}")
+
+# Get all revisions as a list
+revisions = chronicle.list_integration_transformer_revisions(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    as_list=True
+)
+
+# Filter revisions
+revisions = chronicle.list_integration_transformer_revisions(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    filter_string='version = "1.0"',
+    order_by="createTime desc"
+)
+```
+
+Delete a specific transformer revision:
+
+```python
+chronicle.delete_integration_transformer_revision(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    revision_id="rev-456"
+)
+```
+
+Create a new revision before making changes:
+
+```python
+# Get the current transformer
+transformer = chronicle.get_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1"
+)
+
+# Create a backup revision
+new_revision = chronicle.create_integration_transformer_revision(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    transformer=transformer,
+    comment="Backup before major refactor"
+)
+print(f"Created revision: {new_revision.get('name')}")
+
+# Create revision with custom comment
+new_revision = chronicle.create_integration_transformer_revision(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    transformer=transformer,
+    comment="Version 2.0 - Enhanced error handling"
+)
+```
+
+Rollback to a previous revision:
+
+```python
+# Rollback to a previous working version
+rollback_result = chronicle.rollback_integration_transformer_revision(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    revision_id="rev-456"
+)
+print(f"Rolled back to: {rollback_result.get('name')}")
+```
+
+Example workflow: Safe transformer updates with revision control:
+
+```python
+# 1. Get the current transformer
+transformer = chronicle.get_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1"
+)
+
+# 2. Create a backup revision
+backup = chronicle.create_integration_transformer_revision(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    transformer=transformer,
+    comment="Backup before updating transformation logic"
+)
+
+# 3. Make changes to the transformer
+updated_transformer = chronicle.update_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    display_name="Enhanced Transformer",
+    script="""
+def transform(data, enrichment_enabled=True):
+    import json
+    
+    try:
+        # Parse input data
+        parsed = json.loads(data)
+        
+        # Apply transformations
+        parsed["processed"] = True
+        parsed["timestamp"] = "2024-01-01T00:00:00Z"
+        
+        # Optional enrichment
+        if enrichment_enabled:
+            parsed["enriched"] = True
+        
+        return json.dumps(parsed)
+    except Exception as e:
+        return json.dumps({"error": str(e), "original": data})
+"""
+)
+
+# 4. Test the updated transformer
+test_result = chronicle.execute_integration_transformer_test(
+    integration_name="MyIntegration",
+    transformer=updated_transformer
+)
+
+# 5. If test fails, rollback to backup
+if not test_result.get("resultValue"):
+    print("Test failed - rolling back")
+    chronicle.rollback_integration_transformer_revision(
+        integration_name="MyIntegration",
+        transformer_id="t1",
+        revision_id=backup.get("name").split("/")[-1]
+    )
+else:
+    print("Test passed - transformer updated successfully")
+
+# 6. List all revisions to see history
+all_revisions = chronicle.list_integration_transformer_revisions(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    as_list=True
+)
+print(f"Total revisions: {len(all_revisions)}")
+for rev in all_revisions:
+    print(f"  - {rev.get('comment', 'No comment')} (ID: {rev.get('name').split('/')[-1]})")
+```
+
+### Integration Logical Operators
+
+List all logical operators for a specific integration:
+
+```python
+# Get all logical operators for an integration
+logical_operators = chronicle.list_integration_logical_operators("MyIntegration")
+for operator in logical_operators.get("logicalOperators", []):
+    print(f"Operator: {operator.get('displayName')}, ID: {operator.get('name')}")
+
+# Get all logical operators as a list
+logical_operators = chronicle.list_integration_logical_operators(
+    "MyIntegration",
+    as_list=True
+)
+
+# Get only enabled logical operators
+logical_operators = chronicle.list_integration_logical_operators(
+    "MyIntegration",
+    filter_string="enabled = true"
+)
+
+# Exclude staging logical operators
+logical_operators = chronicle.list_integration_logical_operators(
+    "MyIntegration",
+    exclude_staging=True
+)
+
+# Get logical operators with expanded details
+logical_operators = chronicle.list_integration_logical_operators(
+    "MyIntegration",
+    expand="parameters"
+)
+```
+
+Get details of a specific logical operator:
+
+```python
+operator = chronicle.get_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1"
+)
+print(f"Display Name: {operator.get('displayName')}")
+print(f"Script: {operator.get('script')}")
+print(f"Enabled: {operator.get('enabled')}")
+
+# Get logical operator with expanded parameters
+operator = chronicle.get_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    expand="parameters"
+)
+```
+
+Create a new logical operator:
+
+```python
+# Create a basic equality operator
+new_operator = chronicle.create_integration_logical_operator(
+    integration_name="MyIntegration",
+    display_name="Equals Operator",
+    script="""
+def evaluate(a, b):
+    return a == b
+""",
+    script_timeout="60s",
+    enabled=True
+)
+
+# Create a more complex conditional operator with parameters
+new_operator = chronicle.create_integration_logical_operator(
+    integration_name="MyIntegration",
+    display_name="Threshold Checker",
+    description="Checks if a value exceeds a threshold",
+    script="""
+def evaluate(value, threshold, inclusive=False):
+    if inclusive:
+        return value >= threshold
+    else:
+        return value > threshold
+""",
+    script_timeout="30s",
+    enabled=True,
+    parameters=[
+        {
+            "name": "value",
+            "type": "INTEGER",
+            "displayName": "Value to Check",
+            "mandatory": True
+        },
+        {
+            "name": "threshold",
+            "type": "INTEGER",
+            "displayName": "Threshold Value",
+            "mandatory": True
+        },
+        {
+            "name": "inclusive",
+            "type": "BOOLEAN",
+            "displayName": "Inclusive Comparison",
+            "mandatory": False,
+            "defaultValue": "false"
+        }
+    ]
+)
+
+# Create a string matching operator
+pattern_operator = chronicle.create_integration_logical_operator(
+    integration_name="MyIntegration",
+    display_name="Pattern Matcher",
+    description="Matches strings against patterns",
+    script="""
+def evaluate(text, pattern, case_sensitive=True):
+    import re
+    flags = 0 if case_sensitive else re.IGNORECASE
+    return bool(re.search(pattern, text, flags))
+""",
+    script_timeout="60s",
+    enabled=True,
+    parameters=[
+        {
+            "name": "text",
+            "type": "STRING",
+            "displayName": "Text to Match",
+            "mandatory": True
+        },
+        {
+            "name": "pattern",
+            "type": "STRING",
+            "displayName": "Regex Pattern",
+            "mandatory": True
+        },
+        {
+            "name": "case_sensitive",
+            "type": "BOOLEAN",
+            "displayName": "Case Sensitive",
+            "mandatory": False,
+            "defaultValue": "true"
+        }
+    ]
+)
+```
+
+Update an existing logical operator:
+
+```python
+# Update logical operator display name
+updated_operator = chronicle.update_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    display_name="Updated Operator Name"
+)
+
+# Update logical operator script
+updated_operator = chronicle.update_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    script="""
+def evaluate(a, b):
+    # Updated logic with type checking
+    if type(a) != type(b):
+        return False
+    return a == b
+"""
+)
+
+# Update multiple fields including parameters
+updated_operator = chronicle.update_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    display_name="Enhanced Operator",
+    description="Updated with better validation",
+    script="""
+def evaluate(value, min_value, max_value):
+    try:
+        return min_value <= value <= max_value
+    except Exception:
+        return False
+""",
+    script_timeout="45s",
+    enabled=True,
+    parameters=[
+        {
+            "name": "value",
+            "type": "INTEGER",
+            "displayName": "Value",
+            "mandatory": True
+        },
+        {
+            "name": "min_value",
+            "type": "INTEGER",
+            "displayName": "Minimum Value",
+            "mandatory": True
+        },
+        {
+            "name": "max_value",
+            "type": "INTEGER",
+            "displayName": "Maximum Value",
+            "mandatory": True
+        }
+    ]
+)
+
+# Use custom update mask
+updated_operator = chronicle.update_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1",
+    display_name="New Name",
+    description="New Description",
+    update_mask="displayName,description"
+)
+```
+
+Delete a logical operator:
+
+```python
+chronicle.delete_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1"
+)
+```
+
+Execute a test run of a logical operator:
+
+```python
+# Get the logical operator
+operator = chronicle.get_integration_logical_operator(
+    integration_name="MyIntegration",
+    logical_operator_id="lo1"
+)
+
+# Test the logical operator with sample data
+test_result = chronicle.execute_integration_logical_operator_test(
+    integration_name="MyIntegration",
+    logical_operator=operator
+)
+print(f"Output Message: {test_result.get('outputMessage')}")
+print(f"Debug Output: {test_result.get('debugOutputMessage')}")
+print(f"Result Value: {test_result.get('resultValue')}")  # True or False
+
+# You can also test a logical operator before creating it
+test_operator = {
+    "displayName": "Test Equality Operator",
+    "script": """
+def evaluate(a, b):
+    return a == b
+""",
+    "scriptTimeout": "30s",
+    "enabled": True
+}
+
+test_result = chronicle.execute_integration_logical_operator_test(
+    integration_name="MyIntegration",
+    logical_operator=test_operator
+)
+```
+
+Get a template for creating a logical operator:
+
+```python
+# Get a boilerplate template for a new logical operator
+template = chronicle.get_integration_logical_operator_template("MyIntegration")
+print(f"Template Script: {template.get('script')}")
+print(f"Template Display Name: {template.get('displayName')}")
+
+# Use the template as a starting point
+new_operator = chronicle.create_integration_logical_operator(
+    integration_name="MyIntegration",
+    display_name="My Custom Operator",
+    script=template.get('script'),  # Customize this
+    script_timeout="60s",
+    enabled=True
+)
+```
+
+Example workflow: Building conditional logic for integration workflows:
+
+```python
+# 1. Get a template to start with
+template = chronicle.get_integration_logical_operator_template("MyIntegration")
+
+# 2. Create a custom logical operator for severity checking
+severity_operator = chronicle.create_integration_logical_operator(
+    integration_name="MyIntegration",
+    display_name="Severity Level Check",
+    description="Checks if severity meets minimum threshold",
+    script="""
+def evaluate(severity, min_severity='MEDIUM'):
+    severity_levels = {
+        'LOW': 1,
+        'MEDIUM': 2,
+        'HIGH': 3,
+        'CRITICAL': 4
+    }
+    
+    current_level = severity_levels.get(severity.upper(), 0)
+    min_level = severity_levels.get(min_severity.upper(), 0)
+    
+    return current_level >= min_level
+""",
+    script_timeout="30s",
+    enabled=False,  # Start disabled for testing
+    parameters=[
+        {
+            "name": "severity",
+            "type": "STRING",
+            "displayName": "Event Severity",
+            "mandatory": True
+        },
+        {
+            "name": "min_severity",
+            "type": "STRING",
+            "displayName": "Minimum Severity",
+            "mandatory": False,
+            "defaultValue": "MEDIUM"
+        }
+    ]
+)
+
+# 3. Test the operator before enabling
+test_result = chronicle.execute_integration_logical_operator_test(
+    integration_name="MyIntegration",
+    logical_operator=severity_operator
+)
+
+# 4. If test is successful, enable the operator
+if test_result.get('resultValue') is not None:
+    operator_id = severity_operator.get('name').split('/')[-1]
+    enabled_operator = chronicle.update_integration_logical_operator(
+        integration_name="MyIntegration",
+        logical_operator_id=operator_id,
+        enabled=True
+    )
+    print(f"Operator enabled: {enabled_operator.get('name')}")
+else:
+    print(f"Test failed: {test_result.get('debugOutputMessage')}")
+
+# 5. Create additional operators for workflow automation
+# IP address validation operator
+ip_validator = chronicle.create_integration_logical_operator(
+    integration_name="MyIntegration",
+    display_name="IP Address Validator",
+    description="Validates if a string is a valid IP address",
+    script="""
+def evaluate(ip_string):
+    import ipaddress
+    try:
+        ipaddress.ip_address(ip_string)
+        return True
+    except ValueError:
+        return False
+""",
+    script_timeout="30s",
+    enabled=True
+)
+
+# Time range checker
+time_checker = chronicle.create_integration_logical_operator(
+    integration_name="MyIntegration",
+    display_name="Business Hours Checker",
+    description="Checks if timestamp falls within business hours",
+    script="""
+def evaluate(timestamp, start_hour=9, end_hour=17):
+    from datetime import datetime
+    
+    dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+    hour = dt.hour
+    
+    return start_hour <= hour < end_hour
+""",
+    script_timeout="30s",
+    enabled=True,
+    parameters=[
+        {
+            "name": "timestamp",
+            "type": "STRING",
+            "displayName": "Timestamp",
+            "mandatory": True
+        },
+        {
+            "name": "start_hour",
+            "type": "INTEGER",
+            "displayName": "Business Day Start Hour",
+            "mandatory": False,
+            "defaultValue": "9"
+        },
+        {
+            "name": "end_hour",
+            "type": "INTEGER",
+            "displayName": "Business Day End Hour",
+            "mandatory": False,
+            "defaultValue": "17"
+        }
+    ]
+)
+
+# 6. List all logical operators for the integration
+all_operators = chronicle.list_integration_logical_operators(
+    integration_name="MyIntegration",
+    as_list=True
+)
+print(f"Total logical operators: {len(all_operators)}")
+for op in all_operators:
+    print(f"  - {op.get('displayName')} (Enabled: {op.get('enabled')})")
+```
+
 
 ## Rule Management
 

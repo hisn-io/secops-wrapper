@@ -8,7 +8,7 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 
 - **v1:** 17 endpoints implemented
 - **v1beta:** 88 endpoints implemented
-- **v1alpha:** 188 endpoints implemented
+- **v1alpha:** 199 endpoints implemented
 
 ## Endpoint Mapping
 
@@ -415,6 +415,17 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.transformers.get                                                  | v1alpha | chronicle.integration.transformers.get_integration_transformer                                                               |                                                |
 | integrations.transformers.list                                                 | v1alpha | chronicle.integration.transformers.list_integration_transformers                                                             |                                                |
 | integrations.transformers.patch                                                | v1alpha | chronicle.integration.transformers.update_integration_transformer                                                            |                                                |
+| integrations.transformers.revisions.create                                     | v1alpha | chronicle.integration.transformer_revisions.create_integration_transformer_revision                                          |                                                |
+| integrations.transformers.revisions.delete                                     | v1alpha | chronicle.integration.transformer_revisions.delete_integration_transformer_revision                                          |                                                |
+| integrations.transformers.revisions.list                                       | v1alpha | chronicle.integration.transformer_revisions.list_integration_transformer_revisions                                           |                                                |
+| integrations.transformers.revisions.rollback                                   | v1alpha | chronicle.integration.transformer_revisions.rollback_integration_transformer_revision                                        |                                                |
+| integrations.logicalOperators.create                                           | v1alpha | chronicle.integration.logical_operators.create_integration_logical_operator                                                  |                                                |
+| integrations.logicalOperators.delete                                           | v1alpha | chronicle.integration.logical_operators.delete_integration_logical_operator                                                  |                                                |
+| integrations.logicalOperators.executeTest                                      | v1alpha | chronicle.integration.logical_operators.execute_integration_logical_operator_test                                            |                                                |
+| integrations.logicalOperators.fetchTemplate                                    | v1alpha | chronicle.integration.logical_operators.get_integration_logical_operator_template                                            |                                                |
+| integrations.logicalOperators.get                                              | v1alpha | chronicle.integration.logical_operators.get_integration_logical_operator                                                     |                                                |
+| integrations.logicalOperators.list                                             | v1alpha | chronicle.integration.logical_operators.list_integration_logical_operators                                                   |                                                |
+| integrations.logicalOperators.patch                                            | v1alpha | chronicle.integration.logical_operators.update_integration_logical_operator                                                  |                                                |
 | integrations.jobs.create                                                       | v1alpha | chronicle.integration.jobs.create_integration_job(api_version=APIVersion.V1ALPHA)                                            |                                                |
 | integrations.jobs.delete                                                       | v1alpha | chronicle.integration.jobs.delete_integration_job(api_version=APIVersion.V1ALPHA)                                            |                                                |
 | integrations.jobs.executeTest                                                  | v1alpha | chronicle.integration.jobs.execute_integration_job_test(api_version=APIVersion.V1ALPHA)                                      |                                                |
