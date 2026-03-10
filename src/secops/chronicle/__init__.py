@@ -339,6 +339,15 @@ from secops.chronicle.integration.integration_instances import (
     get_integration_instance_affected_items,
     get_default_integration_instance,
 )
+from secops.chronicle.integration.transformers import (
+    list_integration_transformers,
+    get_integration_transformer,
+    delete_integration_transformer,
+    create_integration_transformer,
+    update_integration_transformer,
+    execute_integration_transformer_test,
+    get_integration_transformer_template,
+)
 from secops.chronicle.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
@@ -634,6 +643,14 @@ __all__ = [
     "execute_integration_instance_test",
     "get_integration_instance_affected_items",
     "get_default_integration_instance",
+    # Integration Transformers
+    "list_integration_transformers",
+    "get_integration_transformer",
+    "delete_integration_transformer",
+    "create_integration_transformer",
+    "update_integration_transformer",
+    "execute_integration_transformer_test",
+    "get_integration_transformer_template",
     # Marketplace Integrations
     "list_marketplace_integrations",
     "get_marketplace_integration",

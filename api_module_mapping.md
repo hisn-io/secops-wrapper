@@ -8,7 +8,7 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 
 - **v1:** 17 endpoints implemented
 - **v1beta:** 88 endpoints implemented
-- **v1alpha:** 181 endpoints implemented
+- **v1alpha:** 188 endpoints implemented
 
 ## Endpoint Mapping
 
@@ -408,6 +408,13 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 | integrations.integrationInstances.get                                          | v1alpha | chronicle.integration.integration_instances.get_integration_instance(api_version=APIVersion.V1ALPHA)                         |                                                |
 | integrations.integrationInstances.list                                         | v1alpha | chronicle.integration.integration_instances.list_integration_instances(api_version=APIVersion.V1ALPHA)                       |                                                |
 | integrations.integrationInstances.patch                                        | v1alpha | chronicle.integration.integration_instances.update_integration_instance(api_version=APIVersion.V1ALPHA)                      |                                                |
+| integrations.transformers.create                                               | v1alpha | chronicle.integration.transformers.create_integration_transformer                                                            |                                                |
+| integrations.transformers.delete                                               | v1alpha | chronicle.integration.transformers.delete_integration_transformer                                                            |                                                |
+| integrations.transformers.executeTest                                          | v1alpha | chronicle.integration.transformers.execute_integration_transformer_test                                                      |                                                |
+| integrations.transformers.fetchTemplate                                        | v1alpha | chronicle.integration.transformers.get_integration_transformer_template                                                      |                                                |
+| integrations.transformers.get                                                  | v1alpha | chronicle.integration.transformers.get_integration_transformer                                                               |                                                |
+| integrations.transformers.list                                                 | v1alpha | chronicle.integration.transformers.list_integration_transformers                                                             |                                                |
+| integrations.transformers.patch                                                | v1alpha | chronicle.integration.transformers.update_integration_transformer                                                            |                                                |
 | integrations.jobs.create                                                       | v1alpha | chronicle.integration.jobs.create_integration_job(api_version=APIVersion.V1ALPHA)                                            |                                                |
 | integrations.jobs.delete                                                       | v1alpha | chronicle.integration.jobs.delete_integration_job(api_version=APIVersion.V1ALPHA)                                            |                                                |
 | integrations.jobs.executeTest                                                  | v1alpha | chronicle.integration.jobs.execute_integration_job_test(api_version=APIVersion.V1ALPHA)                                      |                                                |

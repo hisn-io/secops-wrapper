@@ -639,6 +639,51 @@ class ConnectorInstanceParameter:
         return data
 
 
+class TransformerType(str, Enum):
+    """Transformer types for Chronicle SOAR integration transformers."""
+
+    UNSPECIFIED = "TRANSFORMER_TYPE_UNSPECIFIED"
+    BUILT_IN = "BUILT_IN"
+    CUSTOM = "CUSTOM"
+
+
+@dataclass
+class TransformerDefinitionParameter:
+    """A parameter definition for a Chronicle SOAR transformer definition.
+
+    Attributes:
+        display_name: The parameter's display name. May contain letters,
+            numbers, and underscores. Maximum 150 characters.
+        mandatory: Whether the parameter is mandatory for configuring a
+            transformer instance.
+        id: The parameter's id. Server-generated on creation; must be
+            provided when updating an existing parameter.
+        default_value: The default value of the parameter. Required for
+            boolean and mandatory parameters.
+        description: The parameter's description. Maximum 2050 characters.
+    """
+
+    display_name: str
+    mandatory: bool
+    id: str | None = None
+    default_value: str | None = None
+    description: str | None = None
+
+    def to_dict(self) -> dict:
+        """Serialize to the dict shape expected by the Chronicle API."""
+        data: dict = {
+            "displayName": self.display_name,
+            "mandatory": self.mandatory,
+        }
+        if self.id is not None:
+            data["id"] = self.id
+        if self.default_value is not None:
+            data["defaultValue"] = self.default_value
+        if self.description is not None:
+            data["description"] = self.description
+        return data
+
+
 @dataclass
 class ConnectorRule:
     """A rule definition for a Chronicle SOAR integration connector.

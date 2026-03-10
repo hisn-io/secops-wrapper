@@ -32,6 +32,7 @@ from secops.cli.commands.integration import (
     managers,
     manager_revisions,
     integration_instances,
+    transformers,
 )
 
 
@@ -47,6 +48,7 @@ def setup_integrations_command(subparsers):
     # Setup all subcommands under `integration`
     integration.setup_integrations_command(lvl1)
     integration_instances.setup_integration_instances_command(lvl1)
+    transformers.setup_transformers_command(lvl1)
     actions.setup_actions_command(lvl1)
     action_revisions.setup_action_revisions_command(lvl1)
     connectors.setup_connectors_command(lvl1)

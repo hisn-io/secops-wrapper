@@ -267,6 +267,15 @@ from secops.chronicle.integration.integration_instances import (
     list_integration_instances as _list_integration_instances,
     update_integration_instance as _update_integration_instance,
 )
+from secops.chronicle.integration.transformers import (
+    create_integration_transformer as _create_integration_transformer,
+    delete_integration_transformer as _delete_integration_transformer,
+    execute_integration_transformer_test as _execute_integration_transformer_test,
+    get_integration_transformer as _get_integration_transformer,
+    get_integration_transformer_template as _get_integration_transformer_template,
+    list_integration_transformers as _list_integration_transformers,
+    update_integration_transformer as _update_integration_transformer,
+)
 from secops.chronicle.models import (
     APIVersion,
     CaseList,
@@ -5076,6 +5085,317 @@ class ChronicleClient:
             APIError: If the API request fails.
         """
         return _get_default_integration_instance(
+            self,
+            integration_name,
+            api_version=api_version,
+        )
+
+    # -- Integration Transformers methods --
+
+    def list_integration_transformers(
+        self,
+        integration_name: str,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_string: str | None = None,
+        order_by: str | None = None,
+        exclude_staging: bool | None = None,
+        expand: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
+        """List all transformer definitions for a specific integration.
+
+        Use this method to browse the available transformers.
+
+        Args:
+            integration_name: Name of the integration to list transformers
+                for.
+            page_size: Maximum number of transformers to return. Defaults
+                to 100, maximum is 200.
+            page_token: Page token from a previous call to retrieve the
+                next page.
+            filter_string: Filter expression to filter transformers.
+            order_by: Field to sort the transformers by.
+            exclude_staging: Whether to exclude staging transformers from
+                the response. By default, staging transformers are included.
+            expand: Expand the response with the full transformer details.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            If as_list is True: List of transformers.
+            If as_list is False: Dict with transformers list and
+                nextPageToken.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _list_integration_transformers(
+            self,
+            integration_name,
+            page_size=page_size,
+            page_token=page_token,
+            filter_string=filter_string,
+            order_by=order_by,
+            exclude_staging=exclude_staging,
+            expand=expand,
+            api_version=api_version,
+        )
+
+    def get_integration_transformer(
+        self,
+        integration_name: str,
+        transformer_id: str,
+        expand: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Get a single transformer definition for a specific integration.
+
+        Use this method to retrieve the Python script, input parameters,
+        and expected input, output and usage example schema for a specific
+        data transformation logic within an integration.
+
+        Args:
+            integration_name: Name of the integration the transformer
+                belongs to.
+            transformer_id: ID of the transformer to retrieve.
+            expand: Expand the response with the full transformer details.
+                Optional.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing details of the specified TransformerDefinition.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_transformer(
+            self,
+            integration_name,
+            transformer_id,
+            expand=expand,
+            api_version=api_version,
+        )
+
+    def delete_integration_transformer(
+        self,
+        integration_name: str,
+        transformer_id: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> None:
+        """Delete a custom transformer definition from a given integration.
+
+        Use this method to permanently remove an obsolete transformer from
+        an integration.
+
+        Args:
+            integration_name: Name of the integration the transformer
+                belongs to.
+            transformer_id: ID of the transformer to delete.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            None
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _delete_integration_transformer(
+            self,
+            integration_name,
+            transformer_id,
+            api_version=api_version,
+        )
+
+    def create_integration_transformer(
+        self,
+        integration_name: str,
+        display_name: str,
+        script: str,
+        script_timeout: str,
+        enabled: bool,
+        description: str | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        usage_example: str | None = None,
+        expected_output: str | None = None,
+        expected_input: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Create a new transformer definition for a given integration.
+
+        Use this method to define a transformer, specifying its functional
+        Python script and necessary input parameters.
+
+        Args:
+            integration_name: Name of the integration to create the
+                transformer for.
+            display_name: Transformer's display name. Maximum 150 characters.
+                Required.
+            script: Transformer's Python script. Required.
+            script_timeout: Timeout in seconds for a single script run.
+                Default is 60. Required.
+            enabled: Whether the transformer is enabled or disabled.
+                Required.
+            description: Transformer's description. Maximum 2050 characters.
+                Optional.
+            parameters: List of transformer parameter dicts. Optional.
+            usage_example: Transformer's usage example. Optional.
+            expected_output: Transformer's expected output. Optional.
+            expected_input: Transformer's expected input. Optional.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the newly created TransformerDefinition
+                resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _create_integration_transformer(
+            self,
+            integration_name,
+            display_name,
+            script,
+            script_timeout,
+            enabled,
+            description=description,
+            parameters=parameters,
+            usage_example=usage_example,
+            expected_output=expected_output,
+            expected_input=expected_input,
+            api_version=api_version,
+        )
+
+    def update_integration_transformer(
+        self,
+        integration_name: str,
+        transformer_id: str,
+        display_name: str | None = None,
+        script: str | None = None,
+        script_timeout: str | None = None,
+        enabled: bool | None = None,
+        description: str | None = None,
+        parameters: list[dict[str, Any]] | None = None,
+        usage_example: str | None = None,
+        expected_output: str | None = None,
+        expected_input: str | None = None,
+        update_mask: str | None = None,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Update an existing transformer definition for a given
+        integration.
+
+        Use this method to modify a transformation's Python script, adjust
+        its description, or refine its parameter definitions.
+
+        Args:
+            integration_name: Name of the integration the transformer
+                belongs to.
+            transformer_id: ID of the transformer to update.
+            display_name: Transformer's display name. Maximum 150
+                characters.
+            script: Transformer's Python script.
+            script_timeout: Timeout in seconds for a single script run.
+            enabled: Whether the transformer is enabled or disabled.
+            description: Transformer's description. Maximum 2050 characters.
+            parameters: List of transformer parameter dicts. When updating
+                existing parameters, id must be provided in each parameter.
+            usage_example: Transformer's usage example.
+            expected_output: Transformer's expected output.
+            expected_input: Transformer's expected input.
+            update_mask: Comma-separated list of fields to update. If
+                omitted, the mask is auto-generated from whichever fields
+                are provided. Example: "displayName,script".
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the updated TransformerDefinition resource.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _update_integration_transformer(
+            self,
+            integration_name,
+            transformer_id,
+            display_name=display_name,
+            script=script,
+            script_timeout=script_timeout,
+            enabled=enabled,
+            description=description,
+            parameters=parameters,
+            usage_example=usage_example,
+            expected_output=expected_output,
+            expected_input=expected_input,
+            update_mask=update_mask,
+            api_version=api_version,
+        )
+
+    def execute_integration_transformer_test(
+        self,
+        integration_name: str,
+        transformer: dict[str, Any],
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Execute a test run of a transformer's Python script.
+
+        Use this method to verify transformation logic and ensure data is
+        being parsed and formatted correctly before saving or deploying
+        the transformer. The full transformer object is required as the
+        test can be run without saving the transformer first.
+
+        Args:
+            integration_name: Name of the integration the transformer
+                belongs to.
+            transformer: Dict containing the TransformerDefinition to test.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the test execution results with the following
+                fields:
+                - outputMessage: Human-readable output message set by the
+                  script.
+                - debugOutputMessage: The script debug output.
+                - resultValue: The script result value.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _execute_integration_transformer_test(
+            self,
+            integration_name,
+            transformer,
+            api_version=api_version,
+        )
+
+    def get_integration_transformer_template(
+        self,
+        integration_name: str,
+        api_version: APIVersion | None = APIVersion.V1ALPHA,
+    ) -> dict[str, Any]:
+        """Retrieve a default Python script template for a new transformer.
+
+        Use this method to jumpstart the development of a custom data
+        transformation logic by providing boilerplate code.
+
+        Args:
+            integration_name: Name of the integration to fetch the template
+                for.
+            api_version: API version to use for the request. Default is
+                V1ALPHA.
+
+        Returns:
+            Dict containing the TransformerDefinition template.
+
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_integration_transformer_template(
             self,
             integration_name,
             api_version=api_version,

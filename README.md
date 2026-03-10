@@ -4167,6 +4167,319 @@ print(f"Default Instance: {default_instance.get('displayName')}")
 print(f"Environment: {default_instance.get('environment')}")
 ```
 
+### Integration Transformers
+
+List all transformers for a specific integration:
+
+```python
+# Get all transformers for an integration
+transformers = chronicle.list_integration_transformers("MyIntegration")
+for transformer in transformers.get("transformers", []):
+    print(f"Transformer: {transformer.get('displayName')}, ID: {transformer.get('name')}")
+
+# Get all transformers as a list
+transformers = chronicle.list_integration_transformers("MyIntegration", as_list=True)
+
+# Get only enabled transformers
+transformers = chronicle.list_integration_transformers(
+    "MyIntegration",
+    filter_string="enabled = true"
+)
+
+# Exclude staging transformers
+transformers = chronicle.list_integration_transformers(
+    "MyIntegration",
+    exclude_staging=True
+)
+
+# Get transformers with expanded details
+transformers = chronicle.list_integration_transformers(
+    "MyIntegration",
+    expand="parameters"
+)
+```
+
+Get details of a specific transformer:
+
+```python
+transformer = chronicle.get_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1"
+)
+print(f"Display Name: {transformer.get('displayName')}")
+print(f"Script: {transformer.get('script')}")
+print(f"Enabled: {transformer.get('enabled')}")
+
+# Get transformer with expanded parameters
+transformer = chronicle.get_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    expand="parameters"
+)
+```
+
+Create a new transformer:
+
+```python
+# Create a basic transformer
+new_transformer = chronicle.create_integration_transformer(
+    integration_name="MyIntegration",
+    display_name="JSON Parser",
+    script="""
+def transform(data):
+    import json
+    try:
+        return json.loads(data)
+    except Exception as e:
+        return {"error": str(e)}
+""",
+    script_timeout="60s",
+    enabled=True
+)
+
+# Create transformer with all fields
+new_transformer = chronicle.create_integration_transformer(
+    integration_name="MyIntegration",
+    display_name="Advanced Data Transformer",
+    description="Transforms and enriches incoming data",
+    script="""
+def transform(data, api_key, endpoint_url):
+    import json
+    import requests
+    
+    # Parse input data
+    parsed = json.loads(data)
+    
+    # Enrich with external API call
+    response = requests.get(
+        endpoint_url,
+        headers={"Authorization": f"Bearer {api_key}"}
+    )
+    parsed["enrichment"] = response.json()
+    
+    return parsed
+""",
+    script_timeout="120s",
+    enabled=True,
+    parameters=[
+        {
+            "name": "api_key",
+            "type": "STRING",
+            "displayName": "API Key",
+            "mandatory": True
+        },
+        {
+            "name": "endpoint_url",
+            "type": "STRING",
+            "displayName": "Endpoint URL",
+            "mandatory": True
+        }
+    ],
+    usage_example="Used to enrich security events with external threat intelligence",
+    expected_input='{"event": "data", "timestamp": "2024-01-01T00:00:00Z"}',
+    expected_output='{"event": "data", "timestamp": "2024-01-01T00:00:00Z", "enrichment": {...}}'
+)
+```
+
+Update an existing transformer:
+
+```python
+# Update transformer display name
+updated_transformer = chronicle.update_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    display_name="Updated Transformer Name"
+)
+
+# Update transformer script
+updated_transformer = chronicle.update_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    script="""
+def transform(data):
+    # Updated transformation logic
+    return data.upper()
+"""
+)
+
+# Update multiple fields including parameters
+updated_transformer = chronicle.update_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    display_name="Enhanced Transformer",
+    description="Updated with better error handling",
+    script="""
+def transform(data, timeout=30):
+    import json
+    try:
+        result = json.loads(data)
+        result["processed"] = True
+        return result
+    except Exception as e:
+        return {"error": str(e), "original": data}
+""",
+    script_timeout="90s",
+    enabled=True,
+    parameters=[
+        {
+            "name": "timeout",
+            "type": "INTEGER",
+            "displayName": "Processing Timeout",
+            "mandatory": False,
+            "defaultValue": "30"
+        }
+    ]
+)
+
+# Use custom update mask
+updated_transformer = chronicle.update_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1",
+    display_name="New Name",
+    description="New Description",
+    update_mask="displayName,description"
+)
+```
+
+Delete a transformer:
+
+```python
+chronicle.delete_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1"
+)
+```
+
+Execute a test run of a transformer:
+
+```python
+# Get the transformer
+transformer = chronicle.get_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id="t1"
+)
+
+# Test the transformer with sample data
+test_result = chronicle.execute_integration_transformer_test(
+    integration_name="MyIntegration",
+    transformer=transformer
+)
+print(f"Output Message: {test_result.get('outputMessage')}")
+print(f"Debug Output: {test_result.get('debugOutputMessage')}")
+print(f"Result Value: {test_result.get('resultValue')}")
+
+# You can also test a transformer before creating it
+test_transformer = {
+    "displayName": "Test Transformer",
+    "script": """
+def transform(data):
+    return {"transformed": data, "status": "success"}
+""",
+    "scriptTimeout": "60s",
+    "enabled": True
+}
+
+test_result = chronicle.execute_integration_transformer_test(
+    integration_name="MyIntegration",
+    transformer=test_transformer
+)
+```
+
+Get a template for creating a transformer:
+
+```python
+# Get a boilerplate template for a new transformer
+template = chronicle.get_integration_transformer_template("MyIntegration")
+print(f"Template Script: {template.get('script')}")
+print(f"Template Display Name: {template.get('displayName')}")
+
+# Use the template as a starting point
+new_transformer = chronicle.create_integration_transformer(
+    integration_name="MyIntegration",
+    display_name="My Custom Transformer",
+    script=template.get('script'),  # Customize this
+    script_timeout="60s",
+    enabled=True
+)
+```
+
+Example workflow: Safe transformer development with testing:
+
+```python
+# 1. Get a template to start with
+template = chronicle.get_integration_transformer_template("MyIntegration")
+
+# 2. Customize the script
+custom_transformer = {
+    "displayName": "CSV to JSON Transformer",
+    "description": "Converts CSV data to JSON format",
+    "script": """
+def transform(data):
+    import csv
+    import json
+    from io import StringIO
+    
+    # Parse CSV
+    reader = csv.DictReader(StringIO(data))
+    rows = list(reader)
+    
+    return json.dumps(rows)
+""",
+    "scriptTimeout": "60s",
+    "enabled": False,  # Start disabled for testing
+    "usageExample": "Input CSV with headers, output JSON array of objects"
+}
+
+# 3. Test the transformer before creating it
+test_result = chronicle.execute_integration_transformer_test(
+    integration_name="MyIntegration",
+    transformer=custom_transformer
+)
+
+# 4. If test is successful, create the transformer
+if test_result.get('resultValue'):
+    created_transformer = chronicle.create_integration_transformer(
+        integration_name="MyIntegration",
+        display_name=custom_transformer["displayName"],
+        description=custom_transformer["description"],
+        script=custom_transformer["script"],
+        script_timeout=custom_transformer["scriptTimeout"],
+        enabled=True,  # Enable after successful testing
+        usage_example=custom_transformer["usageExample"]
+    )
+    print(f"Transformer created: {created_transformer.get('name')}")
+else:
+    print(f"Test failed: {test_result.get('debugOutputMessage')}")
+
+# 5. Continue testing and refining
+transformer_id = created_transformer.get('name').split('/')[-1]
+updated = chronicle.update_integration_transformer(
+    integration_name="MyIntegration",
+    transformer_id=transformer_id,
+    script="""
+def transform(data, delimiter=','):
+    import csv
+    import json
+    from io import StringIO
+    
+    # Parse CSV with custom delimiter
+    reader = csv.DictReader(StringIO(data), delimiter=delimiter)
+    rows = list(reader)
+    
+    return json.dumps(rows, indent=2)
+""",
+    parameters=[
+        {
+            "name": "delimiter",
+            "type": "STRING",
+            "displayName": "CSV Delimiter",
+            "mandatory": False,
+            "defaultValue": ","
+        }
+    ]
+)
+```
+
 
 ## Rule Management
 

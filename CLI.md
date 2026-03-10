@@ -2065,6 +2065,128 @@ secops integration instances get-default \
   --integration-name "MyIntegration"
 ```
 
+#### Integration Transformers
+
+List integration transformers:
+
+```bash
+# List all transformers for an integration
+secops integration transformers list --integration-name "MyIntegration"
+
+# List transformers as a direct list (fetches all pages automatically)
+secops integration transformers list --integration-name "MyIntegration" --as-list
+
+# List with pagination
+secops integration transformers list --integration-name "MyIntegration" --page-size 50
+
+# List with filtering
+secops integration transformers list --integration-name "MyIntegration" --filter-string "enabled = true"
+
+# Exclude staging transformers
+secops integration transformers list --integration-name "MyIntegration" --exclude-staging
+
+# List with expanded details
+secops integration transformers list --integration-name "MyIntegration" --expand "parameters"
+```
+
+Get transformer details:
+
+```bash
+# Get basic transformer details
+secops integration transformers get \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1"
+
+# Get transformer with expanded parameters
+secops integration transformers get \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --expand "parameters"
+```
+
+Create a new transformer:
+
+```bash
+# Create a basic transformer
+secops integration transformers create \
+  --integration-name "MyIntegration" \
+  --display-name "JSON Parser" \
+  --script "def transform(data): import json; return json.loads(data)" \
+  --script-timeout "60s" \
+  --enabled
+
+# Create transformer with description
+secops integration transformers create \
+  --integration-name "MyIntegration" \
+  --display-name "Data Enricher" \
+  --script "def transform(data): return {'enriched': data, 'timestamp': '2024-01-01'}" \
+  --script-timeout "120s" \
+  --description "Enriches data with additional fields" \
+  --enabled
+```
+
+> **Note:** When creating a transformer:
+> - `--script-timeout` should be specified with a unit (e.g., "60s", "2m")
+> - Use `--enabled` flag to enable the transformer on creation (default is disabled)
+> - The script must be valid Python code with a `transform()` function
+
+Update an existing transformer:
+
+```bash
+# Update display name
+secops integration transformers update \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --display-name "Updated Transformer Name"
+
+# Update script
+secops integration transformers update \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --script "def transform(data): return data.upper()"
+
+# Update multiple fields
+secops integration transformers update \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --display-name "Enhanced Transformer" \
+  --description "Updated with better error handling" \
+  --script-timeout "90s" \
+  --enabled true
+
+# Update with custom update mask
+secops integration transformers update \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1" \
+  --display-name "New Name" \
+  --description "New description" \
+  --update-mask "displayName,description"
+```
+
+Delete a transformer:
+
+```bash
+secops integration transformers delete \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1"
+```
+
+Test a transformer:
+
+```bash
+# Test an existing transformer to verify it works correctly
+secops integration transformers test \
+  --integration-name "MyIntegration" \
+  --transformer-id "t1"
+```
+
+Get transformer template:
+
+```bash
+# Get a boilerplate template for creating a new transformer
+secops integration transformers template --integration-name "MyIntegration"
+```
+
 ### Rule Management
 
 List detection rules:
