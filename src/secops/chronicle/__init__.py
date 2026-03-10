@@ -200,6 +200,7 @@ from secops.chronicle.udm_mapping import (
     RowLogFormat,
     generate_udm_key_value_mappings,
 )
+from secops.chronicle.log_search import search_raw_logs
 from secops.chronicle.udm_search import (
     fetch_udm_search_csv,
     fetch_udm_search_view,
@@ -389,6 +390,7 @@ __all__ = [
     "validate_query",
     "get_stats",
     "search_udm",
+    "search_raw_logs",
     # Natural Language Search
     "translate_nl_to_udm",
     # Entity
