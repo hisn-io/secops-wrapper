@@ -734,7 +734,6 @@ class IntegrationLogicalOperatorParameter:
         return data
 
 
-
 @dataclass
 class ConnectorRule:
     """A rule definition for a Chronicle SOAR integration connector.

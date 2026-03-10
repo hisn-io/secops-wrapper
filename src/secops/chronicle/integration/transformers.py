@@ -16,10 +16,7 @@
 
 from typing import Any, TYPE_CHECKING
 
-from secops.chronicle.models import (
-    APIVersion,
-    TransformerDefinitionParameter
-)
+from secops.chronicle.models import APIVersion, TransformerDefinitionParameter
 from secops.chronicle.utils.format_utils import (
     format_resource_id,
     build_patch_body,
@@ -217,8 +214,10 @@ def create_integration_transformer(
         APIError: If the API request fails.
     """
     resolved_parameters = (
-        [p.to_dict() if isinstance(p, TransformerDefinitionParameter) else p
-         for p in parameters]
+        [
+            p.to_dict() if isinstance(p, TransformerDefinitionParameter) else p
+            for p in parameters
+        ]
         if parameters is not None
         else None
     )
@@ -299,8 +298,10 @@ def update_integration_transformer(
         APIError: If the API request fails.
     """
     resolved_parameters = (
-        [p.to_dict() if isinstance(p, TransformerDefinitionParameter) else p
-         for p in parameters]
+        [
+            p.to_dict() if isinstance(p, TransformerDefinitionParameter) else p
+            for p in parameters
+        ]
         if parameters is not None
         else None
     )

@@ -18,7 +18,7 @@ from typing import Any, TYPE_CHECKING
 
 from secops.chronicle.models import (
     APIVersion,
-    IntegrationLogicalOperatorParameter
+    IntegrationLogicalOperatorParameter,
 )
 from secops.chronicle.utils.format_utils import (
     format_resource_id,
@@ -219,9 +219,14 @@ def create_integration_logical_operator(
         APIError: If the API request fails.
     """
     resolved_parameters = (
-        [p.to_dict()
-         if isinstance(p, IntegrationLogicalOperatorParameter) else p
-         for p in parameters]
+        [
+            (
+                p.to_dict()
+                if isinstance(p, IntegrationLogicalOperatorParameter)
+                else p
+            )
+            for p in parameters
+        ]
         if parameters is not None
         else None
     )
@@ -295,9 +300,14 @@ def update_integration_logical_operator(
         APIError: If the API request fails.
     """
     resolved_parameters = (
-        [p.to_dict()
-         if isinstance(p, IntegrationLogicalOperatorParameter) else p
-         for p in parameters]
+        [
+            (
+                p.to_dict()
+                if isinstance(p, IntegrationLogicalOperatorParameter)
+                else p
+            )
+            for p in parameters
+        ]
         if parameters is not None
         else None
     )

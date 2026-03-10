@@ -187,9 +187,7 @@ def handle_transformer_revisions_delete_command(args, chronicle):
             transformer_id=args.transformer_id,
             revision_id=args.revision_id,
         )
-        print(
-            f"Transformer revision {args.revision_id} deleted successfully"
-        )
+        print(f"Transformer revision {args.revision_id} deleted successfully")
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(
             f"Error deleting transformer revision: {e}",
@@ -236,4 +234,3 @@ def handle_transformer_revisions_rollback_command(args, chronicle):
             file=sys.stderr,
         )
         sys.exit(1)
-

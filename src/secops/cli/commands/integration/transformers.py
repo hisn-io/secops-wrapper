@@ -302,9 +302,7 @@ def handle_transformers_delete_command(args, chronicle):
             integration_name=args.integration_name,
             transformer_id=args.transformer_id,
         )
-        print(
-            f"Transformer {args.transformer_id} deleted successfully"
-        )
+        print(f"Transformer {args.transformer_id} deleted successfully")
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error deleting integration transformer: {e}", file=sys.stderr)
         sys.exit(1)
@@ -387,4 +385,3 @@ def handle_transformers_template_command(args, chronicle):
             file=sys.stderr,
         )
         sys.exit(1)
-

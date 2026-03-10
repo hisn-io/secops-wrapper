@@ -278,8 +278,7 @@ def handle_logical_operators_list_command(args, chronicle):
         output_formatter(out, getattr(args, "output", "json"))
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(
-            f"Error listing integration logical operators: {e}",
-            file=sys.stderr
+            f"Error listing integration logical operators: {e}", file=sys.stderr
         )
         sys.exit(1)
 
@@ -295,8 +294,7 @@ def handle_logical_operators_get_command(args, chronicle):
         output_formatter(out, getattr(args, "output", "json"))
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(
-            f"Error getting integration logical operator: {e}",
-            file=sys.stderr
+            f"Error getting integration logical operator: {e}", file=sys.stderr
         )
         sys.exit(1)
 
@@ -313,8 +311,7 @@ def handle_logical_operators_delete_command(args, chronicle):
         )
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(
-            f"Error deleting integration logical operator: {e}",
-            file=sys.stderr
+            f"Error deleting integration logical operator: {e}", file=sys.stderr
         )
         sys.exit(1)
 
@@ -396,4 +393,3 @@ def handle_logical_operators_template_command(args, chronicle):
             file=sys.stderr,
         )
         sys.exit(1)
-
