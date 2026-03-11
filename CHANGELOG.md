@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.37.0] - 2026-03-11
+### Added
+- Comprehensive case management functionality for Chronicle
+  - `get_case()` - Retrieve single case details with optional field expansion
+  - `list_cases()` - List cases with filtering, pagination, and sorting capabilities
+  - `patch_case()` - Update case properties using partial updates
+  - `merge_cases()` - Merge multiple cases into a single case
+  - `get_cases()` - Legacy batch case retrieval for multiple case IDs
+- Bulk case operations for efficient case management
+  - `execute_bulk_add_tag()` - Add tags to multiple cases
+  - `execute_bulk_assign()` - Assign multiple cases to users
+  - `execute_bulk_change_priority()` - Change priority for multiple cases
+  - `execute_bulk_change_stage()` - Change stage for multiple cases
+  - `execute_bulk_close()` - Close multiple cases with reasons
+  - `execute_bulk_reopen()` - Reopen multiple cases
+- Complete CLI support for case management through `secops case` commands
+  - `secops case get` - Get single case details
+  - `secops case list` - List cases with filtering and pagination
+  - `secops case update` - Update case properties
+  - `secops case merge` - Merge multiple cases
+  - `secops case bulk-*` commands for bulk operations
+
 ## [0.36.0] - 2026-03-10
 ### Added
 - Raw log search functionality with `search_raw_logs()` method
