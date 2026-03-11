@@ -12,12 +12,22 @@ import pytest
 
 @pytest.mark.integration
 def test_cli_list_and_get_cases_workflow(cli_env, common_args):
-    """Test CLI case list and get workflow."""
+    """Test CLI case list and get workflow.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     # Test basic list
     list_cmd = ["secops"] + common_args + ["case", "list", "--page-size", "3"]
     list_result = subprocess.run(
         list_cmd, env=cli_env, capture_output=True, text=True
     )
+
+    # Check for 401/Unauthorized in stderr or stdout
+    if list_result.returncode != 0:
+        error_output = list_result.stderr + list_result.stdout
+        if "401" in error_output or "Unauthorized" in error_output:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {error_output}")
+
     assert list_result.returncode == 0
 
     try:
@@ -90,7 +100,10 @@ def test_cli_list_and_get_cases_workflow(cli_env, common_args):
 
 @pytest.mark.integration
 def test_cli_case_update(cli_env, common_args):
-    """Test the case update command."""
+    """Test the case update command.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     # Use dedicated test case ID
     case_id = "7418669"
 
@@ -101,6 +114,9 @@ def test_cli_case_update(cli_env, common_args):
     )
 
     if get_result.returncode != 0:
+        error_output = get_result.stderr + get_result.stdout
+        if "401" in error_output or "Unauthorized" in error_output:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {error_output}")
         pytest.skip("Unable to get test case")
 
     try:
@@ -134,6 +150,14 @@ def test_cli_case_update(cli_env, common_args):
             update_cmd, env=cli_env, capture_output=True, text=True
         )
 
+        # Check for 401/Unauthorized
+        if update_result.returncode != 0:
+            error_output = update_result.stderr + update_result.stdout
+            if "401" in error_output or "Unauthorized" in error_output:
+                pytest.skip(
+                    f"Skipping due to SOAR IAM issue (401): {error_output}"
+                )
+
         assert update_result.returncode == 0
 
         update_output = json.loads(update_result.stdout)
@@ -162,7 +186,10 @@ def test_cli_case_update(cli_env, common_args):
 
 @pytest.mark.integration
 def test_cli_case_bulk_add_tag(cli_env, common_args):
-    """Test the case bulk-add-tag command."""
+    """Test the case bulk-add-tag command.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     # Use dedicated test case ID
     case_ids = ["7418669"]
 
@@ -184,6 +211,12 @@ def test_cli_case_bulk_add_tag(cli_env, common_args):
         bulk_cmd, env=cli_env, capture_output=True, text=True
     )
 
+    # Check for 401/Unauthorized
+    if bulk_result.returncode != 0:
+        error_output = bulk_result.stderr + bulk_result.stdout
+        if "401" in error_output or "Unauthorized" in error_output:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {error_output}")
+
     assert bulk_result.returncode == 0
 
 
@@ -191,7 +224,7 @@ def test_cli_case_bulk_add_tag(cli_env, common_args):
 def test_cli_case_bulk_assign(cli_env, common_args):
     """Test the case bulk-assign command.
 
-    Skips test if API returns 500/INTERNAL error.
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
     # Use dedicated test case ID
     case_ids = ["7418669"]
@@ -213,12 +246,14 @@ def test_cli_case_bulk_assign(cli_env, common_args):
         bulk_cmd, env=cli_env, capture_output=True, text=True
     )
 
-    # Skip if API returns INTERNAL/500 error
+    # Skip if API returns 401/Unauthorized or INTERNAL/500 error
     if bulk_result.returncode != 0:
-        if "INTERNAL" in bulk_result.stderr or "500" in bulk_result.stderr:
+        error_output = bulk_result.stderr + bulk_result.stdout
+        if "401" in error_output or "Unauthorized" in error_output:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {error_output}")
+        if "INTERNAL" in error_output or "500" in error_output:
             pytest.skip(
-                f"Bulk assign API returned INTERNAL error: "
-                f"{bulk_result.stderr}"
+                f"Bulk assign API returned INTERNAL error: {error_output}"
             )
 
     assert bulk_result.returncode == 0
@@ -226,7 +261,10 @@ def test_cli_case_bulk_assign(cli_env, common_args):
 
 @pytest.mark.integration
 def test_cli_case_bulk_change_priority(cli_env, common_args):
-    """Test the case bulk-change-priority command."""
+    """Test the case bulk-change-priority command.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     # Use dedicated test case ID
     case_ids = ["7418669"]
 
@@ -247,12 +285,21 @@ def test_cli_case_bulk_change_priority(cli_env, common_args):
         bulk_cmd, env=cli_env, capture_output=True, text=True
     )
 
+    # Check for 401/Unauthorized
+    if bulk_result.returncode != 0:
+        error_output = bulk_result.stderr + bulk_result.stdout
+        if "401" in error_output or "Unauthorized" in error_output:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {error_output}")
+
     assert bulk_result.returncode == 0
 
 
 @pytest.mark.integration
 def test_cli_case_bulk_change_stage(cli_env, common_args):
-    """Test the case bulk-change-stage command."""
+    """Test the case bulk-change-stage command.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     # Use dedicated test case ID
     case_ids = ["7418669"]
 
@@ -273,12 +320,21 @@ def test_cli_case_bulk_change_stage(cli_env, common_args):
         bulk_cmd, env=cli_env, capture_output=True, text=True
     )
 
+    # Check for 401/Unauthorized
+    if bulk_result.returncode != 0:
+        error_output = bulk_result.stderr + bulk_result.stdout
+        if "401" in error_output or "Unauthorized" in error_output:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {error_output}")
+
     assert bulk_result.returncode == 0
 
 
 @pytest.mark.integration
 def test_cli_case_bulk_close_reopen_workflow(cli_env, common_args):
-    """Test the case bulk-close and bulk-reopen commands in workflow."""
+    """Test the case bulk-close and bulk-reopen commands in workflow.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     # Use dedicated test case ID
     case_ids = ["7418669"]
 
@@ -302,6 +358,14 @@ def test_cli_case_bulk_close_reopen_workflow(cli_env, common_args):
         close_result = subprocess.run(
             close_cmd, env=cli_env, capture_output=True, text=True
         )
+
+        # Check for 401/Unauthorized
+        if close_result.returncode != 0:
+            error_output = close_result.stderr + close_result.stdout
+            if "401" in error_output or "Unauthorized" in error_output:
+                pytest.skip(
+                    f"Skipping due to SOAR IAM issue (401): {error_output}"
+                )
 
         assert close_result.returncode == 0
 

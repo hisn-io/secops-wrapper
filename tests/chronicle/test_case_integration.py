@@ -26,50 +26,60 @@ from secops.exceptions import APIError
 
 @pytest.mark.integration
 def test_list_and_get_cases_workflow():
-    """Test listing and getting cases workflow."""
+    """Test listing and getting cases workflow.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
-    # Test basic list
-    result = chronicle.list_cases(page_size=5)
-    assert isinstance(result, dict)
-    assert "cases" in result
-    assert isinstance(result["cases"], list)
-    assert "totalSize" in result
+    try:
+        # Test basic list
+        result = chronicle.list_cases(page_size=5)
+        assert isinstance(result, dict)
+        assert "cases" in result
+        assert isinstance(result["cases"], list)
+        assert "totalSize" in result
 
-    # Test with as_list=False (default)
-    result_dict = chronicle.list_cases(page_size=3, as_list=False)
-    assert isinstance(result_dict, dict)
-    assert "cases" in result_dict
-    assert "nextPageToken" in result_dict or "totalSize" in result_dict
+        # Test with as_list=False (default)
+        result_dict = chronicle.list_cases(page_size=3, as_list=False)
+        assert isinstance(result_dict, dict)
+        assert "cases" in result_dict
+        assert "nextPageToken" in result_dict or "totalSize" in result_dict
 
-    # Test with as_list=True
-    result_list = chronicle.list_cases(page_size=3, as_list=True)
-    assert isinstance(result_list, list)
-    if result_list:
-        assert "name" in result_list[0]
+        # Test with as_list=True
+        result_list = chronicle.list_cases(page_size=3, as_list=True)
+        assert isinstance(result_list, list)
+        if result_list:
+            assert "name" in result_list[0]
 
-    # Test list with filter
-    filtered = chronicle.list_cases(
-        page_size=5, filter_query='status = "OPENED"'
-    )
-    assert isinstance(filtered, dict)
-    assert "cases" in filtered
+        # Test list with filter
+        filtered = chronicle.list_cases(
+            page_size=5, filter_query='status = "OPENED"'
+        )
+        assert isinstance(filtered, dict)
+        assert "cases" in filtered
 
-    # Test get case by ID
-    if result.get("cases"):
-        case_data = result["cases"][0]
-        case_id = case_data.get("name", "").split("/")[-1]
+        # Test get case by ID
+        if result.get("cases"):
+            case_data = result["cases"][0]
+            case_id = case_data.get("name", "").split("/")[-1]
 
-        if case_id:
-            case = chronicle.get_case(case_id)
-            assert case is not None
-            assert hasattr(case, "id")
-            assert hasattr(case, "display_name")
-            assert hasattr(case, "priority")
-            assert hasattr(case, "status")
-    else:
-        pytest.skip("No cases available for testing")
+            if case_id:
+                case = chronicle.get_case(case_id)
+                assert case is not None
+                assert hasattr(case, "id")
+                assert hasattr(case, "display_name")
+                assert hasattr(case, "priority")
+                assert hasattr(case, "status")
+        else:
+            pytest.skip("No cases available for testing")
+
+    except APIError as e:
+        error_msg = str(e)
+        if "401" in error_msg or "Unauthorized" in error_msg:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {e}")
+        raise
 
 
 @pytest.mark.integration
@@ -77,6 +87,8 @@ def test_case_update_workflow():
     """Test case update (patch) workflow.
 
     Tests patching a case's priority and verifying the change.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
     client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
@@ -84,45 +96,57 @@ def test_case_update_workflow():
     # Use dedicated test case ID
     case_id = "7418669"
 
-    # Get original case state
-    original_case = chronicle.get_case(case_id)
-    original_priority = original_case.priority
-
-    # Determine new priority (toggle between HIGH and MEDIUM)
-    new_priority = (
-        "PRIORITY_MEDIUM"
-        if original_priority == "PRIORITY_HIGH"
-        else "PRIORITY_HIGH"
-    )
-
     try:
-        # Update the case
-        updated_case = chronicle.patch_case(
-            case_id, {"priority": new_priority}, update_mask="priority"
+        # Get original case state
+        original_case = chronicle.get_case(case_id)
+        original_priority = original_case.priority
+
+        # Determine new priority (toggle between HIGH and MEDIUM)
+        new_priority = (
+            "PRIORITY_MEDIUM"
+            if original_priority == "PRIORITY_HIGH"
+            else "PRIORITY_HIGH"
         )
 
-        assert updated_case is not None
-        assert updated_case.priority == new_priority
-
-        # Verify by fetching again
-        verified_case = chronicle.get_case(case_id)
-        assert verified_case.priority == new_priority
-
-    finally:
-        # Cleanup: Restore original priority
         try:
-            chronicle.patch_case(
+            # Update the case
+            updated_case = chronicle.patch_case(
                 case_id,
-                {"priority": original_priority},
+                {"priority": new_priority},
                 update_mask="priority",
             )
-        except Exception as e:
-            print(f"Cleanup warning: Failed to restore priority - {e}")
+
+            assert updated_case is not None
+            assert updated_case.priority == new_priority
+
+            # Verify by fetching again
+            verified_case = chronicle.get_case(case_id)
+            assert verified_case.priority == new_priority
+
+        finally:
+            # Cleanup: Restore original priority
+            try:
+                chronicle.patch_case(
+                    case_id,
+                    {"priority": original_priority},
+                    update_mask="priority",
+                )
+            except Exception as e:
+                print(f"Cleanup warning: Failed to restore priority - {e}")
+
+    except APIError as e:
+        error_msg = str(e)
+        if "401" in error_msg or "Unauthorized" in error_msg:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {e}")
+        raise
 
 
 @pytest.mark.integration
 def test_bulk_operations_workflow():
-    """Test bulk operations workflow including tag, priority, stage."""
+    """Test bulk operations workflow including tag, priority, stage.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
@@ -131,26 +155,39 @@ def test_bulk_operations_workflow():
 
     print(f"\nTesting bulk operations on cases: {case_ids}")
 
-    # Test bulk add tag
+    try:
+        # Test bulk add tag
+        result = chronicle.execute_bulk_add_tag(
+            case_ids, ["integration-test-tag"]
+        )
+        assert isinstance(result, dict)
+        print("Bulk add tag: SUCCESS")
 
-    result = chronicle.execute_bulk_add_tag(case_ids, ["integration-test-tag"])
-    assert isinstance(result, dict)
-    print("Bulk add tag: SUCCESS")
+        # Test bulk change priority
+        result = chronicle.execute_bulk_change_priority(
+            case_ids, "PRIORITY_MEDIUM"
+        )
+        assert isinstance(result, dict)
+        print("Bulk change priority: SUCCESS")
 
-    # Test bulk change priority
-    result = chronicle.execute_bulk_change_priority(case_ids, "PRIORITY_MEDIUM")
-    assert isinstance(result, dict)
-    print("Bulk change priority: SUCCESS")
+        # Test bulk change stage
+        result = chronicle.execute_bulk_change_stage(case_ids, "Triage")
+        assert isinstance(result, dict)
+        print("Bulk change stage: SUCCESS")
 
-    # Test bulk change stage
-    result = chronicle.execute_bulk_change_stage(case_ids, "Triage")
-    assert isinstance(result, dict)
-    print("Bulk change stage: SUCCESS")
+    except APIError as e:
+        error_msg = str(e)
+        if "401" in error_msg or "Unauthorized" in error_msg:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {e}")
+        raise
 
 
 @pytest.mark.integration
 def test_bulk_assign():
-    """Test bulk assign operation."""
+    """Test bulk assign operation.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
+    """
     client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
@@ -163,6 +200,9 @@ def test_bulk_assign():
         print("Bulk assign: SUCCESS")
     except APIError as e:
         error_msg = str(e)
+        # Skip if API returns 401/Unauthorized error
+        if "401" in error_msg or "Unauthorized" in error_msg:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {e}")
         # Skip if API returns INTERNAL/500 error
         if "INTERNAL" in error_msg or "500" in error_msg:
             pytest.skip(f"Bulk assign API returned INTERNAL error: {e}")
@@ -175,6 +215,8 @@ def test_bulk_close_reopen_workflow():
     """Test bulk close and reopen workflow.
 
     This test closes cases and then reopens them.
+
+    TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
     client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
@@ -185,35 +227,43 @@ def test_bulk_close_reopen_workflow():
     print(f"\nTesting close/reopen workflow on cases: {case_ids}")
 
     try:
-        # Close the cases
-        close_result = chronicle.execute_bulk_close(
-            case_ids=case_ids,
-            close_reason="MAINTENANCE",
-            root_cause="Integration test - closing for testing",
-        )
-        assert isinstance(close_result, dict)
-        print("Bulk close: SUCCESS")
-
-        # Verify cases are closed by fetching one
-        if case_ids:
-            case = chronicle.get_case(str(case_ids[0]))
-            assert case.status == "CLOSED"
-            print(f"Verified case {case_ids[0]} is CLOSED")
-
-    finally:
-        # Cleanup: Reopen the cases
         try:
-            reopen_result = chronicle.execute_bulk_reopen(
-                case_ids, "Integration test - reopening after test"
+            # Close the cases
+            close_result = chronicle.execute_bulk_close(
+                case_ids=case_ids,
+                close_reason="MAINTENANCE",
+                root_cause="Integration test - closing for testing",
             )
-            assert isinstance(reopen_result, dict)
-            print("Bulk reopen (cleanup): SUCCESS")
+            assert isinstance(close_result, dict)
+            print("Bulk close: SUCCESS")
 
-            # Verify case is reopened
+            # Verify cases are closed by fetching one
             if case_ids:
                 case = chronicle.get_case(str(case_ids[0]))
-                assert case.status == "OPENED"
-                print(f"Verified case {case_ids[0]} is OPENED")
+                assert case.status == "CLOSED"
+                print(f"Verified case {case_ids[0]} is CLOSED")
 
-        except Exception as e:
-            print(f"Cleanup warning: Failed to reopen cases - {e}")
+        finally:
+            # Cleanup: Reopen the cases
+            try:
+                reopen_result = chronicle.execute_bulk_reopen(
+                    case_ids,
+                    "Integration test - reopening after test",
+                )
+                assert isinstance(reopen_result, dict)
+                print("Bulk reopen (cleanup): SUCCESS")
+
+                # Verify case is reopened
+                if case_ids:
+                    case = chronicle.get_case(str(case_ids[0]))
+                    assert case.status == "OPENED"
+                    print(f"Verified case {case_ids[0]} is OPENED")
+
+            except Exception as e:
+                print(f"Cleanup warning: Failed to reopen cases - {e}")
+
+    except APIError as e:
+        error_msg = str(e)
+        if "401" in error_msg or "Unauthorized" in error_msg:
+            pytest.skip(f"Skipping due to SOAR IAM issue (401): {e}")
+        raise
