@@ -1109,6 +1109,27 @@ results = chronicle.find_udm_field_values(
 }
 ```
 
+### Raw Log Search
+
+Search for raw logs in Chronicle using the query language:
+
+```python
+from datetime import datetime, timedelta, timezone
+
+# Set time range for search
+end_time = datetime.now(timezone.utc)
+start_time = end_time - timedelta(hours=24)
+
+results = chronicle.search_raw_logs(
+    query='raw != "authentication"',
+    start_time=start_time,
+    end_time=end_time,
+    snapshot_query='status = "success"',
+    max_aggregations_per_field=100,
+    page_size=20
+)
+```
+
 ### Statistics Queries
 
 Get statistics about network connections grouped by hostname:
@@ -1794,6 +1815,27 @@ if "runParserResults" in result:
             print(f"  Parsed events: {parser_result['parsedEvents']}")
         if "errors" in parser_result:
             print(f"  Errors: {parser_result['errors']}")
+
+# Run parser with statedump for debugging
+# Statedump provides internal parser state useful for troubleshooting
+result_with_statedump = chronicle.run_parser(
+    log_type=log_type, 
+    parser_code=parser_text,
+    parser_extension_code=None,
+    logs=sample_logs,
+    statedump_allowed=True,  # Enable statedump in parser output
+    parse_statedump=True     # Parse statedump string into structured format
+)
+
+# Check statedump results (useful for parser debugging)
+if "runParserResults" in result_with_statedump:
+    for i, parser_result in enumerate(result_with_statedump["runParserResults"]):
+        if "statedumpResults" in parser_result:
+            for dump in parser_result["statedumpResults"]:
+                statedump = dump.get("statedumpResult", {})
+                print(f"\nParser state for log {i+1}:")
+                print(f"  Info: {statedump.get('info', '')}")
+                print(f"  State: {statedump.get('state', {})}")
 ```
 
 The `run_parser` function includes comprehensive validation:
@@ -3058,9 +3100,13 @@ dashboard = chronicle.get_dashboard(
 print(f"Dashboard Details: {dashboard}")
 ```
 
-### List Dashboards with pagination
+### List Dashboards
 ```python
-# List dashboards (first page)
+dashboards = chronicle.list_dashboards()
+for dashboard in dashboards.get("nativeDashboards", []):
+    print(f"- {dashboard.get('displayName')}")
+
+# List dashboards with pagination(first page)
 dashboards = chronicle.list_dashboards(page_size=10)
 for dashboard in dashboards.get("nativeDashboards", []):
     print(f"- {dashboard.get('displayName')}")

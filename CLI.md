@@ -124,6 +124,9 @@ Search for events using UDM query syntax:
 
 ```bash
 secops search --query "metadata.event_type = \"NETWORK_CONNECTION\"" --max-events 10
+
+# Get result as list
+secops search --query "metadata.event_type = \"NETWORK_CONNECTION\"" --max-events 10 --as-list
 ```
 
 Search using natural language:
@@ -169,6 +172,21 @@ Search ingested UDM field values that match a query:
 
 ```bash
 secops search udm-field-values --query "source" --page-size 10
+```
+
+### Search Raw Logs
+
+Search for raw logs in Chronicle using the query language:
+
+```bash
+secops search raw-logs \
+  --query 'raw = \"authentication\"' \
+  --snapshot-query 'user != ""' \
+  --time-window 24 \
+  --case-sensitive \
+  --log-types "OKTA,AZURE_AD" \
+  --max-aggregations-per-field 100 \
+  --page-size 25
 ```
 
 ### Get Statistics
@@ -613,7 +631,17 @@ secops parser run \
 secops parser run \
   --log-type OKTA \
   --logs-file "./test.log"
+
+# Run parser with statedump for debugging (outputs readable parser state)
+secops parser run \
+  --log-type WINEVTLOG \
+  --parser-code-file "./parser.conf" \
+  --logs-file "./logs.txt" \
+  --statedump-allowed \
+  --parse-statedump
 ```
+
+The `--statedump-allowed` flag enables statedump output in the parser results, which shows the internal state of the parser during execution. The `--parse-statedump` flag converts the statedump string into a structured JSON format.
 
 The command validates:
 - Log type and parser code are provided

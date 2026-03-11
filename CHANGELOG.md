@@ -5,6 +5,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.36.0] - 2026-03-10
+### Added
+- Raw log search functionality with `search_raw_logs()` method
+- CLI command `secops search raw-logs` for searching raw logs
+
+## [0.35.3] - 2026-03-03
+### Updated
+- Dashboard methods to use centralized `chronicle_request` helper function for improved code consistency and maintainability
+
+### Added
+- Helper functions for formatting dashboard resources
+- Pagination helper for `list_dashboards` method
+
+## [0.35.2] - 2026-03-02
+### Added
+- `parse_statedump` parameter to `run_parser()` method for converting 
+  statedump strings into structured JSON format
+- CLI `--parse-statedump` flag for `secops parser run` command
+
+## [0.35.1] - 2026-02-23
+### Added
+- `as_list` parameter to `search_udm()` for returning events as a list instead of dictionary
+- CLI `--as-list` flag for `secops search` command
+
+### Updated
+- Migrated `search_udm()` to use `chronicle_request` helper for improved error handling and consistency
+
 ## [0.35.0] - 2026-02-18
 ### Added
 - CLI commands for rule retrohunt management
