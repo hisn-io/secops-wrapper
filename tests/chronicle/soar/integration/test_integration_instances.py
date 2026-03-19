@@ -23,7 +23,7 @@ from secops.chronicle.models import (
     APIVersion,
     IntegrationInstanceParameter,
 )
-from secops.chronicle.integration.integration_instances import (
+from secops.chronicle.soar.integration.integration_instances import (
     list_integration_instances,
     get_integration_instance,
     delete_integration_instance,
@@ -61,10 +61,10 @@ def test_list_integration_instances_success(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated, patch(
-        "secops.chronicle.integration.integration_instances.format_resource_id",
+        "secops.chronicle.soar.integration.integration_instances.format_resource_id",
         return_value="My Integration",
     ):
         result = list_integration_instances(
@@ -88,7 +88,7 @@ def test_list_integration_instances_default_args(chronicle_client):
     expected = {"integrationInstances": []}
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_paginated_request",
         return_value=expected,
     ):
         result = list_integration_instances(
@@ -104,7 +104,7 @@ def test_list_integration_instances_with_filters(chronicle_client):
     expected = {"integrationInstances": [{"name": "ii1"}]}
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated:
         result = list_integration_instances(
@@ -128,7 +128,7 @@ def test_list_integration_instances_as_list(chronicle_client):
     expected = [{"name": "ii1"}, {"name": "ii2"}]
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated:
         result = list_integration_instances(
@@ -146,7 +146,7 @@ def test_list_integration_instances_as_list(chronicle_client):
 def test_list_integration_instances_error(chronicle_client):
     """Test list_integration_instances raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_paginated_request",
         side_effect=APIError("Failed to list integration instances"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -169,7 +169,7 @@ def test_get_integration_instance_success(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = get_integration_instance(
@@ -189,7 +189,7 @@ def test_get_integration_instance_success(chronicle_client):
 def test_get_integration_instance_error(chronicle_client):
     """Test get_integration_instance raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         side_effect=APIError("Failed to get integration instance"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -207,7 +207,7 @@ def test_get_integration_instance_error(chronicle_client):
 def test_delete_integration_instance_success(chronicle_client):
     """Test delete_integration_instance issues DELETE request."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=None,
     ) as mock_request:
         delete_integration_instance(
@@ -225,7 +225,7 @@ def test_delete_integration_instance_success(chronicle_client):
 def test_delete_integration_instance_error(chronicle_client):
     """Test delete_integration_instance raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         side_effect=APIError("Failed to delete integration instance"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -245,7 +245,7 @@ def test_create_integration_instance_required_fields_only(chronicle_client):
     expected = {"name": "integrationInstances/new", "displayName": "My Instance"}
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = create_integration_instance(
@@ -272,7 +272,7 @@ def test_create_integration_instance_with_optional_fields(chronicle_client):
     expected = {"name": "integrationInstances/new"}
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = create_integration_instance(
@@ -302,7 +302,7 @@ def test_create_integration_instance_with_dataclass_params(chronicle_client):
     param = IntegrationInstanceParameter(value="test-value")
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = create_integration_instance(
@@ -323,7 +323,7 @@ def test_create_integration_instance_with_dataclass_params(chronicle_client):
 def test_create_integration_instance_error(chronicle_client):
     """Test create_integration_instance raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         side_effect=APIError("Failed to create integration instance"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -343,7 +343,7 @@ def test_update_integration_instance_with_single_field(chronicle_client):
     expected = {"name": "integrationInstances/ii1", "displayName": "Updated"}
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = update_integration_instance(
@@ -367,7 +367,7 @@ def test_update_integration_instance_with_multiple_fields(chronicle_client):
     expected = {"name": "integrationInstances/ii1"}
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = update_integration_instance(
@@ -395,7 +395,7 @@ def test_update_integration_instance_with_custom_update_mask(chronicle_client):
     expected = {"name": "integrationInstances/ii1"}
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = update_integration_instance(
@@ -419,7 +419,7 @@ def test_update_integration_instance_with_dataclass_params(chronicle_client):
     param = IntegrationInstanceParameter(value="test-value")
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = update_integration_instance(
@@ -440,7 +440,7 @@ def test_update_integration_instance_with_dataclass_params(chronicle_client):
 def test_update_integration_instance_error(chronicle_client):
     """Test update_integration_instance raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         side_effect=APIError("Failed to update integration instance"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -464,7 +464,7 @@ def test_execute_integration_instance_test_success(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = execute_integration_instance_test(
@@ -489,7 +489,7 @@ def test_execute_integration_instance_test_failure(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ):
         result = execute_integration_instance_test(
@@ -505,7 +505,7 @@ def test_execute_integration_instance_test_failure(chronicle_client):
 def test_execute_integration_instance_test_error(chronicle_client):
     """Test execute_integration_instance_test raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         side_effect=APIError("Failed to execute test"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -530,7 +530,7 @@ def test_get_integration_instance_affected_items_success(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = get_integration_instance_affected_items(
@@ -552,7 +552,7 @@ def test_get_integration_instance_affected_items_empty(chronicle_client):
     expected = {"affectedPlaybooks": []}
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ):
         result = get_integration_instance_affected_items(
@@ -568,7 +568,7 @@ def test_get_integration_instance_affected_items_empty(chronicle_client):
 def test_get_integration_instance_affected_items_error(chronicle_client):
     """Test get_integration_instance_affected_items raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         side_effect=APIError("Failed to fetch affected items"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -592,7 +592,7 @@ def test_get_default_integration_instance_success(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = get_default_integration_instance(
@@ -611,7 +611,7 @@ def test_get_default_integration_instance_success(chronicle_client):
 def test_get_default_integration_instance_error(chronicle_client):
     """Test get_default_integration_instance raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.integration_instances.chronicle_request",
+        "secops.chronicle.soar.integration.integration_instances.chronicle_request",
         side_effect=APIError("Failed to get default instance"),
     ):
         with pytest.raises(APIError) as exc_info:

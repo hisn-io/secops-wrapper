@@ -20,7 +20,7 @@ import pytest
 
 from secops.chronicle.client import ChronicleClient
 from secops.chronicle.models import APIVersion
-from secops.chronicle.integration.marketplace_integrations import (
+from secops.chronicle.soar.integration.marketplace_integrations import (
     list_marketplace_integrations,
     get_marketplace_integration,
     get_marketplace_integration_diff,
@@ -76,7 +76,7 @@ def test_list_marketplace_integrations_success(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated:
         result = list_marketplace_integrations(
@@ -104,7 +104,7 @@ def test_list_marketplace_integrations_default_args(chronicle_client):
     expected = {"marketplaceIntegrations": []}
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated:
         result = list_marketplace_integrations(chronicle_client)
@@ -128,7 +128,7 @@ def test_list_marketplace_integrations_with_filter(chronicle_client):
     expected = {"marketplaceIntegrations": [{"name": "integration1"}]}
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated:
         result = list_marketplace_integrations(
@@ -155,7 +155,7 @@ def test_list_marketplace_integrations_with_order_by(chronicle_client):
     expected = {"marketplaceIntegrations": []}
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated:
         result = list_marketplace_integrations(
@@ -182,7 +182,7 @@ def test_list_marketplace_integrations_with_filter_and_order_by(chronicle_client
     expected = {"marketplaceIntegrations": []}
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated:
         result = list_marketplace_integrations(
@@ -213,7 +213,7 @@ def test_list_marketplace_integrations_as_list(chronicle_client):
     expected = [{"name": "integration1"}, {"name": "integration2"}]
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_paginated_request",
         return_value=expected,
     ) as mock_paginated:
         result = list_marketplace_integrations(chronicle_client, as_list=True)
@@ -235,7 +235,7 @@ def test_list_marketplace_integrations_as_list(chronicle_client):
 def test_list_marketplace_integrations_error(chronicle_client):
     """Test list_marketplace_integrations propagates APIError from helper."""
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_paginated_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_paginated_request",
         side_effect=APIError("Failed to list marketplace integrations"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -256,7 +256,7 @@ def test_get_marketplace_integration_success(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = get_marketplace_integration(chronicle_client, "test-integration")
@@ -274,7 +274,7 @@ def test_get_marketplace_integration_success(chronicle_client):
 def test_get_marketplace_integration_error(chronicle_client):
     """Test get_marketplace_integration raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         side_effect=APIError("Failed to get marketplace integration test-integration"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -294,7 +294,7 @@ def test_get_marketplace_integration_diff_success(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = get_marketplace_integration_diff(chronicle_client, "test-integration")
@@ -315,7 +315,7 @@ def test_get_marketplace_integration_diff_success(chronicle_client):
 def test_get_marketplace_integration_diff_error(chronicle_client):
     """Test get_marketplace_integration_diff raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         side_effect=APIError("Failed to get marketplace integration diff"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -336,7 +336,7 @@ def test_install_marketplace_integration_no_optional_fields(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = install_marketplace_integration(
@@ -364,7 +364,7 @@ def test_install_marketplace_integration_all_fields(chronicle_client):
     }
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = install_marketplace_integration(
@@ -397,7 +397,7 @@ def test_install_marketplace_integration_override_mapping_only(chronicle_client)
     expected = {"name": "test-integration"}
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = install_marketplace_integration(
@@ -422,7 +422,7 @@ def test_install_marketplace_integration_version_only(chronicle_client):
     expected = {"name": "test-integration"}
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = install_marketplace_integration(
@@ -445,7 +445,7 @@ def test_install_marketplace_integration_version_only(chronicle_client):
 def test_install_marketplace_integration_none_fields_excluded(chronicle_client):
     """Test that None optional fields are not included in the request body."""
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         return_value={"name": "test-integration"},
     ) as mock_request:
         install_marketplace_integration(
@@ -469,7 +469,7 @@ def test_install_marketplace_integration_none_fields_excluded(chronicle_client):
 def test_install_marketplace_integration_error(chronicle_client):
     """Test install_marketplace_integration raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         side_effect=APIError("Failed to install marketplace integration"),
     ):
         with pytest.raises(APIError) as exc_info:
@@ -489,7 +489,7 @@ def test_uninstall_marketplace_integration_success(chronicle_client):
     expected = {}
 
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
         result = uninstall_marketplace_integration(
@@ -510,7 +510,7 @@ def test_uninstall_marketplace_integration_success(chronicle_client):
 def test_uninstall_marketplace_integration_error(chronicle_client):
     """Test uninstall_marketplace_integration raises APIError on failure."""
     with patch(
-        "secops.chronicle.integration.marketplace_integrations.chronicle_request",
+        "secops.chronicle.soar.integration.marketplace_integrations.chronicle_request",
         side_effect=APIError("Failed to uninstall marketplace integration"),
     ):
         with pytest.raises(APIError) as exc_info:

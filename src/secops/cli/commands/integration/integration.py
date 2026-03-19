@@ -524,7 +524,7 @@ def setup_integrations_command(subparsers):
 def handle_integration_list_command(args, chronicle):
     """Handle list integrations command"""
     try:
-        out = chronicle.list_integrations(
+        out = chronicle.soar.list_integrations(
             page_size=args.page_size,
             page_token=args.page_token,
             filter_string=args.filter_string,
@@ -540,7 +540,7 @@ def handle_integration_list_command(args, chronicle):
 def handle_integration_get_command(args, chronicle):
     """Handle get integration command"""
     try:
-        out = chronicle.get_integration(
+        out = chronicle.soar.get_integration(
             integration_name=args.integration_id,
         )
         output_formatter(out, getattr(args, "output", "json"))
@@ -552,7 +552,7 @@ def handle_integration_get_command(args, chronicle):
 def handle_integration_delete_command(args, chronicle):
     """Handle delete integration command"""
     try:
-        chronicle.delete_integration(
+        chronicle.soar.delete_integration(
             integration_name=args.integration_id,
         )
         print(f"Integration {args.integration_id} deleted successfully.")
@@ -564,7 +564,7 @@ def handle_integration_delete_command(args, chronicle):
 def handle_integration_create_command(args, chronicle):
     """Handle create integration command"""
     try:
-        out = chronicle.create_integration(
+        out = chronicle.soar.create_integration(
             display_name=args.display_name,
             staging=args.staging,
             description=args.description,
@@ -607,7 +607,7 @@ def handle_integration_download_command(args, chronicle):
 def handle_download_integration_dependency_command(args, chronicle):
     """Handle download integration dependencies command"""
     try:
-        out = chronicle.download_integration_dependency(
+        out = chronicle.soar.download_integration_dependency(
             integration_name=args.integration_id,
             dependency_name=args.dependency_name,
         )
@@ -642,7 +642,7 @@ def handle_export_integration_items_command(args, chronicle):
 def handle_get_integration_affected_items_command(args, chronicle):
     """Handle get integration affected items command"""
     try:
-        out = chronicle.get_integration_affected_items(
+        out = chronicle.soar.get_integration_affected_items(
             integration_name=args.integration_id,
         )
         output_formatter(out, getattr(args, "output", "json"))
@@ -654,7 +654,7 @@ def handle_get_integration_affected_items_command(args, chronicle):
 def handle_get_agent_integrations_command(args, chronicle):
     """Handle get agent integration command"""
     try:
-        out = chronicle.get_agent_integrations(
+        out = chronicle.soar.get_agent_integrations(
             agent_id=args.agent_id,
         )
         output_formatter(out, getattr(args, "output", "json"))
@@ -666,7 +666,7 @@ def handle_get_agent_integrations_command(args, chronicle):
 def handle_get_integration_dependencies_command(args, chronicle):
     """Handle get integration dependencies command"""
     try:
-        out = chronicle.get_integration_dependencies(
+        out = chronicle.soar.get_integration_dependencies(
             integration_name=args.integration_id,
         )
         output_formatter(out, getattr(args, "output", "json"))
@@ -678,7 +678,7 @@ def handle_get_integration_dependencies_command(args, chronicle):
 def handle_get_integration_restricted_agents_command(args, chronicle):
     """Handle get integration restricted agent command"""
     try:
-        out = chronicle.get_integration_restricted_agents(
+        out = chronicle.soar.get_integration_restricted_agents(
             integration_name=args.integration_id,
             required_python_version=PythonVersion(args.required_python_version),
             push_request=args.push_request,
@@ -694,7 +694,7 @@ def handle_get_integration_restricted_agents_command(args, chronicle):
 def handle_get_integration_diff_command(args, chronicle):
     """Handle get integration diff command"""
     try:
-        out = chronicle.get_integration_diff(
+        out = chronicle.soar.get_integration_diff(
             integration_name=args.integration_id,
             diff_type=DiffType(args.diff_type),
         )
@@ -707,7 +707,7 @@ def handle_get_integration_diff_command(args, chronicle):
 def handle_transition_integration_command(args, chronicle):
     """Handle transition integration command"""
     try:
-        out = chronicle.transition_integration(
+        out = chronicle.soar.transition_integration(
             integration_name=args.integration_id,
             target_mode=TargetMode(args.target_mode),
         )
@@ -720,7 +720,7 @@ def handle_transition_integration_command(args, chronicle):
 def handle_update_integration_command(args, chronicle):
     """Handle update integration command"""
     try:
-        out = chronicle.update_integration(
+        out = chronicle.soar.update_integration(
             integration_name=args.integration_id,
             display_name=args.display_name,
             description=args.description,
@@ -749,7 +749,7 @@ def handle_update_integration_command(args, chronicle):
 def handle_updated_custom_integration_command(args, chronicle):
     """Handle update custom integration command"""
     try:
-        out = chronicle.update_custom_integration(
+        out = chronicle.soar.update_custom_integration(
             integration_name=args.integration_id,
             display_name=args.display_name,
             description=args.description,

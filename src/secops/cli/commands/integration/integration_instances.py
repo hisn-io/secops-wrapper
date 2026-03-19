@@ -250,7 +250,7 @@ def setup_integration_instances_command(subparsers):
 def handle_integration_instances_list_command(args, chronicle):
     """Handle integration instances list command"""
     try:
-        out = chronicle.list_integration_instances(
+        out = chronicle.soar.list_integration_instances(
             integration_name=args.integration_name,
             page_size=args.page_size,
             page_token=args.page_token,
@@ -267,7 +267,7 @@ def handle_integration_instances_list_command(args, chronicle):
 def handle_integration_instances_get_command(args, chronicle):
     """Handle integration instance get command"""
     try:
-        out = chronicle.get_integration_instance(
+        out = chronicle.soar.get_integration_instance(
             integration_name=args.integration_name,
             integration_instance_id=args.instance_id,
         )
@@ -280,7 +280,7 @@ def handle_integration_instances_get_command(args, chronicle):
 def handle_integration_instances_delete_command(args, chronicle):
     """Handle integration instance delete command"""
     try:
-        chronicle.delete_integration_instance(
+        chronicle.soar.delete_integration_instance(
             integration_name=args.integration_name,
             integration_instance_id=args.instance_id,
         )
@@ -299,7 +299,7 @@ def handle_integration_instances_create_command(args, chronicle):
         if args.config:
             config = json.loads(args.config)
 
-        out = chronicle.create_integration_instance(
+        out = chronicle.soar.create_integration_instance(
             integration_name=args.integration_name,
             display_name=args.display_name,
             environment=args.environment,
@@ -325,7 +325,7 @@ def handle_integration_instances_update_command(args, chronicle):
         if args.config:
             config = json.loads(args.config)
 
-        out = chronicle.update_integration_instance(
+        out = chronicle.soar.update_integration_instance(
             integration_name=args.integration_name,
             integration_instance_id=args.instance_id,
             display_name=args.display_name,
@@ -346,12 +346,12 @@ def handle_integration_instances_test_command(args, chronicle):
     """Handle integration instance test command"""
     try:
         # Get the instance first
-        instance = chronicle.get_integration_instance(
+        instance = chronicle.soar.get_integration_instance(
             integration_name=args.integration_name,
             integration_instance_id=args.instance_id,
         )
 
-        out = chronicle.execute_integration_instance_test(
+        out = chronicle.soar.execute_integration_instance_test(
             integration_name=args.integration_name,
             integration_instance_id=args.instance_id,
             integration_instance=instance,
@@ -365,7 +365,7 @@ def handle_integration_instances_test_command(args, chronicle):
 def handle_integration_instances_get_affected_items_command(args, chronicle):
     """Handle get integration instance affected items command"""
     try:
-        out = chronicle.get_integration_instance_affected_items(
+        out = chronicle.soar.get_integration_instance_affected_items(
             integration_name=args.integration_name,
             integration_instance_id=args.instance_id,
         )
@@ -381,7 +381,7 @@ def handle_integration_instances_get_affected_items_command(args, chronicle):
 def handle_integration_instances_get_default_command(args, chronicle):
     """Handle get default integration instance command"""
     try:
-        out = chronicle.get_default_integration_instance(
+        out = chronicle.soar.get_default_integration_instance(
             integration_name=args.integration_name,
         )
         output_formatter(out, getattr(args, "output", "json"))

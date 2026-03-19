@@ -135,7 +135,7 @@ def setup_marketplace_integrations_command(subparsers):
 def handle_mp_integration_list_command(args, chronicle):
     """Handle marketplace integration list command"""
     try:
-        out = chronicle.list_marketplace_integrations(
+        out = chronicle.soar.list_marketplace_integrations(
             page_size=args.page_size,
             page_token=args.page_token,
             filter_string=args.filter_string,
@@ -151,7 +151,7 @@ def handle_mp_integration_list_command(args, chronicle):
 def handle_mp_integration_get_command(args, chronicle):
     """Handle marketplace integration get command"""
     try:
-        out = chronicle.get_marketplace_integration(
+        out = chronicle.soar.get_marketplace_integration(
             integration_name=args.integration_name,
         )
         output_formatter(out, getattr(args, "output", "json"))
@@ -163,7 +163,7 @@ def handle_mp_integration_get_command(args, chronicle):
 def handle_mp_integration_diff_command(args, chronicle):
     """Handle marketplace integration diff command"""
     try:
-        out = chronicle.get_marketplace_integration_diff(
+        out = chronicle.soar.get_marketplace_integration_diff(
             integration_name=args.integration_name,
         )
         output_formatter(out, getattr(args, "output", "json"))
@@ -177,7 +177,7 @@ def handle_mp_integration_diff_command(args, chronicle):
 def handle_mp_integration_install_command(args, chronicle):
     """Handle marketplace integration install command"""
     try:
-        out = chronicle.install_marketplace_integration(
+        out = chronicle.soar.install_marketplace_integration(
             integration_name=args.integration_name,
             override_mapping=args.override_mapping,
             staging=args.staging,
@@ -193,7 +193,7 @@ def handle_mp_integration_install_command(args, chronicle):
 def handle_mp_integration_uninstall_command(args, chronicle):
     """Handle marketplace integration uninstall command"""
     try:
-        out = chronicle.uninstall_marketplace_integration(
+        out = chronicle.soar.uninstall_marketplace_integration(
             integration_name=args.integration_name,
         )
         output_formatter(out, getattr(args, "output", "json"))
