@@ -253,12 +253,12 @@ def fetch_parser_candidates(
     log_type: str,
     parser_action: str,
 ) -> list[Any]:
-    """Retrieves unactivated prebuilt parsers that you can copy to a local parser.
+    """Retrieves prebuilt parsers candidates.
 
     Args:
         client: ChronicleClient instance
         log_type: Log type of the parser
-        parser_action: Action to perform (e.g., 'CLONE_PREBUILT')
+        parser_action: Action to perform
 
     Returns:
         List of candidate parsers

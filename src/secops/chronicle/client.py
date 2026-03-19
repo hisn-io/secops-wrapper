@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 """Chronicle API client."""
+
 import ipaddress
 import re
 from collections.abc import Iterator
@@ -193,7 +194,9 @@ from secops.chronicle.parser import create_parser as _create_parser
 from secops.chronicle.parser import deactivate_parser as _deactivate_parser
 from secops.chronicle.parser import delete_parser as _delete_parser
 from secops.chronicle.parser import get_parser as _get_parser
-from secops.chronicle.parser import fetch_parser_candidates as _fetch_parser_candidates
+from secops.chronicle.parser import (
+    fetch_parser_candidates as _fetch_parser_candidates,
+)
 from secops.chronicle.parser import list_parsers as _list_parsers
 from secops.chronicle.parser import run_parser as _run_parser
 from secops.chronicle.parser_extension import ParserExtensionConfig
@@ -2685,11 +2688,11 @@ class ChronicleClient:
         log_type: str,
         parser_action: str,
     ) -> list[Any]:
-        """Retrieves unactivated prebuilt parsers that you can copy to a local parser.
+        """Retrieves prebuilt parsers candidates.
 
         Args:
             log_type: Log type of the parser
-            parser_action: Action to perform (e.g., 'CLONE_PREBUILT')
+            parser_action: Action to perform
 
         Returns:
             List of candidate parsers

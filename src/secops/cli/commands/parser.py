@@ -151,7 +151,10 @@ def setup_parser_command(subparsers):
         "--log-type", type=str, required=True, help="Log type of the parser."
     )
     fetch_parser_candidates_sub.add_argument(
-        "--parser-action", type=str, required=True, help="Action for the parser candidates (e.g., CLONE_PREBUILT)."
+        "--parser-action",
+        type=str,
+        required=True,
+        help="Action for the parser candidates (e.g., CLONE_PREBUILT).",
     )
     fetch_parser_candidates_sub.set_defaults(
         func=handle_parser_fetch_candidates_command
@@ -330,7 +333,9 @@ def handle_parser_delete_command(args, chronicle):
 def handle_parser_fetch_candidates_command(args, chronicle):
     """Handle parser fetch-candidates command."""
     try:
-        result = chronicle.fetch_parser_candidates(args.log_type, args.parser_action)
+        result = chronicle.fetch_parser_candidates(
+            args.log_type, args.parser_action
+        )
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
         print(f"Error fetching parser candidates: {e}", file=sys.stderr)
