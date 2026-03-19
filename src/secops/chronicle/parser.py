@@ -248,6 +248,38 @@ def get_parser(
     return response.json()
 
 
+def fetch_parser_candidates(
+    client: "ChronicleClient",
+    log_type: str,
+    parser_action: str,
+) -> list[Any]:
+    """Retrieves unactivated prebuilt parsers that you can copy to a local parser.
+
+    Args:
+        client: ChronicleClient instance
+        log_type: Log type of the parser
+        parser_action: Action to perform (e.g., 'CLONE_PREBUILT')
+
+    Returns:
+        List of candidate parsers
+
+    Raises:
+        APIError: If the API request fails
+    """
+    url = (
+        f"{client.base_url}/{client.instance_id}"
+        f"/logTypes/{log_type}/parsers:fetchParserCandidates"
+    )
+
+    response = client.session.get(url, params={"parserAction": parser_action})
+
+    if response.status_code != 200:
+        raise APIError(f"Failed to fetch parser candidates: {response.text}")
+
+    data = response.json()
+    return data.get("candidates", [])
+
+
 def list_parsers(
     client: "ChronicleClient",
     log_type: str = "-",

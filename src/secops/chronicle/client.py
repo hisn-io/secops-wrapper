@@ -193,6 +193,7 @@ from secops.chronicle.parser import create_parser as _create_parser
 from secops.chronicle.parser import deactivate_parser as _deactivate_parser
 from secops.chronicle.parser import delete_parser as _delete_parser
 from secops.chronicle.parser import get_parser as _get_parser
+from secops.chronicle.parser import fetch_parser_candidates as _fetch_parser_candidates
 from secops.chronicle.parser import list_parsers as _list_parsers
 from secops.chronicle.parser import run_parser as _run_parser
 from secops.chronicle.parser_extension import ParserExtensionConfig
@@ -2678,6 +2679,29 @@ class ChronicleClient:
             APIError: If the API request fails
         """
         return _get_parser(self, log_type=log_type, id=id)
+
+    def fetch_parser_candidates(
+        self,
+        log_type: str,
+        parser_action: str,
+    ) -> list[Any]:
+        """Retrieves unactivated prebuilt parsers that you can copy to a local parser.
+
+        Args:
+            log_type: Log type of the parser
+            parser_action: Action to perform (e.g., 'CLONE_PREBUILT')
+
+        Returns:
+            List of candidate parsers
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _fetch_parser_candidates(
+            self,
+            log_type=log_type,
+            parser_action=parser_action,
+        )
 
     def list_parsers(
         self,

@@ -27,6 +27,7 @@ from secops.chronicle.parser import (
     activate_parser,
     activate_release_candidate_parser,
     copy_parser,
+    fetch_parser_candidates,
     create_parser,
     deactivate_parser,
     delete_parser,
@@ -137,6 +138,55 @@ def test_activate_release_candidate_parser_error(
                 chronicle_client, log_type, parser_id
             )
         assert "Failed to activate parser: Error message" in str(exc_info.value)
+
+
+# --- fetch_parser_candidates Tests ---
+def test_fetch_parser_candidates_success(chronicle_client, mock_response):
+    """Test fetch_parser_candidates function for success."""
+    log_type = "SOME_LOG_TYPE"
+    parser_action = "CLONE_PREBUILT"
+    expected_parsers = [{"name": "pa_candidate_1"}, {"name": "pa_candidate_2"}]
+    mock_response.json.return_value = {"parsers": expected_parsers}
+
+    with patch.object(
+        chronicle_client.session, "get", return_value=mock_response
+    ) as mock_get:
+        result = fetch_parser_candidates(chronicle_client, log_type, parser_action)
+
+        expected_url = f"{chronicle_client.base_url}/{chronicle_client.instance_id}/logTypes/{log_type}/parsers:fetchParserCandidates"
+        mock_get.assert_called_once_with(expected_url, params={"parserAction": parser_action})
+        assert result == expected_parsers
+
+
+def test_fetch_parser_candidates_empty(chronicle_client, mock_response):
+    """Test fetch_parser_candidates function when no parsers are returned."""
+    log_type = "EMPTY_LOG_TYPE"
+    parser_action = "CLONE_PREBUILT"
+    mock_response.json.return_value = {}
+
+    with patch.object(
+        chronicle_client.session, "get", return_value=mock_response
+    ) as mock_get:
+        result = fetch_parser_candidates(chronicle_client, log_type, parser_action)
+
+        expected_url = f"{chronicle_client.base_url}/{chronicle_client.instance_id}/logTypes/{log_type}/parsers:fetchParserCandidates"
+        mock_get.assert_called_once_with(expected_url, params={"parserAction": parser_action})
+        assert result == []
+
+
+def test_fetch_parser_candidates_error(chronicle_client, mock_error_response):
+    """Test fetch_parser_candidates function for API error."""
+    log_type = "ERROR_LOG_TYPE"
+    parser_action = "CLONE_PREBUILT"
+
+    with patch.object(
+        chronicle_client.session, "get", return_value=mock_error_response
+    ):
+        with pytest.raises(APIError) as exc_info:
+            fetch_parser_candidates(chronicle_client, log_type, parser_action)
+        assert "Failed to fetch parser candidates: Error message" in str(
+            exc_info.value
+        )
 
 
 # --- copy_parser Tests ---
