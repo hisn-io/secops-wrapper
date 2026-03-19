@@ -144,8 +144,8 @@ def test_activate_release_candidate_parser_error(
 def test_fetch_parser_candidates_success(chronicle_client, mock_response):
     """Test fetch_parser_candidates function for success."""
     log_type = "SOME_LOG_TYPE"
-    parser_action = "CLONE_PREBUILT"
-    expected_parsers = [{"name": "pa_candidate_1"}, {"name": "pa_candidate_2"}]
+    parser_action = "PARSER_ACTION_OPT_IN_TO_PREVIEW"
+    expected_parsers = []
     mock_response.json.return_value = {"parsers": expected_parsers}
 
     with patch.object(
@@ -161,7 +161,7 @@ def test_fetch_parser_candidates_success(chronicle_client, mock_response):
 def test_fetch_parser_candidates_empty(chronicle_client, mock_response):
     """Test fetch_parser_candidates function when no parsers are returned."""
     log_type = "EMPTY_LOG_TYPE"
-    parser_action = "CLONE_PREBUILT"
+    parser_action = "PARSER_ACTION_OPT_IN_TO_PREVIEW"
     mock_response.json.return_value = {}
 
     with patch.object(
