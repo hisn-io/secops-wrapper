@@ -285,6 +285,8 @@ Following shows mapping between SecOps [REST Resource](https://cloud.google.com/
 |logTypes.getLogTypeSetting                                                    |v1alpha|                                                            |                                       |
 |logTypes.legacySubmitParserExtension                                          |v1alpha|                                                            |                                       |
 |logTypes.list                                                                 |v1alpha|                                                            |                                       |
+|logTypes.getParserAnalysisReport                                              |v1alpha|chronicle.parser_validation.get_analysis_report             |secops log-type get-analysis-report    |
+|logTypes.triggerGitHubChecks                                                  |v1alpha|chronicle.parser_validation.trigger_github_checks           |secops log-type trigger-checks         |
 |logTypes.logs.export                                                          |v1alpha|                                                            |                                       |
 |logTypes.logs.get                                                             |v1alpha|                                                            |                                       |
 |logTypes.logs.import                                                          |v1alpha|chronicle.log_ingest.ingest_log                             |secops log ingest                      |

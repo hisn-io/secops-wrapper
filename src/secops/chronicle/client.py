@@ -334,6 +334,10 @@ from secops.chronicle.watchlist import (
     create_watchlist as _create_watchlist,
     update_watchlist as _update_watchlist,
 )
+from secops.chronicle.parser_validation import (
+    get_analysis_report as _get_analysis_report,
+    trigger_github_checks as _trigger_github_checks,
+)
 from secops.exceptions import SecOpsError
 
 
@@ -759,6 +763,44 @@ class ChronicleClient:
             entity_population_mechanism,
             watchlist_user_preferences,
             update_mask,
+        )
+
+    def get_analysis_report(self, name: str) -> dict[str, Any]:
+        """Get a parser analysis report.
+        Args:
+            name: The full resource name of the analysis report.
+        Returns:
+            Dictionary containing the analysis report.
+        Raises:
+            APIError: If the API request fails.
+        """
+        return _get_analysis_report(self, name)
+
+    def trigger_github_checks(
+        self,
+        associated_pr: str,
+        log_type: str,
+        customer_id: str | None = None,
+    ) -> dict[str, Any]:
+        """Trigger GitHub checks for a parser.
+
+        Args:
+            associated_pr: The PR string (e.g., "owner/repo/pull/123").
+            log_type: The string name of the LogType enum.
+            customer_id: The customer UUID string.
+
+        Returns:
+            Dictionary containing the response details.
+
+        Raises:
+            SecOpsError: If gRPC modules or client stub are not available.
+            APIError: If the gRPC API request fails.
+        """
+        return _trigger_github_checks(
+            self,
+            associated_pr=associated_pr,
+            log_type=log_type,
+            customer_id=customer_id,
         )
 
     def get_stats(
