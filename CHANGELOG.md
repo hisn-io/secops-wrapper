@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Updated
 - CLI argument parsing to properly handle global flags placed after subcommands
+
 ## [0.37.0] - 2026-03-11
 ### Added
 - Comprehensive case management functionality for Chronicle
