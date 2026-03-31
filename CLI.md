@@ -23,11 +23,18 @@ gcloud auth application-default login
 
 ## Configuration
 
-The CLI allows you to save your credentials and other common settings in a configuration file, so you don't have to specify them in every command.
+The CLI allows you to save your credentials and other common settings in configuration files. The CLI supports two configuration scopes:
+
+- **Global configuration**: Stored in `~/.secops/config.json` and applies to all projects
+- **Local configuration**: Stored in `./.secops/config.json` in the current directory and applies only to the current project
+
+Local configuration takes precedence over global configuration when both are present.
 
 ### Saving Configuration
 
-Save your Chronicle instance ID, project ID, and region:
+#### Global Configuration
+
+Save your Chronicle instance ID, project ID, and region globally:
 
 ```bash
 secops config set --customer-id "your-instance-id" --project-id "your-project-id" --region "us"
@@ -60,14 +67,48 @@ secops config set --time-window 48
 secops config set --start-time "2023-07-01T00:00:00Z" --end-time "2023-07-02T00:00:00Z"
 ```
 
-The configuration is stored in `~/.secops/config.json`.
+#### Local Configuration
+
+Use the `--local` flag to save configuration for the current project only:
+
+```bash
+secops config set --local --customer-id "project-specific-id" --project-id "project-a"
+```
+
+This is useful when working with multiple projects or environments. 
+
+#### Managing Multiple Projects
+
+You can use the `SECOPS_LOCAL_CONFIG_DIR` environment variable to switch between different project configurations:
+
+```bash
+# Setup configuration for Project A
+export SECOPS_LOCAL_CONFIG_DIR=/path/to/project-a/.secops
+mkdir -p $SECOPS_LOCAL_CONFIG_DIR
+secops config set --local --project-id project-a --customer-id instance-a
+
+# Setup configuration for Project B
+export SECOPS_LOCAL_CONFIG_DIR=/path/to/project-b/.secops
+mkdir -p $SECOPS_LOCAL_CONFIG_DIR
+secops config set --local --project-id project-b --customer-id instance-b
+
+# Use Project A config
+export SECOPS_LOCAL_CONFIG_DIR=/path/to/project-a/.secops
+secops search --query "..."
+```
 
 ### Viewing Configuration
 
-View your current configuration settings:
+View your current global configuration:
 
 ```bash
 secops config view
+```
+
+View local configuration:
+
+```bash
+secops config view --local
 ```
 
 ### Clearing Configuration
