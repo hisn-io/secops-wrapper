@@ -165,6 +165,9 @@ Search for events using UDM query syntax:
 
 ```bash
 secops search --query "metadata.event_type = \"NETWORK_CONNECTION\"" --max-events 10
+
+# Get result as list
+secops search --query "metadata.event_type = \"NETWORK_CONNECTION\"" --max-events 10 --as-list
 ```
 
 Search using natural language:
@@ -210,6 +213,21 @@ Search ingested UDM field values that match a query:
 
 ```bash
 secops search udm-field-values --query "source" --page-size 10
+```
+
+### Search Raw Logs
+
+Search for raw logs in Chronicle using the query language:
+
+```bash
+secops search raw-logs \
+  --query 'raw = \"authentication\"' \
+  --snapshot-query 'user != ""' \
+  --time-window 24 \
+  --case-sensitive \
+  --log-types "OKTA,AZURE_AD" \
+  --max-aggregations-per-field 100 \
+  --page-size 25
 ```
 
 ### Get Statistics
@@ -654,7 +672,17 @@ secops parser run \
 secops parser run \
   --log-type OKTA \
   --logs-file "./test.log"
+
+# Run parser with statedump for debugging (outputs readable parser state)
+secops parser run \
+  --log-type WINEVTLOG \
+  --parser-code-file "./parser.conf" \
+  --logs-file "./logs.txt" \
+  --statedump-allowed \
+  --parse-statedump
 ```
+
+The `--statedump-allowed` flag enables statedump output in the parser results, which shows the internal state of the parser during execution. The `--parse-statedump` flag converts the statedump string into a structured JSON format.
 
 The command validates:
 - Log type and parser code are provided
@@ -1054,6 +1082,8 @@ secops rule-exclusion compute-activity \
 
 ### Case Management
 
+Chronicle also provides comprehensive case management capabilities for tracking and managing security investigations. The CLI supports listing, retrieving, updating, and performing bulk operations on cases.
+
 Get case details for specific case IDs:
 
 ```bash
@@ -1071,7 +1101,74 @@ secops alert --time-window 24 --max-alerts 50 > alerts.json
 secops case --ids "case-123,case-456"
 ```
 
-> **Note**: The case management uses a batch API that can retrieve multiple cases in a single request. You can provide up to 1000 case IDs separated by commas.
+> **Note**: You can provide up to 1000 case IDs separated by commas.
+
+#### List cases
+
+```bash
+# List all cases with default pagination
+secops case list --page-size 50
+
+# List with filtering
+secops case list --page-size 100 --filter 'status = "OPENED"' --order-by "createTime desc"
+
+# Get cases as a flat list instead of paginated dict
+secops case list --page-size 50 --as-list
+```
+
+#### Get case details
+
+```bash
+# Get a specific case by ID
+secops case get --id "12345"
+
+# Get case with expanded fields
+secops case get --id "12345" --expand "tags,products"
+
+# Legacy: Get multiple cases by IDs (batch API)
+secops case --ids "case-123,case-456"
+```
+
+> **Note**: The legacy batch API can retrieve up to 1000 case IDs in a single request.
+
+#### Update a case
+
+```bash
+# Update case priority
+secops case update --id "12345" --data '{"priority": "PRIORITY_HIGH"}' --update-mask "priority"
+
+# Update multiple fields
+secops case update --id "12345" --data '{"priority": "PRIORITY_MEDIUM", "stage": "Investigation"}' --update-mask "priority,stage"
+```
+
+#### Merge cases
+
+```bash
+# Merge source cases into target case
+secops case merge --source-ids "12345,67890" --target-id "11111"
+```
+
+#### Bulk operations
+
+```bash
+# Bulk add tags to cases
+secops case bulk-add-tag --ids "12345,67890" --tags "phishing,high-priority"
+
+# Bulk assign cases to a user
+secops case bulk-assign --ids "12345,67890" --username "@SecurityTeam"
+
+# Bulk change priority
+secops case bulk-change-priority --ids "12345,67890" --priority "HIGH"
+
+# Bulk change stage
+secops case bulk-change-stage --ids "12345,67890" --stage "Remediation"
+
+# Bulk close cases
+secops case bulk-close --ids "12345,67890" --close-reason "NOT_MALICIOUS" --root-cause "False positive - benign activity"
+
+# Bulk reopen cases
+secops case bulk-reopen --ids "12345,67890" --reopen-comment "New evidence discovered"
+```
 
 ### Investigation Management
 

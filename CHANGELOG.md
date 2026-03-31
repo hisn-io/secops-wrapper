@@ -5,13 +5,61 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.36.0] - 2026-03-31
+## [0.38.0] - 2026-03-31
 ### Added
 - CLI local configuration support with `--local` flag for config set and view commands
 - `SECOPS_LOCAL_CONFIG_DIR` environment variable support for managing multiple local configurations
 
 ### Updated
 - CLI argument parsing to properly handle global flags placed after subcommands
+## [0.37.0] - 2026-03-11
+### Added
+- Comprehensive case management functionality for Chronicle
+  - `get_case()` - Retrieve single case details with optional field expansion
+  - `list_cases()` - List cases with filtering, pagination, and sorting capabilities
+  - `patch_case()` - Update case properties using partial updates
+  - `merge_cases()` - Merge multiple cases into a single case
+  - `get_cases()` - Legacy batch case retrieval for multiple case IDs
+- Bulk case operations for efficient case management
+  - `execute_bulk_add_tag()` - Add tags to multiple cases
+  - `execute_bulk_assign()` - Assign multiple cases to users
+  - `execute_bulk_change_priority()` - Change priority for multiple cases
+  - `execute_bulk_change_stage()` - Change stage for multiple cases
+  - `execute_bulk_close()` - Close multiple cases with reasons
+  - `execute_bulk_reopen()` - Reopen multiple cases
+- Complete CLI support for case management through `secops case` commands
+  - `secops case get` - Get single case details
+  - `secops case list` - List cases with filtering and pagination
+  - `secops case update` - Update case properties
+  - `secops case merge` - Merge multiple cases
+  - `secops case bulk-*` commands for bulk operations
+
+## [0.36.0] - 2026-03-10
+### Added
+- Raw log search functionality with `search_raw_logs()` method
+- CLI command `secops search raw-logs` for searching raw logs
+
+## [0.35.3] - 2026-03-03
+### Updated
+- Dashboard methods to use centralized `chronicle_request` helper function for improved code consistency and maintainability
+
+### Added
+- Helper functions for formatting dashboard resources
+- Pagination helper for `list_dashboards` method
+
+## [0.35.2] - 2026-03-02
+### Added
+- `parse_statedump` parameter to `run_parser()` method for converting 
+  statedump strings into structured JSON format
+- CLI `--parse-statedump` flag for `secops parser run` command
+
+## [0.35.1] - 2026-02-23
+### Added
+- `as_list` parameter to `search_udm()` for returning events as a list instead of dictionary
+- CLI `--as-list` flag for `secops search` command
+
+### Updated
+- Migrated `search_udm()` to use `chronicle_request` helper for improved error handling and consistency
 
 ## [0.35.0] - 2026-02-18
 ### Added

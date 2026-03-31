@@ -15,7 +15,20 @@
 """Chronicle API specific functionality."""
 
 from secops.chronicle.alert import get_alerts
-from secops.chronicle.case import get_cases
+from secops.chronicle.case import (
+    execute_bulk_add_tag,
+    execute_bulk_assign,
+    execute_bulk_change_priority,
+    execute_bulk_change_stage,
+    execute_bulk_close,
+    execute_bulk_reopen,
+    get_case,
+    get_cases,
+    list_cases,
+    merge_cases,
+    patch_case,
+)
+from secops.chronicle.models import CaseCloseReason, CasePriority
 from secops.chronicle.client import (
     ChronicleClient,
     ValueType,
@@ -184,6 +197,7 @@ from secops.chronicle.udm_mapping import (
     RowLogFormat,
     generate_udm_key_value_mappings,
 )
+from secops.chronicle.log_search import search_raw_logs
 from secops.chronicle.udm_search import (
     fetch_udm_search_csv,
     fetch_udm_search_view,
@@ -210,6 +224,7 @@ __all__ = [
     "validate_query",
     "get_stats",
     "search_udm",
+    "search_raw_logs",
     # Natural Language Search
     "translate_nl_to_udm",
     # Entity
@@ -224,6 +239,18 @@ __all__ = [
     "trigger_investigation",
     # Case
     "get_cases",
+    "get_case",
+    "list_cases",
+    "patch_case",
+    "merge_cases",
+    "execute_bulk_add_tag",
+    "execute_bulk_assign",
+    "execute_bulk_change_priority",
+    "execute_bulk_change_stage",
+    "execute_bulk_close",
+    "execute_bulk_reopen",
+    "CasePriority",
+    "CaseCloseReason",
     # Alert
     "get_alerts",
     # Log Ingestion
