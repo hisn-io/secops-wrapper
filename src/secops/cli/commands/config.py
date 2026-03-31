@@ -53,6 +53,11 @@ def setup_config_command(subparsers):
     view_parser = config_subparsers.add_parser(
         "view", help="View current configuration"
     )
+    view_parser.add_argument(
+        "--local",
+        action="store_true",
+        help="View configuration of current directory (.secops/config.json)",
+    )
     view_parser.set_defaults(func=handle_config_view_command)
 
     # Clear config command
@@ -69,14 +74,8 @@ def handle_config_set_command(args, chronicle=None):
         args: Command line arguments
         chronicle: Not used for this command
     """
-    # If saving to local, we should probably start with empty or
-    # current local config to avoid polluting it with global values.
-    # But for now, we follow the pattern of loading merged config and
-    # updating it.
-    # Optimization: If --local, maybe we should only load local config?
-    # But load_config() returns merged.
-    # Let's use load_config() but be aware we might save merged values to local.
-    config = load_config()
+    scope = "local" if args.local else "global"
+    config = load_config(scope=scope)
 
     # Update config with new values
     if args.customer_id:
@@ -111,13 +110,14 @@ def handle_config_view_command(args, chronicle=None):
         args: Command line arguments
         chronicle: Not used for this command
     """
-    config = load_config()
+    scope = "local" if args.local else "global"
+    config = load_config(scope=scope)
 
     if not config:
         print("No configuration found.")
         return
 
-    print("Current configuration:")
+    print(f"Current {scope} configuration:")
     for key, value in config.items():
         print(f"  {key}: {value}")
 

@@ -29,11 +29,11 @@ def _add_argument_if_not_exists(
         *args: Positional arguments (flags)
         **kwargs: Keyword arguments
     """
-    parser_actions = getattr(parser, "_option_string_actions", {})
-    for option_string in args:
-        if option_string in parser_actions:
-            return
-    parser.add_argument(*args, **kwargs)
+    try:
+        parser.add_argument(*args, **kwargs)
+    except argparse.ArgumentError:
+        # Argument already exists, so we can skip it
+        return
 
 
 def add_common_args(

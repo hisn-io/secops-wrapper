@@ -41,21 +41,35 @@ def _load_json_file(path) -> dict[str, Any]:
         return {}
 
 
-def load_config() -> dict[str, Any]:
+def load_config(scope: str = "merged") -> dict[str, Any]:
     """Load configuration from config files.
 
-    Merges global config (~/.secops/config.json) with
-    local config (./.secops/config.json).
-    Local config takes precedence.
+    Args:
+        scope: Which config to load - "global", "local", or "merged".
+               "global": Only global config (~/.secops/config.json)
+               "local": Only local config (./.secops/config.json)
+               "merged": Merge both configs (local overrides global)
+               Default is "merged".
 
     Returns:
         Dictionary containing configuration values
-    """
-    global_config = _load_json_file(CONFIG_FILE)
-    local_config = _load_json_file(LOCAL_CONFIG_FILE)
 
-    # Merge: Local overrides Global
-    return {**global_config, **local_config}
+    Raises:
+        ValueError: If scope is not one of "global", "local", "merged"
+    """
+    if scope == "global":
+        return _load_json_file(CONFIG_FILE)
+    elif scope == "local":
+        return _load_json_file(LOCAL_CONFIG_FILE)
+    elif scope == "merged":
+        global_config = _load_json_file(CONFIG_FILE)
+        local_config = _load_json_file(LOCAL_CONFIG_FILE)
+        return {**global_config, **local_config}
+    else:
+        raise ValueError(
+            f"Invalid scope '{scope}'. Must be 'global', 'local', or "
+            f"'merged'."
+        )
 
 
 def save_config(config: dict[str, Any], local: bool = False) -> None:
