@@ -2708,6 +2708,7 @@ class ChronicleClient:
         page_size: int | None = None,
         page_token: str | None = None,
         filter: str = None,  # pylint: disable=redefined-builtin
+        as_list: bool = True,
     ) -> list[Any] | dict[str, Any]:
         """List parsers.
 
@@ -2719,6 +2720,8 @@ class ChronicleClient:
             page_token: A page token, received from a previous ListParsers
                 call.
             filter: Optional filter expression
+            as_list: If True (default), returns a list of parsers.
+                If False, returns the raw API response with pagination info.
 
         Returns:
             If page_size is None: List of all parsers
@@ -2735,6 +2738,7 @@ class ChronicleClient:
             page_size=page_size,
             page_token=page_token,
             filter=filter,
+            as_list=as_list,
         )
 
     def run_parser(

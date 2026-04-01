@@ -880,7 +880,7 @@ def ingest_log(
     return chronicle_request(
         client,
         method="POST",
-        endpoint_path="logs:import",
+        endpoint_path=f"logTypes/{log_type}/logs:import",
         json=payload,
         error_message="Failed to ingest log",
     )
