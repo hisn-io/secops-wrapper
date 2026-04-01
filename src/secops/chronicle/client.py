@@ -334,7 +334,7 @@ from secops.chronicle.watchlist import (
     create_watchlist as _create_watchlist,
     update_watchlist as _update_watchlist,
 )
-from secops.chronicle.parser_validation import (
+from secops.chronicle.parser import (
     get_analysis_report as _get_analysis_report,
     trigger_github_checks as _trigger_github_checks,
 )

@@ -16,9 +16,12 @@
 
 import base64
 import json
+import logging
+import re
 from typing import Any
 
-from secops.exceptions import APIError
+from secops.chronicle.utils.request_utils import chronicle_request
+from secops.exceptions import APIError, SecOpsError
 
 # Constants for size limits
 MAX_LOG_SIZE = 10 * 1024 * 1024  # 10MB per log
@@ -254,6 +257,8 @@ def list_parsers(
     page_size: int | None = None,
     page_token: str | None = None,
     filter: str = None,  # pylint: disable=redefined-builtin
+    instance_id: str | None = None,
+    api_version: str | None = None,
 ) -> list[Any] | dict[str, Any]:
     """List parsers.
 
@@ -278,8 +283,13 @@ def list_parsers(
     parsers = []
 
     while more:
+        eff_instance_id = instance_id or client.instance_id
+        if api_version:
+            base_url = client.base_url(version=api_version)
+        else:
+            base_url = client.base_url
         url = (
-            f"{client.base_url}/{client.instance_id}"
+            f"{base_url}/{eff_instance_id}"
             f"/logTypes/{log_type}/parsers"
         )
 
@@ -489,3 +499,132 @@ def run_parser(
                             print(f"Warning: Failed to parse statedump: {e}")
 
     return result
+
+
+def trigger_github_checks(
+    client: "ChronicleClient",
+    associated_pr: str,
+    log_type: str,
+    customer_id: str | None = None,
+    timeout: int = 60,
+) -> dict[str, Any]:
+    """Trigger GitHub checks for a parser.
+
+    Args:
+        client: ChronicleClient instance
+        associated_pr: The PR string (e.g., "owner/repo/pull/123").
+        log_type: The string name of the LogType enum.
+        customer_id: Optional. The customer UUID string. Defaults to client
+            configured ID.
+        timeout: Optional RPC timeout in seconds (default: 60).
+
+    Returns:
+        Dictionary containing the response details.
+
+    Raises:
+        SecOpsError: If input is invalid.
+        APIError: If the API request fails.
+    """
+
+    if not isinstance(log_type, str) or len(log_type.strip()) < 2:
+        raise SecOpsError("log_type must be a valid string of length >= 2")
+    if customer_id is not None:
+        if not isinstance(customer_id, str) or not re.match(
+            r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
+            r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            customer_id,
+        ):
+            raise SecOpsError("customer_id must be a valid UUID string")
+    if not isinstance(associated_pr, str) or not associated_pr.strip():
+        raise SecOpsError("associated_pr must be a non-empty string")
+
+    pr_parts = associated_pr.split("/")
+    if len(pr_parts) != 4 or pr_parts[2] != "pull" or not pr_parts[3].isdigit():
+        raise SecOpsError(
+            "associated_pr must be in the format 'owner/repo/pull/<number>'"
+        )
+    if not isinstance(timeout, int) or timeout < 0:
+        raise SecOpsError("timeout must be a non-negative integer")
+
+    eff_customer_id = customer_id or client.customer_id
+    instance_id = client.instance_id
+    if eff_customer_id and eff_customer_id != client.customer_id:
+        region = "us" if client.region in ["dev", "staging"] else client.region
+        instance_id = (
+            f"projects/{client.project_id}/locations/"
+            f"{region}/instances/{eff_customer_id}"
+        )
+
+    try:
+        parsers = list_parsers(
+            client,
+            log_type=log_type,
+            instance_id=instance_id,
+            api_version="v1alpha",
+        )
+    except APIError as e:
+        raise APIError(
+            f"Failed to fetch parsers for log type {log_type}: {e}"
+        ) from e
+
+    if not parsers:
+        logging.info(
+            "No parsers found for log type %s. Using fallback parser ID.",
+            log_type,
+        )
+        parser_name = f"{instance_id}/logTypes/{log_type}/parsers/-"
+    else:
+        if len(parsers) > 1:
+            logging.warning(
+                "Multiple parsers found for log type %s. Using the first one.",
+                log_type,
+            )
+        parser_name = parsers[0]["name"]
+
+    endpoint_path = f"{parser_name}:runAnalysis"
+    payload = {
+        "report_type": "GITHUB_PARSER_VALIDATION",
+        "pull_request": associated_pr,
+    }
+
+    return chronicle_request(
+        client=client,
+        method="POST",
+        api_version="v1alpha",
+        endpoint_path=endpoint_path,
+        json=payload,
+        timeout=timeout,
+    )
+
+
+def get_analysis_report(
+    client: "ChronicleClient",
+    name: str,
+    timeout: int = 60,
+) -> dict[str, Any]:
+    """Get a parser analysis report.
+
+    Args:
+        client: ChronicleClient instance
+        name: The full resource name of the analysis report.
+        timeout: Optional timeout in seconds (default: 60).
+
+    Returns:
+        Dictionary containing the analysis report.
+
+    Raises:
+        SecOpsError: If input is invalid.
+        APIError: If the API request fails.
+    """
+    if not isinstance(name, str) or len(name.strip()) < 5:
+        raise SecOpsError("name must be a valid string")
+    if not isinstance(timeout, int) or timeout < 0:
+        raise SecOpsError("timeout must be a non-negative integer")
+
+    return chronicle_request(
+        client=client,
+        method="GET",
+        api_version="v1alpha",
+        endpoint_path=name,
+        timeout=timeout,
+    )

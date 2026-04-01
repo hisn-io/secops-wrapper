@@ -230,12 +230,14 @@ def chronicle_request(
     # - RPC-style methods e.g: ":validateQuery" -> .../{instance_id}:validateQuery
     # - Legacy paths e.g: "legacy:..." -> .../{instance_id}/legacy:...
     # - normal paths e.g: "curatedRules/..." -> .../{instance_id}/curatedRules/...
-    base = f"{client.base_url(api_version)}/{client.instance_id}"
+    base = f"{client.base_url(api_version)}"
 
-    if endpoint_path.startswith(":"):
-        url = f"{base}{endpoint_path}"
+    if endpoint_path.startswith("projects/"):
+        url = f"{base}/{endpoint_path}"
+    elif endpoint_path.startswith(":"):
+        url = f"{base}/{client.instance_id}{endpoint_path}"
     else:
-        url = f'{base}/{endpoint_path.lstrip("/")}'
+        url = f'{base}/{client.instance_id}/{endpoint_path.lstrip("/")}'
 
     try:
         response = client.session.request(
