@@ -13,12 +13,14 @@
 # limitations under the License.
 #
 """Tests for Chronicle API client."""
-from datetime import datetime, timezone, timedelta
-import pytest
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
+
+import pytest
+
 from secops.chronicle.client import ChronicleClient
-from secops.chronicle.models import CaseList
-from secops.exceptions import APIError, SecOpsError
+from secops.chronicle.models import APIVersion, CaseList
+from secops.exceptions import APIError
 
 
 @pytest.fixture
@@ -723,3 +725,20 @@ def test_fix_json_formatting(chronicle_client):
     json_without_trailing_commas = '{"a": [1, 2], "b": {"c": 3, "d": 4}}'
     fixed = chronicle_client._fix_json_formatting(json_without_trailing_commas)
     assert fixed == json_without_trailing_commas
+
+@patch("secops.chronicle.client._list_rules")
+def test_client_list_rules_as_list(mock_list_rules, chronicle_client):
+    """Test that ChronicleClient.list_rules passes the as_list parameter."""
+    mock_list_rules.return_value = [{"name": "rule1"}]
+    
+    result = chronicle_client.list_rules(as_list=True)
+    
+    mock_list_rules.assert_called_once_with(
+        chronicle_client,
+        view="FULL",
+        page_size=None,
+        page_token=None,
+        api_version=APIVersion.V1,
+        as_list=True
+    )
+    assert isinstance(result, list)

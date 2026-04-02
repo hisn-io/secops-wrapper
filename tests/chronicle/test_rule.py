@@ -772,3 +772,39 @@ def test_list_rule_deployments_with_filter(chronicle_client, mock_response):
             ]
         }
         assert len(result["ruleDeployments"]) == 1
+
+
+def test_list_rules_as_list(chronicle_client):
+    """Test list_rules function with as_list=True."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "rules": [{"name": "rule1"}, {"name": "rule2"}]
+    }
+
+    with patch.object(
+        chronicle_client.session, "request", return_value=mock_response
+    ) as mock_get:
+        # Act
+        result = list_rules(chronicle_client, as_list=True)
+
+        # Assert
+        mock_get.assert_called_once()
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert result[0]["name"] == "rule1"
+        assert result[1]["name"] == "rule2"
+
+
+def test_list_rules_empty_as_list(chronicle_client):
+    """Test list_rules function with as_list=True when no rules exist."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {}
+
+    with patch.object(
+        chronicle_client.session, "request", return_value=mock_response
+    ):
+        result = list_rules(chronicle_client, as_list=True)
+        assert isinstance(result, list)
+        assert len(result) == 0

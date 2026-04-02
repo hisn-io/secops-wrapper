@@ -319,7 +319,7 @@ def search_rules(
     except re.error as e:
         raise SecOpsError(f"Invalid regular expression: {query}") from e
 
-    rules = list_rules(client, api_version=api_version)
+    rules = list_rules(client, api_version=api_version, as_list=False)
     results = {"rules": []}
     for rule in rules["rules"]:
         rule_text = rule.get("text", "")

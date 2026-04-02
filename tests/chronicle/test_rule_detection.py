@@ -194,3 +194,20 @@ def test_list_errors_api_error(chronicle_client, response_mock):
 
     with pytest.raises(APIError, match="Failed to list rule errors"):
         rule_detection.list_errors(chronicle_client, rule_id="ru_missing")
+
+
+def test_list_detections_as_list(chronicle_client, response_mock):
+    """Test list_detections returning a list when as_list=True."""
+    chronicle_client.session.request.return_value = response_mock
+
+    result = rule_detection.list_detections(
+        chronicle_client,
+        rule_id="ru_12345678-1234-1234-1234-1234567890ab",
+        page_size=1,
+        as_list=True,
+    )
+
+    chronicle_client.session.request.assert_called_once()
+    assert isinstance(result, list)
+    assert len(result) == 1
+    assert result[0]["id"] == "de_12345678-1234-1234-1234-1234567890ab"
