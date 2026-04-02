@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.39.0] - 2026-04-02
+### Updated
+- Refactored Chronicle modules to use centralized `chronicle_request` and `chronicle_paginated_request` helper functions for improved code consistency and maintainability
+- Standardized `as_list` parameter support across paginated API methods
+
 ## [0.38.0] - 2026-03-31
 ### Added
 - CLI local configuration support with `--local` flag for config set and view commands
