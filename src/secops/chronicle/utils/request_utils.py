@@ -262,7 +262,7 @@ def chronicle_request(
         raise APIError(
             f"{base_msg}: method={method}, url={url}, "
             f"request_error={exc.__class__.__name__}, detail={exc}, "
-            f"status_code={exc.response.status_code if exc.response else None}"
+            f"status_code={exc.response.status_code if exc.response else None},"
             f"response_message={exc.response.text if exc.response else None}"
         ) from exc
 
