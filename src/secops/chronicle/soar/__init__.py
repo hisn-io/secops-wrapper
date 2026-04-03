@@ -14,7 +14,7 @@
 #
 """Chronicle SOAR API specific functionality."""
 
-from secops.chronicle.soar.client import SOARService
+from secops.chronicle.soar.service import SOARService
 
 from secops.chronicle.soar.integration.integrations import (
     list_integrations,
