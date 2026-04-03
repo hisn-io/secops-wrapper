@@ -241,8 +241,6 @@ def list_parsers(
     page_size: int | None = None,
     page_token: str | None = None,
     filter: str = None,  # pylint: disable=redefined-builtin
-    instance_id: str | None = None,
-    api_version: str | None = None,
     as_list: bool = True,
 ) -> dict[str, Any] | list[Any]:
     """List parsers.
@@ -255,8 +253,6 @@ def list_parsers(
             If None (default), auto-paginates and returns all parsers.
         page_token: A page token, received from a previous ListParsers call.
         filter: Optional filter expression
-        instance_id: Optional instance ID to use instead of client's default
-        api_version: Optional API version to use (e.g., 'v1alpha')
         as_list: If True, return only the list of parsers.
             If False, return dict with metadata and pagination tokens.
             Defaults to True. When page_size is None, this is automatically
@@ -278,18 +274,10 @@ def list_parsers(
     # For backward compatibility: if page_size is None, force as_list to True
     effective_as_list = True if page_size is None else as_list
 
-    # Handle custom instance_id if provided
-    if instance_id:
-        eff_instance_id = instance_id
-        path = f"{eff_instance_id}/logTypes/{log_type}/parsers"
-    else:
-        path = f"logTypes/{log_type}/parsers"
-
     return chronicle_paginated_request(
         client,
-        path=path,
+        path=f"logTypes/{log_type}/parsers",
         items_key="parsers",
-        api_version=api_version,
         page_size=page_size,
         page_token=page_token,
         extra_params=extra_params if extra_params else None,

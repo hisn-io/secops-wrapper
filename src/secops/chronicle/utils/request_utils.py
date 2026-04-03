@@ -237,10 +237,8 @@ def chronicle_request(
     else:
         base = f"{client.base_url}/{client.instance_id}"
 
-    if endpoint_path.startswith("projects/"):
-        url = f"{base}/{endpoint_path}"
-    elif endpoint_path.startswith(":"):
-        url = f"{base.rsplit('/', 1)[0]}{endpoint_path}"
+    if endpoint_path.startswith(":"):
+        url = f"{base}{endpoint_path}"
     else:
         url = f'{base}/{endpoint_path.lstrip("/")}'
 
