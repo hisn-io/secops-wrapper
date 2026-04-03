@@ -23,11 +23,18 @@ gcloud auth application-default login
 
 ## Configuration
 
-The CLI allows you to save your credentials and other common settings in a configuration file, so you don't have to specify them in every command.
+The CLI allows you to save your credentials and other common settings in configuration files. The CLI supports two configuration scopes:
+
+- **Global configuration**: Stored in `~/.secops/config.json` and applies to all projects
+- **Local configuration**: Stored in `./.secops/config.json` in the current directory and applies only to the current project
+
+Local configuration takes precedence over global configuration when both are present.
 
 ### Saving Configuration
 
-Save your Chronicle instance ID, project ID, and region:
+#### Global Configuration
+
+Save your Chronicle instance ID, project ID, and region globally:
 
 ```bash
 secops config set --customer-id "your-instance-id" --project-id "your-project-id" --region "us"
@@ -60,14 +67,48 @@ secops config set --time-window 48
 secops config set --start-time "2023-07-01T00:00:00Z" --end-time "2023-07-02T00:00:00Z"
 ```
 
-The configuration is stored in `~/.secops/config.json`.
+#### Local Configuration
+
+Use the `--local` flag to save configuration for the current project only:
+
+```bash
+secops config set --local --customer-id "project-specific-id" --project-id "project-a"
+```
+
+This is useful when working with multiple projects or environments. 
+
+#### Managing Multiple Projects
+
+You can use the `SECOPS_LOCAL_CONFIG_DIR` environment variable to switch between different project configurations:
+
+```bash
+# Setup configuration for Project A
+export SECOPS_LOCAL_CONFIG_DIR=/path/to/project-a/.secops
+mkdir -p $SECOPS_LOCAL_CONFIG_DIR
+secops config set --local --project-id project-a --customer-id instance-a
+
+# Setup configuration for Project B
+export SECOPS_LOCAL_CONFIG_DIR=/path/to/project-b/.secops
+mkdir -p $SECOPS_LOCAL_CONFIG_DIR
+secops config set --local --project-id project-b --customer-id instance-b
+
+# Use Project A config
+export SECOPS_LOCAL_CONFIG_DIR=/path/to/project-a/.secops
+secops search --query "..."
+```
 
 ### Viewing Configuration
 
-View your current configuration settings:
+View your current global configuration:
 
 ```bash
 secops config view
+```
+
+View local configuration:
+
+```bash
+secops config view --local
 ```
 
 ### Clearing Configuration
@@ -1041,6 +1082,8 @@ secops rule-exclusion compute-activity \
 
 ### Case Management
 
+Chronicle also provides comprehensive case management capabilities for tracking and managing security investigations. The CLI supports listing, retrieving, updating, and performing bulk operations on cases.
+
 Get case details for specific case IDs:
 
 ```bash
@@ -1058,7 +1101,74 @@ secops alert --time-window 24 --max-alerts 50 > alerts.json
 secops case --ids "case-123,case-456"
 ```
 
-> **Note**: The case management uses a batch API that can retrieve multiple cases in a single request. You can provide up to 1000 case IDs separated by commas.
+> **Note**: You can provide up to 1000 case IDs separated by commas.
+
+#### List cases
+
+```bash
+# List all cases with default pagination
+secops case list --page-size 50
+
+# List with filtering
+secops case list --page-size 100 --filter 'status = "OPENED"' --order-by "createTime desc"
+
+# Get cases as a flat list instead of paginated dict
+secops case list --page-size 50 --as-list
+```
+
+#### Get case details
+
+```bash
+# Get a specific case by ID
+secops case get --id "12345"
+
+# Get case with expanded fields
+secops case get --id "12345" --expand "tags,products"
+
+# Legacy: Get multiple cases by IDs (batch API)
+secops case --ids "case-123,case-456"
+```
+
+> **Note**: The legacy batch API can retrieve up to 1000 case IDs in a single request.
+
+#### Update a case
+
+```bash
+# Update case priority
+secops case update --id "12345" --data '{"priority": "PRIORITY_HIGH"}' --update-mask "priority"
+
+# Update multiple fields
+secops case update --id "12345" --data '{"priority": "PRIORITY_MEDIUM", "stage": "Investigation"}' --update-mask "priority,stage"
+```
+
+#### Merge cases
+
+```bash
+# Merge source cases into target case
+secops case merge --source-ids "12345,67890" --target-id "11111"
+```
+
+#### Bulk operations
+
+```bash
+# Bulk add tags to cases
+secops case bulk-add-tag --ids "12345,67890" --tags "phishing,high-priority"
+
+# Bulk assign cases to a user
+secops case bulk-assign --ids "12345,67890" --username "@SecurityTeam"
+
+# Bulk change priority
+secops case bulk-change-priority --ids "12345,67890" --priority "HIGH"
+
+# Bulk change stage
+secops case bulk-change-stage --ids "12345,67890" --stage "Remediation"
+
+# Bulk close cases
+secops case bulk-close --ids "12345,67890" --close-reason "NOT_MALICIOUS" --root-cause "False positive - benign activity"
+
+# Bulk reopen cases
+secops case bulk-reopen --ids "12345,67890" --reopen-comment "New evidence discovered"
+```
 
 ### Investigation Management
 

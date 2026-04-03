@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 """Chronicle API client."""
+
 import ipaddress
 import re
 from collections.abc import Iterator
@@ -25,7 +26,21 @@ from google.auth.transport import requests as google_auth_requests
 from secops import auth as secops_auth
 from secops.auth import RetryConfig
 from secops.chronicle.alert import get_alerts as _get_alerts
+from secops.chronicle.case import execute_bulk_add_tag as _execute_bulk_add_tag
+from secops.chronicle.case import execute_bulk_assign as _execute_bulk_assign
+from secops.chronicle.case import (
+    execute_bulk_change_priority as _execute_bulk_change_priority,
+)
+from secops.chronicle.case import (
+    execute_bulk_change_stage as _execute_bulk_change_stage,
+)
+from secops.chronicle.case import execute_bulk_close as _execute_bulk_close
+from secops.chronicle.case import execute_bulk_reopen as _execute_bulk_reopen
+from secops.chronicle.case import get_case as _get_case
 from secops.chronicle.case import get_cases_from_list
+from secops.chronicle.case import list_cases as _list_cases
+from secops.chronicle.case import merge_cases as _merge_cases
+from secops.chronicle.case import patch_case as _patch_case
 from secops.chronicle.dashboard import DashboardAccessType, DashboardView
 from secops.chronicle.dashboard import add_chart as _add_chart
 from secops.chronicle.dashboard import create_dashboard as _create_dashboard
@@ -159,7 +174,9 @@ from secops.chronicle.log_processing_pipelines import (
 )
 from secops.chronicle.models import (
     APIVersion,
+    CaseCloseReason,
     CaseList,
+    CasePriority,
     DashboardChart,
     DashboardQuery,
     EntitySummary,
@@ -1119,6 +1136,227 @@ class ChronicleClient:
         """
         return get_cases_from_list(self, case_ids)
 
+    def get_case(self, case_name: str, expand: str | None = None) -> "Case":
+        """Get a single case details.
+
+        Args:
+            case_name: Case resource name or case ID.
+            expand: Optional expand field for getting related resources
+
+        Returns:
+            Case object with case details
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _get_case(self, case_name, expand)
+
+    def list_cases(
+        self,
+        page_size: int | None = None,
+        page_token: str | None = None,
+        filter_query: str | None = None,
+        order_by: str | None = None,
+        expand: str | None = None,
+        distinct_by: str | None = None,
+        as_list: bool = False,
+    ) -> list[dict[str, Any]] | dict[str, Any]:
+        """List cases with optional filtering and pagination.
+
+        Args:
+            page_size: Maximum number of cases to return per page (1-1000).
+                If None, automatically paginates and returns all results.
+            page_token: Token for pagination from previous list call.
+                Only used when page_size is provided.
+            filter_query: Filter expression for filtering cases
+            order_by: Comma-separated list of fields to order by
+            expand: Expand fields (e.g., "tags, products")
+            distinct_by: Field to distinct cases by
+            as_list: If True, return a list of cases instead of a dict
+                with cases list, nextPageToken, and totalSize.
+
+        Returns:
+            If as_list is True: A list of case dictionaries.
+            If as_list is False: A dictionary with cases, nextPageToken,
+                and totalSize.
+
+        Raises:
+            APIError: If the API request fails
+            ValueError: If page_size is invalid
+        """
+        return _list_cases(
+            self,
+            page_size,
+            page_token,
+            filter_query,
+            order_by,
+            expand,
+            distinct_by,
+            as_list,
+        )
+
+    def patch_case(
+        self,
+        case_name: str,
+        case_data: dict[str, Any],
+        update_mask: str | None = None,
+    ) -> "Case":
+        """Update a case using partial update (PATCH).
+
+        Args:
+            case_name: Case resource name or case ID.
+            case_data: Dictionary containing case fields to update
+            update_mask: Optional comma-separated list of fields to update
+
+        Returns:
+            Updated Case object
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _patch_case(self, case_name, case_data, update_mask)
+
+    def merge_cases(
+        self, case_ids: list[int], case_to_merge_with: int
+    ) -> dict[str, Any]:
+        """Merge multiple cases into a single case.
+
+        Args:
+            case_ids: List of case IDs to merge
+            case_to_merge_with: ID of the case to merge with
+
+        Returns:
+            Dictionary with newCaseId, isRequestValid, and errors
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _merge_cases(self, case_ids, case_to_merge_with)
+
+    def execute_bulk_add_tag(
+        self, case_ids: list[int], tags: list[str]
+    ) -> dict[str, Any]:
+        """Add tags to multiple cases in bulk.
+
+        Args:
+            case_ids: List of case IDs to add tags to
+            tags: List of tags to add to the cases
+
+        Returns:
+            Empty dictionary on success
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _execute_bulk_add_tag(self, case_ids, tags)
+
+    def execute_bulk_assign(
+        self, case_ids: list[int], username: str
+    ) -> dict[str, Any]:
+        """Assign multiple cases to a user in bulk.
+
+        Args:
+            case_ids: List of case IDs to assign
+            username: Username to assign the cases to
+
+        Returns:
+            Empty dictionary on success
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _execute_bulk_assign(self, case_ids, username)
+
+    def execute_bulk_change_priority(
+        self, case_ids: list[int], priority: str | CasePriority
+    ) -> dict[str, Any]:
+        """Change priority of multiple cases in bulk.
+
+        Args:
+            case_ids: List of case IDs to change priority for
+            priority: Priority level (CasePriority enum or string).
+                Valid values: PRIORITY_UNSPECIFIED, PRIORITY_INFO,
+                PRIORITY_LOW, PRIORITY_MEDIUM, PRIORITY_HIGH,
+                PRIORITY_CRITICAL
+
+        Returns:
+            Empty dictionary on success
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _execute_bulk_change_priority(self, case_ids, priority)
+
+    def execute_bulk_change_stage(
+        self, case_ids: list[int], stage: str
+    ) -> dict[str, Any]:
+        """Change stage of multiple cases in bulk.
+
+        Args:
+            case_ids: List of case IDs to change stage for
+            stage: Stage to set for the cases
+
+        Returns:
+            Empty dictionary on success
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _execute_bulk_change_stage(self, case_ids, stage)
+
+    def execute_bulk_close(
+        self,
+        case_ids: list[int],
+        close_reason: str | CaseCloseReason,
+        root_cause: str | None = None,
+        close_comment: str | None = None,
+        dynamic_parameters: list[dict[str, Any]] | None = None,
+    ) -> dict[str, Any]:
+        """Close multiple cases in bulk.
+
+        Args:
+            case_ids: List of case IDs to close
+            close_reason: Reason for closing the cases.
+                Can be CaseCloseReason enum or string.
+                Valid values: MALICIOUS, NOT_MALICIOUS, MAINTENANCE,
+                INCONCLUSIVE, UNKNOWN, CLOSE_REASON_UNSPECIFIED
+            root_cause: Optional root cause for closing cases
+            close_comment: Optional comment to add when closing
+            dynamic_parameters: Optional dynamic parameters for close
+
+        Returns:
+            Empty dictionary on success
+
+        Raises:
+            APIError: If the API request fails
+            ValueError: If an invalid close_reason value is provided
+        """
+        return _execute_bulk_close(
+            self,
+            case_ids,
+            close_reason,
+            root_cause,
+            close_comment,
+            dynamic_parameters,
+        )
+
+    def execute_bulk_reopen(
+        self, case_ids: list[int], reopen_comment: str
+    ) -> dict[str, Any]:
+        """Reopen multiple cases in bulk.
+
+        Args:
+            case_ids: List of case IDs to reopen
+            reopen_comment: Comment to add when reopening cases
+
+        Returns:
+            Empty dictionary on success
+
+        Raises:
+            APIError: If the API request fails
+        """
+        return _execute_bulk_reopen(self, case_ids, reopen_comment)
+
     def get_alerts(
         self,
         start_time: datetime,
@@ -1305,18 +1543,25 @@ class ChronicleClient:
         log_type: str,
         page_size: int | None = None,
         page_token: str | None = None,
-    ) -> dict[str, Any]:
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[Any]:
         """List parser extensions.
 
         Args:
             log_type: The log type to list parser extensions for
             page_size: Maximum number of parser extensions to return
             page_token: Token for pagination
+            as_list: If True, return only the list of parser extensions.
+                If False, return dict with metadata and pagination tokens.
 
         Returns:
-            Dict containing list of parser extensions and next page token if any
+            If as_list is True: List of parser extensions.
+            If as_list is False: Dict with parserExtensions list and
+                pagination metadata.
         """
-        return _list_parser_extensions(self, log_type, page_size, page_token)
+        return _list_parser_extensions(
+            self, log_type, page_size, page_token, as_list
+        )
 
     def activate_parser_extension(
         self, log_type: str, extension_id: str
@@ -1423,21 +1668,26 @@ class ChronicleClient:
         page_size: int = 100,
         page_token: str = None,
         api_version: APIVersion | None = None,
-    ) -> list[dict[str, Any]]:
+        as_list: bool = True,
+    ) -> dict[str, Any] | list[dict[str, Any]]:
         """List feeds.
 
         Args:
             page_size: The maximum number of feeds to return
             page_token: A page token, received from a previous ListFeeds call
             api_version: (Optional) Preferred API version to use.
+            as_list: If True, return only the list of feeds.
+                If False, return dict with metadata and pagination tokens.
+                Defaults to True for backward compatibility.
 
         Returns:
-            List of feed dictionaries
+            If as_list is True: List of feed dictionaries.
+            If as_list is False: Dict with feeds list and pagination metadata.
 
         Raises:
             APIError: If the API request fails
         """
-        return _list_feeds(self, page_size, page_token, api_version)
+        return _list_feeds(self, page_size, page_token, api_version, as_list)
 
     def get_feed(
         self, feed_id: str, api_version: APIVersion | None = None
@@ -1581,22 +1831,27 @@ class ChronicleClient:
         page_size: int | None = None,
         page_token: str | None = None,
         filter_expr: str | None = None,
-    ) -> dict[str, Any]:
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[Any]:
         """Lists log processing pipelines.
 
         Args:
             page_size: Maximum number of pipelines to return.
             page_token: Page token for pagination.
             filter_expr: Filter expression to restrict results.
+            as_list: If True, return only the list of pipelines.
+                If False, return dict with metadata and pagination tokens.
 
         Returns:
-            Dictionary containing pipelines and pagination info.
+            If as_list is True: List of log processing pipelines.
+            If as_list is False: Dict with logProcessingPipelines list and
+                pagination metadata.
 
         Raises:
             APIError: If the API request fails.
         """
         return _list_log_processing_pipelines(
-            self, page_size, page_token, filter_expr
+            self, page_size, page_token, filter_expr, as_list
         )
 
     def get_log_processing_pipeline(self, pipeline_id: str) -> dict[str, Any]:
@@ -1829,7 +2084,8 @@ class ChronicleClient:
         page_token: str | None = None,
         filter_expr: str | None = None,
         order_by: str | None = None,
-    ) -> dict[str, Any]:
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[Any]:
         """Lists investigations.
 
         Args:
@@ -1841,16 +2097,19 @@ class ChronicleClient:
             order_by: Ordering of investigations. Default is create time
                 descending. Supported fields: "startTime", "endTime",
                 "displayName".
+            as_list: If True, return only the list of investigations.
+                If False, return dict with metadata and pagination tokens.
 
         Returns:
-            Dictionary containing investigations, next page token, and
-            total size.
+            If as_list is True: List of investigations.
+            If as_list is False: Dict with investigations list,
+                nextPageToken, and totalSize.
 
         Raises:
             APIError: If the API request fails.
         """
         return _list_investigations(
-            self, page_size, page_token, filter_expr, order_by
+            self, page_size, page_token, filter_expr, order_by, as_list
         )
 
     def trigger_investigation(self, alert_id: str) -> dict[str, Any]:
@@ -1873,7 +2132,8 @@ class ChronicleClient:
         page_size: int | None = None,
         page_token: str | None = None,
         api_version: APIVersion | None = APIVersion.V1,
-    ) -> dict[str, Any]:
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[Any]:
         """Gets a list of rules.
 
         Args:
@@ -1887,9 +2147,12 @@ class ChronicleClient:
             page_size: Maximum number of rules to return per page.
             page_token: Token for the next page of results, if available.
             api_version: (Optional) Preferred API version to use.
+            as_list: If True, return only the list of rules.
+                If False, return dict with metadata and pagination tokens.
 
         Returns:
-            Dictionary containing information about rules
+            If as_list is True: List of rules.
+            If as_list is False: Dict with rules list and pagination metadata.
 
         Raises:
             APIError: If the API request fails
@@ -1900,6 +2163,7 @@ class ChronicleClient:
             page_size=page_size,
             page_token=page_token,
             api_version=api_version,
+            as_list=as_list,
         )
 
     def update_rule(
@@ -2205,7 +2469,8 @@ class ChronicleClient:
         alert_state: str | None = None,
         page_size: int | None = None,
         page_token: str | None = None,
-    ) -> dict[str, Any]:
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[Any]:
         """List detections for a rule.
 
         Args:
@@ -2226,9 +2491,13 @@ class ChronicleClient:
                 - "ALERTING"
             page_size: If provided, maximum number of detections to return
             page_token: If provided, continuation token for pagination
+            as_list: If True, return only the list of detections.
+                If False, return dict with metadata and pagination tokens.
 
         Returns:
-            Dictionary containing detection information
+            If as_list is True: List of detections.
+            If as_list is False: Dict with detections list and
+                pagination metadata.
 
         Raises:
             APIError: If the API request fails
@@ -2243,6 +2512,7 @@ class ChronicleClient:
             alert_state,
             page_size,
             page_token,
+            as_list,
         )
 
     def list_errors(self, rule_id: str) -> dict[str, Any]:
@@ -2490,6 +2760,7 @@ class ChronicleClient:
         page_size: int | None = None,
         page_token: str | None = None,
         filter: str = None,  # pylint: disable=redefined-builtin
+        as_list: bool = True,
     ) -> list[Any] | dict[str, Any]:
         """List parsers.
 
@@ -2501,6 +2772,8 @@ class ChronicleClient:
             page_token: A page token, received from a previous ListParsers
                 call.
             filter: Optional filter expression
+            as_list: If True (default), returns a list of parsers.
+                If False, returns the raw API response with pagination info.
 
         Returns:
             If page_size is None: List of all parsers
@@ -2517,6 +2790,7 @@ class ChronicleClient:
             page_size=page_size,
             page_token=page_token,
             filter=filter,
+            as_list=as_list,
         )
 
     def run_parser(
@@ -3594,16 +3868,21 @@ class ChronicleClient:
         filters: str | None = None,
         page_size: int | None = None,
         page_token: str | None = None,
-    ) -> dict[str, Any]:
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[Any]:
         """List data export jobs.
 
         Args:
             filters: Filter string
             page_size: Page size
             page_token: Page token
+            as_list: If True, return only the list of data exports.
+                If False, return dict with metadata and pagination tokens.
 
         Returns:
-            Dictionary containing data export list
+            If as_list is True: List of data exports.
+            If as_list is False: Dict with dataExports list and
+                pagination metadata.
 
         Raises:
             APIError: If the API request fails
@@ -3618,6 +3897,7 @@ class ChronicleClient:
             filters=filters,
             page_size=page_size,
             page_token=page_token,
+            as_list=as_list,
         )
 
     # Data Table methods
@@ -3825,7 +4105,7 @@ class ChronicleClient:
                   (format: projects/{project}/locations/{location}/
                   instances/{instance}/dataTables/{table}/
                   dataTableRows/{row_id})
-                - 'values': List[str] - The new values for the row
+                - 'values': list[str] - The new values for the row
                 - 'update_mask': str (optional) - Comma-separated list
                   of fields to update (e.g., 'values'). If not specified,
                   all fields are updated.
@@ -4624,7 +4904,8 @@ class ChronicleClient:
         page_token: str | None = None,
         filter_query: str | None = None,
         api_version: APIVersion | None = APIVersion.V1,
-    ) -> dict[str, Any]:
+        as_list: bool = False,
+    ) -> dict[str, Any] | list[Any]:
         """List rule deployments for the instance.
 
         Args:
@@ -4632,9 +4913,13 @@ class ChronicleClient:
             page_token: Token for the next page of results, if available
             filter_query: Optional filter query to restrict results
             api_version: (Optional) Preferred API version to use.
+            as_list: If True, return only the list of rule deployments.
+                If False, return dict with metadata and pagination tokens.
 
         Returns:
-            Dictionary containing rule deployments and pagination info
+            If as_list is True: List of rule deployments.
+            If as_list is False: Dict with ruleDeployments list and
+                pagination metadata.
 
         Raises:
             APIError: If the API request fails
@@ -4645,6 +4930,7 @@ class ChronicleClient:
             page_token=page_token,
             filter_query=filter_query,
             api_version=api_version,
+            as_list=as_list,
         )
 
     def set_rule_alerting(

@@ -13,6 +13,7 @@
 # limitations under the License.
 #
 """Data models for Chronicle API responses."""
+
 import json
 import sys
 from dataclasses import asdict, dataclass, field
@@ -71,6 +72,28 @@ class DetectionType(StrEnum):
     UNSPECIFIED = "DETECTION_TYPE_UNSPECIFIED"
     ALERT = "DETECTION_TYPE_ALERT"
     CASE = "DETECTION_TYPE_CASE"
+
+
+class CasePriority(StrEnum):
+    """Priority levels for cases."""
+
+    UNSPECIFIED = "PRIORITY_UNSPECIFIED"
+    INFO = "PRIORITY_INFO"
+    LOW = "PRIORITY_LOW"
+    MEDIUM = "PRIORITY_MEDIUM"
+    HIGH = "PRIORITY_HIGH"
+    CRITICAL = "PRIORITY_CRITICAL"
+
+
+class CaseCloseReason(StrEnum):
+    """Close reason values for cases."""
+
+    UNSPECIFIED = "CLOSE_REASON_UNSPECIFIED"
+    MALICIOUS = "MALICIOUS"
+    NOT_MALICIOUS = "NOT_MALICIOUS"
+    MAINTENANCE = "MAINTENANCE"
+    INCONCLUSIVE = "INCONCLUSIVE"
+    UNKNOWN = "UNKNOWN"
 
 
 @dataclass
