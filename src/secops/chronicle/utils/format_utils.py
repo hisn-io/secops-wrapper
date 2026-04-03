@@ -83,12 +83,12 @@ def build_patch_body(
     Returns:
         Tuple of (body, params) where params contains the updateMask or is None.
     """
-    body = {
-        api_key: value for api_key, _, value in field_map if value is not None
-    }
-    mask_fields = [
-        mask_key for _, mask_key, value in field_map if value is not None
-    ]
+    body = {}
+    mask_fields = []
+    for api_key, mask_key, value in field_map:
+        if value is not None:
+            body[api_key] = value
+            mask_fields.append(mask_key)
 
     resolved_mask = update_mask or (
         ",".join(mask_fields) if mask_fields else None
