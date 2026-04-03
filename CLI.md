@@ -1198,8 +1198,6 @@ secops integration instances get-default \
   --integration-name "MyIntegration"
 ```
 
-
-
 ### Rule Management
 
 List detection rules:
@@ -1351,6 +1349,7 @@ secops curated-rule search-detections \
   --end-time "2024-01-31T23:59:59Z" \
   --list-basis "DETECTION_TIME" \
   --page-size 50
+
 ```
 
 List all curated rule sets:
@@ -2066,7 +2065,39 @@ secops reference-list create \
 secops parser list
 
 # Get details of a specific parser
-secops parser get --log-type "WINDOWS" --id "$PARSER_ID" > parser_details.json
+secops parser get --log-type "WINDOWS" --id "pa_12345"
+
+# Create a custom parser for a new log format
+secops parser create \
+  --log-type "CUSTOM_APPLICATION" \
+  --parser-code-file "/path/to/custom_parser.conf" \
+  --validated-on-empty-logs
+
+# Copy an existing parser as a starting point
+secops parser copy --log-type "OKTA" --id "pa_okta_base"
+
+# Activate your custom parser
+secops parser activate --log-type "CUSTOM_APPLICATION" --id "pa_new_custom"
+
+# If needed, deactivate and delete old parser
+secops parser deactivate --log-type "CUSTOM_APPLICATION" --id "pa_old_custom"
+secops parser delete --log-type "CUSTOM_APPLICATION" --id "pa_old_custom"
+```
+
+### Complete Parser Workflow Example: Retrieve, Run, and Ingest
+
+This example demonstrates the complete workflow of retrieving an OKTA parser, running it against a sample log, and ingesting the parsed UDM event:
+
+```bash
+# Step 1: List OKTA parsers to find an active one
+secops parser list --log-type "OKTA" > okta_parsers.json
+
+# Extract the first parser ID (you can use jq or grep)
+PARSER_ID=$(cat okta_parsers.json | jq -r '.[0].name' | awk -F'/' '{print $NF}')
+echo "Using parser: $PARSER_ID"
+
+# Step 2: Get the parser details and save to a file
+secops parser get --log-type "OKTA" --id "$PARSER_ID" > parser_details.json
 
 # Extract and decode the parser code (base64 encoded in 'cbn' field)
 cat parser_details.json | jq -r '.cbn' | base64 -d > okta_parser.conf
@@ -2204,7 +2235,7 @@ secops feed update --id "feed-123" --display-name "Updated Feed Name"
 secops feed update --id "feed-123" --details '{"httpSettings":{"uri":"https://example.com/updated-feed","sourceType":"FILES"}}'
 
 # Update both display name and details
-secops feed update --id "feed-123" --display-name "New Name" --details '{"httpSettings":{"uri":"https://example.com/updated-feed"}}'
+secops feed update --id "feed-123" --display-name "Updated Name" --details '{"httpSettings":{"uri":"https://example.com/updated-feed"}}'
 ```
 
 Enable and disable feeds:
@@ -2346,4 +2377,3 @@ secops dashboard-query get --id query-id
 ## Conclusion
 
 The SecOps CLI provides a powerful way to interact with Google Security Operations products directly from your terminal. For more detailed information about the SDK capabilities, refer to the [main README](README.md).
-
