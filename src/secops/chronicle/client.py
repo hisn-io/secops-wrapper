@@ -288,7 +288,7 @@ from secops.chronicle.rule_retrohunt import (
     list_retrohunts as _list_retrohunts,
 )
 from secops.chronicle.rule_set import (
-    batch_update_curated_rule_set_deployments as _batch_update_curated_rule_set_deployments,
+    batch_update_curated_rule_set_deployments as _batch_update_curated_rule_set_deployments, #pylint: disable=line-too-long
 )
 from secops.chronicle.rule_set import get_curated_rule as _get_curated_rule
 from secops.chronicle.rule_set import (
@@ -304,7 +304,7 @@ from secops.chronicle.rule_set import (
     get_curated_rule_set_deployment as _get_curated_rule_set_deployment,
 )
 from secops.chronicle.rule_set import (
-    get_curated_rule_set_deployment_by_name as _get_curated_rule_set_deployment_by_name,
+    get_curated_rule_set_deployment_by_name as _get_curated_rule_set_deployment_by_name, #pylint: disable=line-too-long
 )
 from secops.chronicle.rule_set import (
     list_curated_rule_set_categories as _list_curated_rule_set_categories,
