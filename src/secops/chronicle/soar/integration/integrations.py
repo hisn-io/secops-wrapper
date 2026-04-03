@@ -533,7 +533,7 @@ def update_integration(
     image_base64: str | None = None,
     svg_icon: str | None = None,
     python_version: PythonVersion | None = None,
-    parameters: list[dict[str, Any]] | None = None,
+    parameters: list[IntegrationParam | dict[str, Any]] | None = None,
     categories: list[str] | None = None,
     integration_type: IntegrationType | None = None,
     staging: bool | None = None,
