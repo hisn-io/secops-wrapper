@@ -321,6 +321,35 @@ def chronicle_request_bytes(
     error_message: str | None = None,
     timeout: int | None = None,
 ) -> bytes:
+    """Perform an HTTP request and return the raw response bytes.
+
+    Use this helper for endpoints that return binary content such as ZIP
+    files or other non-JSON payloads. The response is streamed to avoid
+    loading large payloads into memory unnecessarily.
+
+    Args:
+        client: ChronicleClient instance.
+        method: HTTP method, e.g. 'GET', 'POST'.
+        endpoint_path: URL path after {base_url}/{instance_id}/. RPC-style
+            methods starting with ':' are appended directly to the instance
+            URL without a path separator.
+        api_version: The API version to use. Default is V1.
+        params: Optional query parameters.
+        headers: Optional request headers.
+        expected_status: Expected HTTP status code(s). May be a single int
+            or an iterable of acceptable status codes. Raises APIError if
+            the response status is not acceptable.
+        error_message: Optional base error message to include on failure.
+        timeout: Optional timeout in seconds for the request.
+
+    Returns:
+        Raw response bytes.
+
+    Raises:
+        APIError: If the request fails, the status code is not in
+            expected_status, or a network or authentication error occurs.
+    """
+
     base = f"{client.base_url(api_version)}/{client.instance_id}"
 
     if endpoint_path.startswith(":"):
