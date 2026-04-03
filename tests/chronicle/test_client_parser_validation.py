@@ -22,7 +22,9 @@ def mock_client():
 def test_trigger_github_checks(mock_client, monkeypatch):
     """Test ChronicleClient.trigger_github_checks."""
     # Mock the underlying implementation to avoid gRPC dependency in tests
-    mock_impl = MagicMock(return_value={"message": "Success", "details": "Started"})
+    mock_impl = MagicMock(
+        return_value={"message": "Success", "details": "Started"}
+    )
     monkeypatch.setattr(
         "secops.chronicle.client._trigger_github_checks", mock_impl
     )
@@ -37,7 +39,6 @@ def test_trigger_github_checks(mock_client, monkeypatch):
         mock_client,
         associated_pr="owner/repo/pull/123",
         log_type="DUMMY_LOGTYPE",
-        customer_id=None,
     )
 
 
@@ -50,9 +51,7 @@ def test_get_analysis_report(mock_client, monkeypatch):
     )
 
     result = mock_client.get_analysis_report(
-        log_type="DEF",
-        parser_id="XYZ",
-        report_id="123"
+        log_type="DEF", parser_id="XYZ", report_id="123"
     )
 
     assert result == {"reportId": "123"}
