@@ -105,6 +105,27 @@ class IntegrationType(str, Enum):
     RESPONSE = "RESPONSE"
     EXTENSION = "EXTENSION"
 
+class IntegrationParamType(str, Enum):
+    """Parameter types for Chronicle SOAR integration functions."""
+
+    UNSPECIFIED = "PARAM_TYPE_UNSPECIFIED"
+    BOOLEAN = "BOOLEAN"
+    INT = "INT"
+    STRING = "STRING"
+    PASSWORD = "PASSWORD"
+    IP = "IP"
+    IP_OR_HOST = "IP_OR_HOST"
+    URL = "URL"
+    DOMAIN = "DOMAIN"
+    EMAIL = "EMAIL"
+    VALUES_LIST = "VALUES_LIST"
+    VALUES_AS_SEMICOLON_SEPARATED_STRING = (
+        "VALUES_AS_SEMICOLON_SEPARATED_STRING"
+    )
+    MULTI_VALUES_SELECTION = "MULTI_VALUES_SELECTION"
+    SCRIPT = "SCRIPT"
+    FILTER_LIST = "FILTER_LIST"
+    NUMERICAL_VALUES = "NUMERICAL_VALUES"
 
 @dataclass
 class IntegrationParam:
@@ -204,29 +225,6 @@ class ActionParameter:
         if self.optional_values is not None:
             data["optionalValues"] = self.optional_values
         return data
-
-
-class IntegrationParamType(str, Enum):
-    """Parameter types for Chronicle SOAR integration functions."""
-
-    UNSPECIFIED = "PARAM_TYPE_UNSPECIFIED"
-    BOOLEAN = "BOOLEAN"
-    INT = "INT"
-    STRING = "STRING"
-    PASSWORD = "PASSWORD"
-    IP = "IP"
-    IP_OR_HOST = "IP_OR_HOST"
-    URL = "URL"
-    DOMAIN = "DOMAIN"
-    EMAIL = "EMAIL"
-    VALUES_LIST = "VALUES_LIST"
-    VALUES_AS_SEMICOLON_SEPARATED_STRING = (
-        "VALUES_AS_SEMICOLON_SEPARATED_STRING"
-    )
-    MULTI_VALUES_SELECTION = "MULTI_VALUES_SELECTION"
-    SCRIPT = "SCRIPT"
-    FILTER_LIST = "FILTER_LIST"
-    NUMERICAL_VALUES = "NUMERICAL_VALUES"
 
 
 class ConnectorParamMode(str, Enum):
