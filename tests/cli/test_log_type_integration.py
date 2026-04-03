@@ -52,12 +52,7 @@ def test_cli_log_type_lifecycle(cli_env, common_args):
 
     print("\nTesting log-type get-analysis-report command")
     
-    # We supply a dummy resource name. The backend will likely 404, proving the routing works.
-    dummy_report_name = (
-        "projects/140410331797/locations/us/instances/ebdc4bb9-878b-11e7-8455-10604b7cb5c1/logTypes/DUMMY_LOGTYPE/"
-        "parsers/xyz/analysisReports/123"
-    )
-    
+    # We supply a dummy log type, parser, and report ID. The backend will likely 404, proving the routing works.
     get_cmd = (
         ["secops"]
         + common_args
@@ -68,8 +63,12 @@ def test_cli_log_type_lifecycle(cli_env, common_args):
             "ebdc4bb9-878b-11e7-8455-10604b7cb5c1",
             "log-type",
             "get-analysis-report",
-            "--name",
-            dummy_report_name
+            "--log-type",
+            "DUMMY_LOGTYPE",
+            "--parser-id",
+            "xyz",
+            "--report-id",
+            "123"
         ]
     )
     

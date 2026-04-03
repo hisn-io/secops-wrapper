@@ -17,9 +17,9 @@
 import base64
 import json
 import logging
-import re
 from typing import Any
 
+from secops.chronicle.models import APIVersion
 from secops.chronicle.utils.format_utils import remove_none_values
 from secops.chronicle.utils.request_utils import (
     chronicle_paginated_request,
@@ -442,7 +442,6 @@ def trigger_github_checks(
     client: "ChronicleClient",
     associated_pr: str,
     log_type: str,
-    customer_id: str | None = None,
     timeout: int = 60,
 ) -> dict[str, Any]:
     """Trigger GitHub checks for a parser.
@@ -451,8 +450,6 @@ def trigger_github_checks(
         client: ChronicleClient instance
         associated_pr: The PR string (e.g., "owner/repo/pull/123").
         log_type: The string name of the LogType enum.
-        customer_id: Optional. The customer UUID string. Defaults to client
-            configured ID.
         timeout: Optional RPC timeout in seconds (default: 60).
 
     Returns:
@@ -465,13 +462,7 @@ def trigger_github_checks(
 
     if not isinstance(log_type, str) or len(log_type.strip()) < 2:
         raise SecOpsError("log_type must be a valid string of length >= 2")
-    if customer_id is not None:
-        if not isinstance(customer_id, str) or not re.match(
-            r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
-            r"[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
-            customer_id,
-        ):
-            raise SecOpsError("customer_id must be a valid UUID string")
+
     if not isinstance(associated_pr, str) or not associated_pr.strip():
         raise SecOpsError("associated_pr must be a non-empty string")
 
@@ -483,22 +474,8 @@ def trigger_github_checks(
     if not isinstance(timeout, int) or timeout < 0:
         raise SecOpsError("timeout must be a non-negative integer")
 
-    eff_customer_id = customer_id or client.customer_id
-    instance_id = client.instance_id
-    if eff_customer_id and eff_customer_id != client.customer_id:
-        region = "us" if client.region in ["dev", "staging"] else client.region
-        instance_id = (
-            f"projects/{client.project_id}/locations/"
-            f"{region}/instances/{eff_customer_id}"
-        )
-
     try:
-        parsers = list_parsers(
-            client,
-            log_type=log_type,
-            instance_id=instance_id,
-            api_version="v1alpha",
-        )
+        parsers = list_parsers(client, log_type=log_type)
     except APIError as e:
         raise APIError(
             f"Failed to fetch parsers for log type {log_type}: {e}"
@@ -509,7 +486,7 @@ def trigger_github_checks(
             "No parsers found for log type %s. Using fallback parser ID.",
             log_type,
         )
-        parser_name = f"{instance_id}/logTypes/{log_type}/parsers/-"
+        parser_name = f"logTypes/{log_type}/parsers/-"
     else:
         if len(parsers) > 1:
             logging.warning(
@@ -536,14 +513,18 @@ def trigger_github_checks(
 
 def get_analysis_report(
     client: "ChronicleClient",
-    name: str,
+    log_type: str,
+    parser_id: str,
+    report_id: str,
     timeout: int = 60,
 ) -> dict[str, Any]:
     """Get a parser analysis report.
 
     Args:
         client: ChronicleClient instance
-        name: The full resource name of the analysis report.
+        log_type: Log type of the parser.
+        parser_id: The ID of the parser.
+        report_id: The ID of the analysis report.
         timeout: Optional timeout in seconds (default: 60).
 
     Returns:
@@ -553,15 +534,23 @@ def get_analysis_report(
         SecOpsError: If input is invalid.
         APIError: If the API request fails.
     """
-    if not isinstance(name, str) or len(name.strip()) < 5:
-        raise SecOpsError("name must be a valid string")
+    if not isinstance(log_type, str) or not log_type.strip():
+        raise SecOpsError("log_type must be a non-empty string")
+    if not isinstance(parser_id, str) or not parser_id.strip():
+        raise SecOpsError("parser_id must be a non-empty string")
+    if not isinstance(report_id, str) or not report_id.strip():
+        raise SecOpsError("report_id must be a non-empty string")
     if not isinstance(timeout, int) or timeout < 0:
         raise SecOpsError("timeout must be a non-negative integer")
+
+    endpoint_path = (
+        f"logTypes/{log_type}/parsers/{parser_id}/analysisReports/{report_id}"
+    )
 
     return chronicle_request(
         client=client,
         method="GET",
-        api_version="v1alpha",
-        endpoint_path=name,
+        api_version=APIVersion.V1ALPHA,
+        endpoint_path=endpoint_path,
         timeout=timeout,
     )

@@ -782,29 +782,39 @@ class ChronicleClient:
             update_mask,
         )
 
-    def get_analysis_report(self, name: str) -> dict[str, Any]:
+    def get_analysis_report(
+        self,
+        log_type: str,
+        parser_id: str,
+        report_id: str,
+    ) -> dict[str, Any]:
         """Get a parser analysis report.
         Args:
-            name: The full resource name of the analysis report.
+            log_type: Log type of the parser.
+            parser_id: The ID of the parser.
+            report_id: The ID of the analysis report.
         Returns:
             Dictionary containing the analysis report.
         Raises:
             APIError: If the API request fails.
         """
-        return _get_analysis_report(self, name)
+        return _get_analysis_report(
+            self,
+            log_type=log_type,
+            parser_id=parser_id,
+            report_id=report_id,
+        )
 
     def trigger_github_checks(
         self,
         associated_pr: str,
         log_type: str,
-        customer_id: str | None = None,
     ) -> dict[str, Any]:
         """Trigger GitHub checks for a parser.
 
         Args:
             associated_pr: The PR string (e.g., "owner/repo/pull/123").
             log_type: The string name of the LogType enum.
-            customer_id: The customer UUID string.
 
         Returns:
             Dictionary containing the response details.
@@ -814,10 +824,7 @@ class ChronicleClient:
             APIError: If the gRPC API request fails.
         """
         return _trigger_github_checks(
-            self,
-            associated_pr=associated_pr,
-            log_type=log_type,
-            customer_id=customer_id,
+            self, associated_pr=associated_pr, log_type=log_type
         )
 
     def get_stats(

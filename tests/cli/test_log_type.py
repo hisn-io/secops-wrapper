@@ -56,7 +56,9 @@ def test_handle_trigger_checks_command_api_error(capsys):
 def test_handle_get_analysis_report_command_success():
     """Test successful get_analysis_report command execution."""
     args = Namespace(
-        name="projects/test/locations/us/instances/abc/logTypes/DEF/parsers/XYZ/analysisReports/123",
+        log_type="DEF",
+        parser_id="XYZ",
+        report_id="123",
         output="json",
     )
     mock_chronicle = MagicMock()
@@ -71,14 +73,18 @@ def test_handle_get_analysis_report_command_success():
         pytest.fail("Command exited unexpectedly")
 
     mock_chronicle.get_analysis_report.assert_called_once_with(
-        name="projects/test/locations/us/instances/abc/logTypes/DEF/parsers/XYZ/analysisReports/123"
+        log_type="DEF",
+        parser_id="XYZ",
+        report_id="123",
     )
 
 
 def test_handle_get_analysis_report_command_secops_error(capsys):
     """Test get_analysis_report command with SecOpsError."""
     args = Namespace(
-        name="projects/test/locations/us/instances/abc/logTypes/DEF/parsers/XYZ/analysisReports/123",
+        log_type="DEF",
+        parser_id="XYZ",
+        report_id="123",
         output="json",
     )
     mock_chronicle = MagicMock()

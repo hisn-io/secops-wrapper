@@ -50,11 +50,15 @@ def test_get_analysis_report(mock_client, monkeypatch):
     )
 
     result = mock_client.get_analysis_report(
-        name="projects/test/locations/us/instances/test/logTypes/DEF/parsers/XYZ/analysisReports/123"
+        log_type="DEF",
+        parser_id="XYZ",
+        report_id="123"
     )
 
     assert result == {"reportId": "123"}
     mock_impl.assert_called_once_with(
         mock_client,
-        "projects/test/locations/us/instances/test/logTypes/DEF/parsers/XYZ/analysisReports/123",
+        log_type="DEF",
+        parser_id="XYZ",
+        report_id="123",
     )
