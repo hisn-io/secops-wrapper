@@ -39,6 +39,7 @@ def test_trigger_github_checks(mock_client, monkeypatch):
         mock_client,
         associated_pr="owner/repo/pull/123",
         log_type="DUMMY_LOGTYPE",
+        timeout=60,
     )
 
 
@@ -60,4 +61,5 @@ def test_get_analysis_report(mock_client, monkeypatch):
         log_type="DEF",
         parser_id="XYZ",
         report_id="123",
+        timeout=60,
     )
