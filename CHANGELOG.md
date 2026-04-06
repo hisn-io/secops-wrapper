@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.40.0] - 2026-04-06
+### Added
+- Parser validation methods
+  - `trigger_github_checks()` - Trigger GitHub checks for a parser against an associated pull request
+  - `get_analysis_report()` - Retrieve a completed parser analysis report
+- CLI support for parser validation commands
+  - `secops log-type trigger-checks` - Trigger parser validation checks for a PR
+  - `secops log-type get-analysis-report` - Get details of a specific analysis report
+
 ## [0.39.0] - 2026-04-02
 ### Updated
 - Refactored Chronicle modules to use centralized `chronicle_request` and `chronicle_paginated_request` helper functions for improved code consistency and maintainability
