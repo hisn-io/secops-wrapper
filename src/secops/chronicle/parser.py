@@ -450,7 +450,7 @@ def trigger_github_checks(
         client: ChronicleClient instance
         associated_pr: The PR string (e.g., "owner/repo/pull/123").
         log_type: The string name of the LogType enum.
-        timeout: Optional RPC timeout in seconds (default: 60).
+        timeout: Optional request timeout in seconds (default: 60).
 
     Returns:
         Dictionary containing the response details.

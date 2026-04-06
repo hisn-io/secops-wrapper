@@ -787,12 +787,14 @@ class ChronicleClient:
         log_type: str,
         parser_id: str,
         report_id: str,
+        timeout: int = 60,
     ) -> dict[str, Any]:
         """Get a parser analysis report.
         Args:
             log_type: Log type of the parser.
             parser_id: The ID of the parser.
             report_id: The ID of the analysis report.
+            timeout: Optional timeout in seconds (default: 60).
         Returns:
             Dictionary containing the analysis report.
         Raises:
@@ -803,28 +805,34 @@ class ChronicleClient:
             log_type=log_type,
             parser_id=parser_id,
             report_id=report_id,
+            timeout=timeout,
         )
 
     def trigger_github_checks(
         self,
         associated_pr: str,
         log_type: str,
+        timeout: int = 60,
     ) -> dict[str, Any]:
         """Trigger GitHub checks for a parser.
 
         Args:
             associated_pr: The PR string (e.g., "owner/repo/pull/123").
             log_type: The string name of the LogType enum.
+            timeout: Optional request timeout in seconds (default: 60).
 
         Returns:
             Dictionary containing the response details.
 
         Raises:
-            SecOpsError: If gRPC modules or client stub are not available.
-            APIError: If the gRPC API request fails.
+            SecOpsError: If modules or client stub are not available.
+            APIError: If the API request fails.
         """
         return _trigger_github_checks(
-            self, associated_pr=associated_pr, log_type=log_type
+            self,
+            associated_pr=associated_pr,
+            log_type=log_type,
+            timeout=timeout,
         )
 
     def get_stats(

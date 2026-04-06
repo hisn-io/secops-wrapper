@@ -21,7 +21,7 @@ def mock_client():
 
 def test_trigger_github_checks(mock_client, monkeypatch):
     """Test ChronicleClient.trigger_github_checks."""
-    # Mock the underlying implementation to avoid gRPC dependency in tests
+    # Mock the underlying implementation to avoid REST dependency in tests
     mock_impl = MagicMock(
         return_value={"message": "Success", "details": "Started"}
     )
