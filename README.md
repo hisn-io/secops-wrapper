@@ -1,5 +1,3 @@
-from tests.chronicle.test_rule_integration import chronicle
-
 # Google SecOps SDK for Python
 
 [![PyPI version](https://img.shields.io/pypi/v/secops.svg)](https://pypi.org/project/secops/)
@@ -1901,6 +1899,28 @@ This workflow is useful for:
 - Debugging parsing issues
 
 ### Parser Extension
+### Parser Validation
+
+Trigger and retrieve analysis reports for parsers associated with GitHub pull requests:
+
+```python
+# Trigger GitHub checks for a parser against a PR
+response = chronicle.trigger_github_checks(
+    associated_pr="owner/repo/pull/123",
+    log_type="WINDOWS_AD"
+)
+print(f"Triggered checks: {response}")
+
+# Retrieve the analysis report
+report = chronicle.get_analysis_report(
+    log_type="WINDOWS_AD",
+    parser_id="pa_1234567890",
+    report_id="report_0987654321"
+)
+print(f"Analysis report: {report}")
+```
+
+## Parser Extension
 
 Parser extensions provide a flexible way to extend the capabilities of existing default (or custom) parsers without replacing them. The extensions let you customize the parser pipeline by adding new parsing logic, extracting and transforming fields, and updating or removing UDM field mappings.
 

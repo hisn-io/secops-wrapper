@@ -696,6 +696,22 @@ Error messages are detailed and help identify issues:
 - Size limit violations
 - API-specific errors
 
+#### Parser Validation
+
+You can trigger and retrieve analysis reports for parsers associated with GitHub pull requests.
+
+Trigger GitHub checks for a parser:
+
+```bash
+secops log-type trigger-checks --log-type "WINDOWS_AD" --associated-pr "owner/repo/pull/123"
+```
+
+Get a parser analysis report:
+
+```bash
+secops log-type get-analysis-report --log-type "WINDOWS_AD" --parser-id "pa_12345" --report-id "report_12345"
+```
+
 ### Parser Extension Management
 
 Parser extensions provide a flexible way to extend the capabilities of existing default (or custom) parsers without replacing them.
