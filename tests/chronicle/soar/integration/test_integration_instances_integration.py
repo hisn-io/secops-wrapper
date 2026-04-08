@@ -33,7 +33,7 @@ def test_integration_instances_crud_workflow():
 
     TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
-    client = SecOpsClient()
+    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
     integration_name = None
@@ -157,7 +157,7 @@ def test_get_default_integration_instance():
 
     TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
-    client = SecOpsClient()
+    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
     try:
