@@ -114,7 +114,6 @@ def setup_integration_instances_command(subparsers):
         type=str,
         help="Display name for the instance",
         dest="display_name",
-        required=True,
     )
     create_parser.add_argument(
         "--environment",
@@ -130,16 +129,16 @@ def setup_integration_instances_command(subparsers):
         dest="description",
     )
     create_parser.add_argument(
-        "--instance-id",
-        type=str,
-        help="Custom ID for the instance",
-        dest="instance_id",
-    )
-    create_parser.add_argument(
         "--config",
         type=str,
         help="JSON string of instance configuration",
         dest="config",
+    )
+    create_parser.add_argument(
+        "--agent",
+        type=str,
+        help="Agent identifier for a remote integration instance",
+        dest="agent",
     )
     create_parser.set_defaults(func=handle_integration_instances_create_command)
 
@@ -168,6 +167,12 @@ def setup_integration_instances_command(subparsers):
         dest="display_name",
     )
     update_parser.add_argument(
+        "--environment",
+        type=str,
+        help="New environment name for the instance",
+        dest="environment",
+    )
+    update_parser.add_argument(
         "--description",
         type=str,
         help="New description for the instance",
@@ -178,6 +183,12 @@ def setup_integration_instances_command(subparsers):
         type=str,
         help="JSON string of new instance configuration",
         dest="config",
+    )
+    update_parser.add_argument(
+        "--agent",
+        type=str,
+        help="New agent identifier for a remote integration instance",
+        dest="agent",
     )
     update_parser.add_argument(
         "--update-mask",
@@ -304,8 +315,8 @@ def handle_integration_instances_create_command(args, chronicle):
             display_name=args.display_name,
             environment=args.environment,
             description=args.description,
-            integration_instance_id=args.instance_id,
-            config=config,
+            parameters=config,
+            agent=getattr(args, "agent", None),
         )
         output_formatter(out, getattr(args, "output", "json"))
     except json.JSONDecodeError as e:
@@ -329,8 +340,10 @@ def handle_integration_instances_update_command(args, chronicle):
             integration_name=args.integration_name,
             integration_instance_id=args.instance_id,
             display_name=args.display_name,
+            environment=getattr(args, "environment", None),
             description=args.description,
-            config=config,
+            parameters=config,
+            agent=getattr(args, "agent", None),
             update_mask=args.update_mask,
         )
         output_formatter(out, getattr(args, "output", "json"))
@@ -345,16 +358,9 @@ def handle_integration_instances_update_command(args, chronicle):
 def handle_integration_instances_test_command(args, chronicle):
     """Handle integration instance test command"""
     try:
-        # Get the instance first
-        instance = chronicle.soar.get_integration_instance(
-            integration_name=args.integration_name,
-            integration_instance_id=args.instance_id,
-        )
-
         out = chronicle.soar.execute_integration_instance_test(
             integration_name=args.integration_name,
             integration_instance_id=args.instance_id,
-            integration_instance=instance,
         )
         output_formatter(out, getattr(args, "output", "json"))
     except Exception as e:  # pylint: disable=broad-exception-caught
