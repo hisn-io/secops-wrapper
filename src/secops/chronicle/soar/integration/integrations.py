@@ -14,22 +14,25 @@
 #
 """Integrations functionality for Chronicle."""
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from secops.chronicle.models import (
     APIVersion,
     DiffType,
     IntegrationParam,
-    TargetMode,
-    PythonVersion,
     IntegrationType,
+    PythonVersion,
+    TargetMode,
 )
-
-from secops.chronicle.utils.format_utils import build_patch_body
+from secops.chronicle.utils.format_utils import (
+    build_patch_body,
+    format_resource_id,
+    remove_none_values,
+)
 from secops.chronicle.utils.request_utils import (
     chronicle_paginated_request,
-    chronicle_request_bytes,
     chronicle_request,
+    chronicle_request_bytes,
 )
 
 if TYPE_CHECKING:
@@ -106,7 +109,7 @@ def get_integration(
     return chronicle_request(
         client,
         method="GET",
-        endpoint_path=f"integrations/{integration_name}",
+        endpoint_path=f"integrations/{format_resource_id(integration_name)}",
         api_version=api_version,
     )
 
@@ -130,7 +133,7 @@ def delete_integration(
     chronicle_request(
         client,
         method="DELETE",
-        endpoint_path=f"integrations/{integration_name}",
+        endpoint_path=f"integrations/{format_resource_id(integration_name)}",
         api_version=api_version,
     )
 
@@ -175,27 +178,26 @@ def create_integration(
     Raises:
         APIError: If the API request fails
     """
-    serialised_params: list[dict[str, Any]] | None = None
+    serialized_params: list[dict[str, Any]] | None = None
     if parameters is not None:
-        serialised_params = [
+        serialized_params = [
             p.to_dict() if isinstance(p, IntegrationParam) else p
             for p in parameters
         ]
 
-    body_fields = {
-        "displayName": display_name,
-        "staging": staging,
-        "description": description,
-        "imageBase64": image_base64,
-        "svgIcon": svg_icon,
-        "pythonVersion": python_version,
-        "parameters": serialised_params,
-        "categories": categories,
-        "type": integration_type,
-    }
-
-    # Remove keys with None values
-    body_fields = {k: v for k, v in body_fields.items() if v is not None}
+    body_fields = remove_none_values(
+        {
+            "displayName": display_name,
+            "staging": staging,
+            "description": description,
+            "imageBase64": image_base64,
+            "svgIcon": svg_icon,
+            "pythonVersion": python_version,
+            "parameters": serialized_params,
+            "categories": categories,
+            "type": integration_type,
+        }
+    )
 
     return chronicle_request(
         client,
@@ -271,12 +273,12 @@ def download_integration_dependency(
 def export_integration_items(
     client: "ChronicleClient",
     integration_name: str,
-    actions: list[str] | None = None,
-    jobs: list[str] | None = None,
-    connectors: list[str] | None = None,
-    managers: list[str] | None = None,
-    transformers: list[str] | None = None,
-    logical_operators: list[str] | None = None,
+    actions: list[str] | str | None = None,
+    jobs: list[str] | str | None = None,
+    connectors: list[str] | str | None = None,
+    managers: list[str] | str | None = None,
+    transformers: list[str] | str | None = None,
+    logical_operators: list[str] | str | None = None,
     api_version: APIVersion | None = APIVersion.V1BETA,
 ) -> bytes:
     """Exports specific items from an integration into a ZIP folder. Use
@@ -286,18 +288,18 @@ def export_integration_items(
     Args:
         client: ChronicleClient instance
         integration_name: name of the integration to export items from
-        actions: Optional. A list the ids of the actions to export. Format:
-            [1,2,3]
-        jobs: Optional. A list the ids of the jobs to export. Format:
-            [1,2,3]
-        connectors: Optional. A list the ids of the connectors to export.
-            Format: [1,2,3]
-        managers: Optional. A list the ids of the managers to export. Format:
-            [1,2,3]
-        transformers: Optional. A list the ids of the transformers to export.
-            Format: [1,2,3]
-        logical_operators: Optional. A list the ids of the logical
-            operators to export. Format: [1,2,3]
+        actions: Optional. IDs of the actions to export as a list or
+                comma-separated string. Format: [1,2,3] or "1,2,3"
+            jobs: Optional. IDs of the jobs to export as a list or
+                comma-separated string.
+            connectors: Optional. IDs of the connectors to export as a
+                list or comma-separated string.
+            managers: Optional. IDs of the managers to export as a list
+                or comma-separated string.
+            transformers: Optional. IDs of the transformers to export as
+                a list or comma-separated string.
+            logical_operators: Optional. IDs of the logical operators to
+                export as a list or comma-separated string.
         api_version: API version to use for the request. Default is V1BETA.
 
     Returns:
@@ -306,23 +308,49 @@ def export_integration_items(
     Raises:
         APIError: If the API request fails
     """
-    export_items = {
-        "actions": ",".join(actions) if actions else None,
-        "jobs": jobs,
-        "connectors": connectors,
-        "managers": managers,
-        "transformers": transformers,
-        "logicalOperators": logical_operators,
-        "alt": "media",
-    }
-
-    # Remove keys with None values
-    export_items = {k: v for k, v in export_items.items() if v is not None}
+    export_items = remove_none_values(
+        {
+            "actions": (
+                ",".join(actions)
+                if isinstance(actions, list)
+                else actions if actions else None
+            ),
+            "jobs": (
+                ",".join(jobs)
+                if isinstance(jobs, list)
+                else jobs if jobs else None
+            ),
+            "connectors": (
+                ",".join(connectors)
+                if isinstance(connectors, list)
+                else connectors if connectors else None
+            ),
+            "managers": (
+                ",".join(managers)
+                if isinstance(managers, list)
+                else managers if managers else None
+            ),
+            "transformers": (
+                ",".join(transformers)
+                if isinstance(transformers, list)
+                else transformers if transformers else None
+            ),
+            "logicalOperators": (
+                ",".join(logical_operators)
+                if isinstance(logical_operators, list)
+                else logical_operators if logical_operators else None
+            ),
+            "alt": "media",
+        }
+    )
 
     return chronicle_request_bytes(
         client,
         method="GET",
-        endpoint_path=f"integrations/{integration_name}:exportItems",
+        endpoint_path=(
+            f"integrations/{format_resource_id(integration_name)}:"
+            "exportItems"
+        ),
         params=export_items,
         api_version=api_version,
         headers={"Accept": "application/zip"},
@@ -440,13 +468,12 @@ def get_integration_restricted_agents(
     Raises:
         APIError: If the API request fails
     """
-    params_fields = {
-        "requiredPythonVersion": required_python_version.value,
-        "pushRequest": push_request,
-    }
-
-    # Remove keys with None values
-    params_fields = {k: v for k, v in params_fields.items() if v is not None}
+    params_fields = remove_none_values(
+        {
+            "requiredPythonVersion": required_python_version.value,
+            "pushRequest": push_request,
+        }
+    )
 
     return chronicle_request(
         client,
@@ -487,7 +514,7 @@ def get_integration_diff(
     return chronicle_request(
         client,
         method="GET",
-        endpoint_path=f"integrations/{integration_name}"
+        endpoint_path=f"integrations/{format_resource_id(integration_name)}"
         f":fetch{diff_type.value}Diff",
         api_version=api_version,
     )
@@ -519,7 +546,7 @@ def transition_integration(
     return chronicle_request(
         client,
         method="POST",
-        endpoint_path=f"integrations/{integration_name}"
+        endpoint_path=f"integrations/{format_resource_id(integration_name)}"
         f":pushTo{target_mode.value}",
         api_version=api_version,
     )
@@ -592,7 +619,7 @@ def update_integration(
     return chronicle_request(
         client,
         method="PATCH",
-        endpoint_path=f"integrations/{integration_name}",
+        endpoint_path=f"integrations/{format_resource_id(integration_name)}",
         json=body,
         params=params,
         api_version=api_version,
@@ -650,23 +677,20 @@ def update_custom_integration(
     Raises:
         APIError: If the API request fails
     """
-    integration_fields = {
-        "name": integration_name,
-        "displayName": display_name,
-        "description": description,
-        "imageBase64": image_base64,
-        "svgIcon": svg_icon,
-        "pythonVersion": python_version,
-        "parameters": parameters,
-        "categories": categories,
-        "type": integration_type,
-        "staging": staging,
-    }
-
-    # Remove keys with None values
-    integration_fields = {
-        k: v for k, v in integration_fields.items() if v is not None
-    }
+    integration_fields = remove_none_values(
+        {
+            "name": integration_name,
+            "displayName": display_name,
+            "description": description,
+            "imageBase64": image_base64,
+            "svgIcon": svg_icon,
+            "pythonVersion": python_version,
+            "parameters": parameters,
+            "categories": categories,
+            "type": integration_type,
+            "staging": staging,
+        }
+    )
 
     body = {"integration": integration_fields}
 
@@ -679,7 +703,7 @@ def update_custom_integration(
         client,
         method="POST",
         endpoint_path=f"integrations/"
-        f"{integration_name}:updateCustomIntegration",
+        f"{format_resource_id(integration_name)}:updateCustomIntegration",
         json=body,
         params=params,
         api_version=api_version,

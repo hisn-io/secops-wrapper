@@ -17,6 +17,10 @@
 from typing import Any, TYPE_CHECKING
 
 from secops.chronicle.models import APIVersion
+from secops.chronicle.utils.format_utils import (
+    remove_none_values,
+    format_resource_id,
+)
 from secops.chronicle.utils.request_utils import (
     chronicle_paginated_request,
     chronicle_request,
@@ -55,10 +59,12 @@ def list_marketplace_integrations(
     Raises:
         APIError: If the API request fails
     """
-    field_map = {
-        "filter": filter_string,
-        "orderBy": order_by,
-    }
+    field_map = remove_none_values(
+        {
+            "filter": filter_string,
+            "orderBy": order_by,
+        }
+    )
 
     return chronicle_paginated_request(
         client,
@@ -67,7 +73,7 @@ def list_marketplace_integrations(
         items_key="marketplaceIntegrations",
         page_size=page_size,
         page_token=page_token,
-        extra_params={k: v for k, v in field_map.items() if v is not None},
+        extra_params=field_map,
         as_list=as_list,
     )
 
@@ -93,7 +99,9 @@ def get_marketplace_integration(
     return chronicle_request(
         client,
         method="GET",
-        endpoint_path=f"marketplaceIntegrations/{integration_name}",
+        endpoint_path=(
+            "marketplaceIntegrations/" f"{format_resource_id(integration_name)}"
+        ),
         api_version=api_version,
     )
 
@@ -120,8 +128,10 @@ def get_marketplace_integration_diff(
     return chronicle_request(
         client,
         method="GET",
-        endpoint_path=f"marketplaceIntegrations/{integration_name}"
-        f":fetchCommercialDiff",
+        endpoint_path=(
+            "marketplaceIntegrations/"
+            f"{format_resource_id(integration_name)}:fetchCommercialDiff"
+        ),
         api_version=api_version,
     )
 
@@ -157,18 +167,23 @@ def install_marketplace_integration(
     Raises:
         APIError: If the API request fails
     """
-    field_map = {
-        "overrideMapping": override_mapping,
-        "staging": staging,
-        "version": version,
-        "restoreFromSnapshot": restore_from_snapshot,
-    }
+    field_map = remove_none_values(
+        {
+            "overrideMapping": override_mapping,
+            "staging": staging,
+            "version": version,
+            "restoreFromSnapshot": restore_from_snapshot,
+        }
+    )
 
     return chronicle_request(
         client,
         method="POST",
-        endpoint_path=f"marketplaceIntegrations/{integration_name}:install",
-        json={k: v for k, v in field_map.items() if v is not None},
+        endpoint_path=(
+            "marketplaceIntegrations/"
+            f"{format_resource_id(integration_name)}:install"
+        ),
+        json=field_map,
         api_version=api_version,
     )
 
@@ -194,6 +209,9 @@ def uninstall_marketplace_integration(
     return chronicle_request(
         client,
         method="POST",
-        endpoint_path=f"marketplaceIntegrations/{integration_name}:uninstall",
+        endpoint_path=(
+            "marketplaceIntegrations/"
+            f"{format_resource_id(integration_name)}:uninstall"
+        ),
         api_version=api_version,
     )

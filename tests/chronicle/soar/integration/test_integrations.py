@@ -193,7 +193,9 @@ def test_get_integration_error(chronicle_client):
 
 def test_delete_integration_success(chronicle_client):
     """Test delete_integration delegates to chronicle_request."""
-    with patch("secops.chronicle.soar.integration.integrations.chronicle_request") as mock_request:
+    with patch(
+        "secops.chronicle.soar.integration.integrations.chronicle_request"
+    ) as mock_request:
         delete_integration(chronicle_client, "test-integration")
 
         mock_request.assert_called_once_with(
@@ -324,7 +326,9 @@ def test_create_integration_error(chronicle_client):
         side_effect=APIError("Failed to create integration"),
     ):
         with pytest.raises(APIError) as exc_info:
-            create_integration(chronicle_client, display_name="Test", staging=True)
+            create_integration(
+                chronicle_client, display_name="Test", staging=True
+            )
 
         assert "Failed to create integration" in str(exc_info.value)
 
@@ -437,8 +441,8 @@ def test_export_integration_items_success_some_fields(chronicle_client):
             endpoint_path="integrations/test-integration:exportItems",
             params={
                 "actions": "1,2",
-                "connectors": ["10"],
-                "logicalOperators": ["7"],
+                "connectors": "10",
+                "logicalOperators": "7",
                 "alt": "media",
             },
             api_version=APIVersion.V1BETA,
@@ -494,7 +498,9 @@ def test_get_integration_affected_items_success(chronicle_client):
         "secops.chronicle.soar.integration.integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
-        result = get_integration_affected_items(chronicle_client, "test-integration")
+        result = get_integration_affected_items(
+            chronicle_client, "test-integration"
+        )
 
         assert result == expected
 
@@ -565,7 +571,9 @@ def test_get_integration_dependencies_success(chronicle_client):
         "secops.chronicle.soar.integration.integrations.chronicle_request",
         return_value=expected,
     ) as mock_request:
-        result = get_integration_dependencies(chronicle_client, "test-integration")
+        result = get_integration_dependencies(
+            chronicle_client, "test-integration"
+        )
 
         assert result == expected
 
@@ -621,7 +629,9 @@ def test_get_integration_restricted_agents_success(chronicle_client):
         )
 
 
-def test_get_integration_restricted_agents_default_push_request(chronicle_client):
+def test_get_integration_restricted_agents_default_push_request(
+    chronicle_client,
+):
     """Test get_integration_restricted_agents default push_request=False is sent."""
     expected = {"restrictedAgents": []}
 
@@ -755,13 +765,16 @@ def test_update_integration_uses_build_patch_body_and_passes_dependencies_to_rem
     body = {"displayName": "New"}
     params = {"updateMask": "displayName"}
 
-    with patch(
-        "secops.chronicle.soar.integration.integrations.build_patch_body",
-        return_value=(body, params),
-    ) as mock_build_patch, patch(
-        "secops.chronicle.soar.integration.integrations.chronicle_request",
-        return_value={"name": "integrations/test"},
-    ) as mock_request:
+    with (
+        patch(
+            "secops.chronicle.soar.integration.integrations.build_patch_body",
+            return_value=(body, params),
+        ) as mock_build_patch,
+        patch(
+            "secops.chronicle.soar.integration.integrations.chronicle_request",
+            return_value={"name": "integrations/test"},
+        ) as mock_request,
+    ):
         result = update_integration(
             chronicle_client,
             integration_name="test-integration",
@@ -778,22 +791,30 @@ def test_update_integration_uses_build_patch_body_and_passes_dependencies_to_rem
             method="PATCH",
             endpoint_path="integrations/test-integration",
             json=body,
-            params={"updateMask": "displayName", "dependenciesToRemove": "dep1,dep2"},
+            params={
+                "updateMask": "displayName",
+                "dependenciesToRemove": "dep1,dep2",
+            },
             api_version=APIVersion.V1BETA,
         )
 
 
-def test_update_integration_when_build_patch_body_returns_no_params(chronicle_client):
+def test_update_integration_when_build_patch_body_returns_no_params(
+    chronicle_client,
+):
     """Test update_integration handles params=None from build_patch_body."""
     body = {"description": "New"}
 
-    with patch(
-        "secops.chronicle.soar.integration.integrations.build_patch_body",
-        return_value=(body, None),
-    ), patch(
-        "secops.chronicle.soar.integration.integrations.chronicle_request",
-        return_value={"name": "integrations/test"},
-    ) as mock_request:
+    with (
+        patch(
+            "secops.chronicle.soar.integration.integrations.build_patch_body",
+            return_value=(body, None),
+        ),
+        patch(
+            "secops.chronicle.soar.integration.integrations.chronicle_request",
+            return_value={"name": "integrations/test"},
+        ) as mock_request,
+    ):
         update_integration(
             chronicle_client,
             integration_name="test-integration",
@@ -813,12 +834,15 @@ def test_update_integration_when_build_patch_body_returns_no_params(chronicle_cl
 
 def test_update_integration_error(chronicle_client):
     """Test update_integration raises APIError on failure."""
-    with patch(
-        "secops.chronicle.soar.integration.integrations.build_patch_body",
-        return_value=({}, None),
-    ), patch(
-        "secops.chronicle.soar.integration.integrations.chronicle_request",
-        side_effect=APIError("Failed to update integration"),
+    with (
+        patch(
+            "secops.chronicle.soar.integration.integrations.build_patch_body",
+            return_value=({}, None),
+        ),
+        patch(
+            "secops.chronicle.soar.integration.integrations.chronicle_request",
+            side_effect=APIError("Failed to update integration"),
+        ),
     ):
         with pytest.raises(APIError) as exc_info:
             update_integration(chronicle_client, "test-integration")
@@ -831,7 +855,10 @@ def test_update_integration_error(chronicle_client):
 
 def test_update_custom_integration_builds_body_and_params(chronicle_client):
     """Test update_custom_integration builds nested integration body and updateMask param."""
-    expected = {"successful": True, "integration": {"name": "integrations/test"}}
+    expected = {
+        "successful": True,
+        "integration": {"name": "integrations/test"},
+    }
 
     with patch(
         "secops.chronicle.soar.integration.integrations.chronicle_request",
