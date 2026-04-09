@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.41.0] - 2026-04-09
+### Added
+- Comprehensive SOAR integration management capabilities
+  - Integration management (`create_integration()`, `update_integration()`, `list_integrations()`, `export_integration_items()`, etc.)
+  - Integration instances management (`get_default_integration_instance()`, `list_integration_instances()`, etc.)
+  - Marketplace integration management (`install_marketplace_integration()`, `uninstall_marketplace_integration()`, etc.)
+- CLI support for SOAR integration management commands
+  - `secops integration integrations` for managing custom integrations
+  - `secops integration instances` for managing integration instances
+  - `secops integration marketplace` for managing marketplace integrations
+- Comprehensive utility helpers and data models for SOAR integration parameters, action types, scheduling, and connector configurations
+
 ## [0.40.0] - 2026-04-06
 ### Added
 - Parser validation methods
