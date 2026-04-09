@@ -105,6 +105,7 @@ class IntegrationType(str, Enum):
     RESPONSE = "RESPONSE"
     EXTENSION = "EXTENSION"
 
+
 class IntegrationParamType(str, Enum):
     """Parameter types for Chronicle SOAR integration functions."""
 
@@ -126,6 +127,7 @@ class IntegrationParamType(str, Enum):
     SCRIPT = "SCRIPT"
     FILTER_LIST = "FILTER_LIST"
     NUMERICAL_VALUES = "NUMERICAL_VALUES"
+
 
 @dataclass
 class IntegrationParam:

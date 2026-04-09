@@ -599,14 +599,14 @@ def update_integration(
     """
     body, params = build_patch_body(
         field_map=[
-            ("displayName", "display_name", display_name),
+            ("display_name", "displayName", display_name),
             ("description", "description", description),
-            ("imageBase64", "image_base64", image_base64),
-            ("svgIcon", "svg_icon", svg_icon),
-            ("pythonVersion", "python_version", python_version),
+            ("image_base64", "imageBase64", image_base64),
+            ("svg_icon", "svgIcon", svg_icon),
+            ("python_version", "pythonVersion", python_version),
             ("parameters", "parameters", parameters),
             ("categories", "categories", categories),
-            ("integrationType", "integration_type", integration_type),
+            ("integration_type", "integrationType", integration_type),
             ("staging", "staging", staging),
         ],
         update_mask=update_mask,

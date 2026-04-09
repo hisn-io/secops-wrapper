@@ -14,6 +14,7 @@
 #
 """Google SecOps CLI integration commands"""
 
+import json
 import sys
 
 from secops.chronicle.models import (
@@ -126,6 +127,18 @@ def setup_integrations_command(subparsers):
         choices=[t.value for t in IntegrationType],
         help="Integration type",
         dest="integration_type",
+    )
+    create_parser.add_argument(
+        "--parameters",
+        type=str,
+        help="JSON string representing a list of integration parameters",
+        dest="parameters",
+    )
+    create_parser.add_argument(
+        "--categories",
+        type=str,
+        help="Comma-separated list of categories for the integration",
+        dest="categories",
     )
     create_parser.set_defaults(func=handle_integration_create_command)
 
@@ -413,6 +426,18 @@ def setup_integrations_command(subparsers):
         dest="integration_type",
     )
     update_parser.add_argument(
+        "--parameters",
+        type=str,
+        help="JSON string representing a list of integration parameters",
+        dest="parameters",
+    )
+    update_parser.add_argument(
+        "--categories",
+        type=str,
+        help="Comma-separated list of categories for the integration",
+        dest="categories",
+    )
+    update_parser.add_argument(
         "--staging",
         action="store_true",
         help="Set the integration to staging mode",
@@ -488,6 +513,18 @@ def setup_integrations_command(subparsers):
         choices=[t.value for t in IntegrationType],
         help="Integration type",
         dest="integration_type",
+    )
+    update_custom_parser.add_argument(
+        "--parameters",
+        type=str,
+        help="JSON string representing a list of integration parameters",
+        dest="parameters",
+    )
+    update_custom_parser.add_argument(
+        "--categories",
+        type=str,
+        help="Comma-separated list of categories for the integration",
+        dest="categories",
     )
     update_custom_parser.add_argument(
         "--staging",
@@ -580,6 +617,16 @@ def handle_integration_create_command(args, chronicle):
                 if args.integration_type
                 else None
             ),
+            parameters=(
+                json.loads(args.parameters)
+                if getattr(args, "parameters", None)
+                else None
+            ),
+            categories=(
+                [c.strip() for c in args.categories.split(",")]
+                if getattr(args, "categories", None)
+                else None
+            ),
         )
         output_formatter(out, getattr(args, "output", "json"))
     except Exception as e:  # pylint: disable=broad-exception-caught
@@ -590,7 +637,7 @@ def handle_integration_create_command(args, chronicle):
 def handle_integration_download_command(args, chronicle):
     """Handle download integration command"""
     try:
-        zip_bytes = chronicle.download_integration(
+        zip_bytes = chronicle.soar.download_integration(
             integration_name=args.integration_id,
         )
         with open(args.output_file, "wb") as f:
@@ -622,7 +669,7 @@ def handle_download_integration_dependency_command(args, chronicle):
 def handle_export_integration_items_command(args, chronicle):
     """Handle export integration items command"""
     try:
-        zip_bytes = chronicle.export_integration_items(
+        zip_bytes = chronicle.soar.export_integration_items(
             integration_name=args.integration_id,
             actions=args.actions,
             jobs=args.jobs,
@@ -736,7 +783,17 @@ def handle_update_integration_command(args, chronicle):
                 if args.integration_type
                 else None
             ),
-            staging=args.staging or None,
+            parameters=(
+                json.loads(args.parameters)
+                if getattr(args, "parameters", None)
+                else None
+            ),
+            categories=(
+                [c.strip() for c in args.categories.split(",")]
+                if getattr(args, "categories", None)
+                else None
+            ),
+            staging=args.staging if "staging" in vars(args) else None,
             dependencies_to_remove=args.dependencies_to_remove,
             update_mask=args.update_mask,
         )
@@ -763,6 +820,16 @@ def handle_updated_custom_integration_command(args, chronicle):
             integration_type=(
                 IntegrationType(args.integration_type)
                 if args.integration_type
+                else None
+            ),
+            parameters=(
+                json.loads(args.parameters)
+                if getattr(args, "parameters", None)
+                else None
+            ),
+            categories=(
+                [c.strip() for c in args.categories.split(",")]
+                if getattr(args, "categories", None)
                 else None
             ),
             staging=args.staging or None,
