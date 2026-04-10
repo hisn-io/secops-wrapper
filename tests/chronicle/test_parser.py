@@ -27,10 +27,10 @@ from secops.chronicle.parser import (
     activate_parser,
     activate_release_candidate_parser,
     copy_parser,
-    fetch_parser_candidates,
     create_parser,
     deactivate_parser,
     delete_parser,
+    fetch_parser_candidates,
     get_parser,
     list_parsers,
     run_parser,
@@ -159,8 +159,8 @@ def test_fetch_parser_candidates_success(chronicle_client, mock_response):
     """Test fetch_parser_candidates function for success."""
     log_type = "SOME_LOG_TYPE"
     parser_action = "PARSER_ACTION_OPT_IN_TO_PREVIEW"
-    expected_parsers = []
-    mock_response.json.return_value = {"parsers": expected_parsers}
+    expected_parsers = [{"name": f"logTypes/{log_type}/parsers/pa_001"}]
+    mock_response.json.return_value = {"candidates": expected_parsers}
 
     with patch.object(
         chronicle_client.session, "get", return_value=mock_response
@@ -191,7 +191,7 @@ def test_fetch_parser_candidates_empty(chronicle_client, mock_response):
 def test_fetch_parser_candidates_error(chronicle_client, mock_error_response):
     """Test fetch_parser_candidates function for API error."""
     log_type = "ERROR_LOG_TYPE"
-    parser_action = "CLONE_PREBUILT"
+    parser_action = "PARSER_ACTION_OPT_IN_TO_PREVIEW"
 
     with patch.object(
         chronicle_client.session, "get", return_value=mock_error_response
