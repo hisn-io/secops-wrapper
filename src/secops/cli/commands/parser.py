@@ -155,7 +155,10 @@ def setup_parser_command(subparsers):
         "--parser-action",
         type=str,
         required=True,
-        help="Action for the parser candidates (e.g., PARSER_ACTION_OPT_IN_TO_PREVIEW).",
+        help=(
+            "Action for the parser candidates "
+            "(e.g., PARSER_ACTION_OPT_IN_TO_PREVIEW)."
+        ),
     )
     fetch_parser_candidates_sub.set_defaults(
         func=handle_parser_fetch_candidates_command
