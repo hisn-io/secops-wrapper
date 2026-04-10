@@ -20,6 +20,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 from secops.chronicle.client import ChronicleClient
+from secops.chronicle.models import ParserAction
 from secops.chronicle.parser import (
     MAX_LOG_SIZE,
     MAX_LOGS,
@@ -163,12 +164,22 @@ def test_fetch_parser_candidates_success(chronicle_client, mock_response):
     mock_response.json.return_value = {"candidates": expected_parsers}
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_response
-    ) as mock_get:
+        chronicle_client.session, "request", return_value=mock_response
+    ) as mock_request:
         result = fetch_parser_candidates(chronicle_client, log_type, parser_action)
 
-        expected_url = f"{chronicle_client.base_url}/{chronicle_client.instance_id}/logTypes/{log_type}/parsers:fetchParserCandidates"
-        mock_get.assert_called_once_with(expected_url, params={"parserAction": parser_action})
+        expected_url = (
+            f"{chronicle_client.base_url}/{chronicle_client.instance_id}"
+            f"/logTypes/{log_type}/parsers:fetchParserCandidates"
+        )
+        mock_request.assert_called_once_with(
+            method="GET",
+            url=expected_url,
+            params={"parserAction": parser_action},
+            json=None,
+            headers=None,
+            timeout=None,
+        )
         assert result == expected_parsers
 
 
@@ -179,12 +190,22 @@ def test_fetch_parser_candidates_empty(chronicle_client, mock_response):
     mock_response.json.return_value = {}
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_response
-    ) as mock_get:
+        chronicle_client.session, "request", return_value=mock_response
+    ) as mock_request:
         result = fetch_parser_candidates(chronicle_client, log_type, parser_action)
 
-        expected_url = f"{chronicle_client.base_url}/{chronicle_client.instance_id}/logTypes/{log_type}/parsers:fetchParserCandidates"
-        mock_get.assert_called_once_with(expected_url, params={"parserAction": parser_action})
+        expected_url = (
+            f"{chronicle_client.base_url}/{chronicle_client.instance_id}"
+            f"/logTypes/{log_type}/parsers:fetchParserCandidates"
+        )
+        mock_request.assert_called_once_with(
+            method="GET",
+            url=expected_url,
+            params={"parserAction": parser_action},
+            json=None,
+            headers=None,
+            timeout=None,
+        )
         assert result == []
 
 
@@ -194,13 +215,48 @@ def test_fetch_parser_candidates_error(chronicle_client, mock_error_response):
     parser_action = "PARSER_ACTION_OPT_IN_TO_PREVIEW"
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_error_response
+        chronicle_client.session, "request", return_value=mock_error_response
     ):
         with pytest.raises(APIError) as exc_info:
             fetch_parser_candidates(chronicle_client, log_type, parser_action)
-        assert "Failed to fetch parser candidates: Error message" in str(
-            exc_info.value
+        assert "Failed to fetch parser candidates" in str(exc_info.value)
+
+
+def test_fetch_parser_candidates_with_enum(chronicle_client, mock_response):
+    """Test fetch_parser_candidates accepts ParserAction enum directly."""
+    log_type = "SOME_LOG_TYPE"
+    parser_action = ParserAction.PARSER_ACTION_OPT_IN_TO_PREVIEW
+    expected_parsers = [{"name": f"logTypes/{log_type}/parsers/pa_001"}]
+    mock_response.json.return_value = {"candidates": expected_parsers}
+
+    with patch.object(
+        chronicle_client.session, "request", return_value=mock_response
+    ) as mock_request:
+        result = fetch_parser_candidates(chronicle_client, log_type, parser_action)
+
+        expected_url = (
+            f"{chronicle_client.base_url}/{chronicle_client.instance_id}"
+            f"/logTypes/{log_type}/parsers:fetchParserCandidates"
         )
+        mock_request.assert_called_once_with(
+            method="GET",
+            url=expected_url,
+            params={"parserAction": parser_action},
+            json=None,
+            headers=None,
+            timeout=None,
+        )
+        assert result == expected_parsers
+
+
+def test_fetch_parser_candidates_invalid_string(chronicle_client):
+    """Test fetch_parser_candidates raises ValueError for invalid string."""
+    with pytest.raises(ValueError) as exc_info:
+        fetch_parser_candidates(
+            chronicle_client, "SOME_LOG_TYPE", "INVALID_ACTION"
+        )
+    assert 'Invalid parser_action: "INVALID_ACTION"' in str(exc_info.value)
+    assert "PARSER_ACTION_OPT_IN_TO_PREVIEW" in str(exc_info.value)
 
 
 # --- copy_parser Tests ---
