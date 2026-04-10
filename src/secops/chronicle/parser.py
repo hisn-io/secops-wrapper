@@ -275,9 +275,7 @@ def fetch_parser_candidates(
     data = chronicle_request(
         client,
         method="GET",
-        endpoint_path=(
-            f"logTypes/{log_type}/parsers:fetchParserCandidates"
-        ),
+        endpoint_path=(f"logTypes/{log_type}/parsers:fetchParserCandidates"),
         params={"parserAction": parser_action},
         error_message="Failed to fetch parser candidates",
     )

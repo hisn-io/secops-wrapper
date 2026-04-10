@@ -196,7 +196,9 @@ from secops.chronicle.parser import copy_parser as _copy_parser
 from secops.chronicle.parser import create_parser as _create_parser
 from secops.chronicle.parser import deactivate_parser as _deactivate_parser
 from secops.chronicle.parser import delete_parser as _delete_parser
-from secops.chronicle.parser import fetch_parser_candidates as _fetch_parser_candidates
+from secops.chronicle.parser import (
+    fetch_parser_candidates as _fetch_parser_candidates,
+)
 from secops.chronicle.parser import get_parser as _get_parser
 from secops.chronicle.parser import list_parsers as _list_parsers
 from secops.chronicle.parser import run_parser as _run_parser
@@ -2779,7 +2781,7 @@ class ChronicleClient:
     def fetch_parser_candidates(
         self,
         log_type: str,
-        parser_action: "ParserAction | str",
+        parser_action: ParserAction | str,
     ) -> list[Any]:
         """Retrieves prebuilt parsers candidates.
 
