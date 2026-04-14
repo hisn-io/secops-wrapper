@@ -239,7 +239,7 @@ def get_parser(
 def fetch_parser_candidates(
     client: "ChronicleClient",
     log_type: str,
-    parser_action: "ParserAction | str",
+    parser_action: ParserAction | str,
 ) -> list[Any]:
     """Retrieves prebuilt parser candidates.
 
