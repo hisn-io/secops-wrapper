@@ -28,7 +28,7 @@ from secops.chronicle.case import (
     merge_cases,
     patch_case,
 )
-from secops.chronicle.models import CaseCloseReason, CasePriority, ParserAction
+from secops.chronicle.models import CaseCloseReason, CasePriority
 from secops.chronicle.client import (
     ChronicleClient,
     ValueType,
@@ -137,6 +137,7 @@ from secops.chronicle.models import (
     ListBasis,
     MonthlyScheduleDetails,
     OneTimeScheduleDetails,
+    ParserAction,
     PrevalenceData,
     PythonVersion,
     ScheduleType,

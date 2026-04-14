@@ -372,7 +372,6 @@ def test_cli_fetch_parser_candidates(cli_env, common_args):
 
     assert result.returncode == 0, f"Command failed: {result.stderr}"
 
-    
     output = json.loads(result.stdout)
     assert isinstance(output, list)
     print(f"\nFetched {len(output)} parser candidate(s) for OKTA")

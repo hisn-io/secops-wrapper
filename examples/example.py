@@ -78,8 +78,8 @@ def example_udm_search(chronicle):
 
 
 def example_udm_search_view(chronicle):
-    """Example 14: UDM Search View."""
-    print("\n=== Example 14: UDM Search View ===")
+    """Example 15: UDM Search View."""
+    print("\n=== Example 15: UDM Search View ===")
     start_time, end_time = get_time_range()
 
     try:
@@ -1454,7 +1454,7 @@ def example_fetch_parser_candidates(chronicle):
 
 def example_rule_test(chronicle):
     """Example 14: Test a detection rule against historical data."""
-    print("\n=== Example 13: Test a Detection Rule Against Historical Data ===")
+    print("\n=== Example 14: Test a Detection Rule Against Historical Data ===")
 
     # Define time range for testing - use a recent time period (last 7 days)
     end_time = datetime.now(timezone.utc) - timedelta(minutes=15)

@@ -166,7 +166,9 @@ def test_fetch_parser_candidates_success(chronicle_client, mock_response):
     with patch.object(
         chronicle_client.session, "request", return_value=mock_response
     ) as mock_request:
-        result = fetch_parser_candidates(chronicle_client, log_type, parser_action)
+        result = fetch_parser_candidates(
+            chronicle_client, log_type, parser_action
+        )
 
         expected_url = (
             f"{chronicle_client.base_url}/{chronicle_client.instance_id}"
@@ -192,7 +194,9 @@ def test_fetch_parser_candidates_empty(chronicle_client, mock_response):
     with patch.object(
         chronicle_client.session, "request", return_value=mock_response
     ) as mock_request:
-        result = fetch_parser_candidates(chronicle_client, log_type, parser_action)
+        result = fetch_parser_candidates(
+            chronicle_client, log_type, parser_action
+        )
 
         expected_url = (
             f"{chronicle_client.base_url}/{chronicle_client.instance_id}"
@@ -232,7 +236,9 @@ def test_fetch_parser_candidates_with_enum(chronicle_client, mock_response):
     with patch.object(
         chronicle_client.session, "request", return_value=mock_response
     ) as mock_request:
-        result = fetch_parser_candidates(chronicle_client, log_type, parser_action)
+        result = fetch_parser_candidates(
+            chronicle_client, log_type, parser_action
+        )
 
         expected_url = (
             f"{chronicle_client.base_url}/{chronicle_client.instance_id}"

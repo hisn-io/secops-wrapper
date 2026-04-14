@@ -241,7 +241,7 @@ def fetch_parser_candidates(
     log_type: str,
     parser_action: "ParserAction | str",
 ) -> list[Any]:
-    """Retrieves prebuilt parsers candidates.
+    """Retrieves prebuilt parser candidates.
 
     Args:
         client: ChronicleClient instance
@@ -257,9 +257,11 @@ def fetch_parser_candidates(
         List of candidate parsers
 
     Raises:
-        ValueError: If parser_action is an invalid string value
+        ValueError: If log_type is empty or parser_action is an invalid string
         APIError: If the API request fails
     """
+    if not log_type:
+        raise ValueError("log_type cannot be empty")
     if isinstance(parser_action, str) and not isinstance(
         parser_action, ParserAction
     ):
@@ -275,7 +277,7 @@ def fetch_parser_candidates(
     data = chronicle_request(
         client,
         method="GET",
-        endpoint_path=(f"logTypes/{log_type}/parsers:fetchParserCandidates"),
+        endpoint_path=f"logTypes/{log_type}/parsers:fetchParserCandidates",
         params={"parserAction": parser_action},
         error_message="Failed to fetch parser candidates",
     )

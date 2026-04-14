@@ -2783,7 +2783,7 @@ class ChronicleClient:
         log_type: str,
         parser_action: ParserAction | str,
     ) -> list[Any]:
-        """Retrieves prebuilt parsers candidates.
+        """Retrieves prebuilt parser candidates.
 
         Args:
             log_type: Log type of the parser
