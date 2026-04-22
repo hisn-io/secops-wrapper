@@ -30,7 +30,7 @@ def test_list_and_get_cases_workflow():
 
     TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
-    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
+    client = SecOpsClient()
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
     try:
@@ -69,7 +69,7 @@ def test_list_and_get_cases_workflow():
                 case = chronicle.get_case(case_id)
                 assert case is not None
                 assert isinstance(case, dict)
-                assert "id" in case
+                assert "name" in case
                 assert "displayName" in case
                 assert "priority" in case
                 assert "status" in case
@@ -91,7 +91,7 @@ def test_case_update_workflow():
 
     TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
-    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
+    client = SecOpsClient()
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
     # Use dedicated test case ID
@@ -148,7 +148,7 @@ def test_bulk_operations_workflow():
 
     TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
-    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
+    client = SecOpsClient()
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
     # Use dedicated test case ID
@@ -189,7 +189,7 @@ def test_bulk_assign():
 
     TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
-    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
+    client = SecOpsClient()
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
     # Use dedicated test case ID
@@ -219,7 +219,7 @@ def test_bulk_close_reopen_workflow():
 
     TODO: Remove 401 skip logic once SOAR IAM role issue is fixed.
     """
-    client = SecOpsClient(service_account_info=SERVICE_ACCOUNT_JSON)
+    client = SecOpsClient()
     chronicle = client.chronicle(**CHRONICLE_CONFIG)
 
     # Use dedicated test case ID
