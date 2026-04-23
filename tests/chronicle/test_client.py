@@ -13,12 +13,14 @@
 # limitations under the License.
 #
 """Tests for Chronicle API client."""
-from datetime import datetime, timezone, timedelta
-import pytest
+from datetime import datetime, timedelta, timezone
 from unittest.mock import Mock, patch
+
+import pytest
+
 from secops.chronicle.client import ChronicleClient
-from secops.chronicle.models import CaseList
-from secops.exceptions import APIError, SecOpsError
+from secops.chronicle.models import APIVersion
+from secops.exceptions import APIError
 
 
 @pytest.fixture
@@ -154,7 +156,7 @@ def test_summarize_entity_ip(mock_summarize_by_id, mock_detect, chronicle_client
     mock_summarize_by_id.side_effect = [mock_details_response, mock_prevalence_response]
 
     with patch.object(
-        chronicle_client.session, "get", return_value=mock_query_response
+        chronicle_client.session, "request", return_value=mock_query_response
     ) as mock_session_get:
         result = chronicle_client.summarize_entity(
             value="8.8.8.8",
@@ -167,7 +169,7 @@ def test_summarize_entity_ip(mock_summarize_by_id, mock_detect, chronicle_client
     # Check the query call was made
     mock_session_get.assert_called_once()
     query_call_args = mock_session_get.call_args
-    assert "summarizeEntitiesFromQuery" in query_call_args[0][0]
+    assert "summarizeEntitiesFromQuery" in query_call_args[1]["url"]
     assert query_call_args[1]["params"]["query"] == 'ip = "8.8.8.8"'
 
     # Check the _summarize_entity_by_id calls
@@ -248,7 +250,7 @@ def test_list_iocs(chronicle_client):
         ]
     }
 
-    with patch.object(chronicle_client.session, "get", return_value=mock_response):
+    with patch.object(chronicle_client.session, "request", return_value=mock_response):
         result = chronicle_client.list_iocs(
             start_time=datetime(2024, 1, 1, tzinfo=timezone.utc),
             end_time=datetime(2024, 1, 2, tzinfo=timezone.utc),
@@ -321,15 +323,16 @@ def test_get_cases(chronicle_client):
         # Verify the correct parameter name was used
         assert call_args[1]["params"] == {"names": ["case-123"]}
 
-        assert isinstance(result, CaseList)
-        case = result.get_case("case-123")
-        assert case.display_name == "Test Case"
-        assert case.priority == "PRIORITY_HIGH"
-        assert case.soar_platform_info.case_id == "soar-123"
+        assert isinstance(result, dict)
+        assert len(result["cases"]) == 1
+        case = result["cases"][0]
+        assert case["displayName"] == "Test Case"
+        assert case["priority"] == "PRIORITY_HIGH"
+        assert case["soarPlatformInfo"]["caseId"] == "soar-123"
 
 
-def test_get_cases_filtering(chronicle_client):
-    """Test CaseList filtering methods."""
+def test_get_cases_multiple(chronicle_client):
+    """Test getting multiple cases returns raw dict."""
     mock_response = Mock()
     mock_response.status_code = 200
     mock_response.json.return_value = {
@@ -354,13 +357,10 @@ def test_get_cases_filtering(chronicle_client):
     ):
         result = chronicle_client.get_cases(["case-1", "case-2"])
 
-        high_priority = result.filter_by_priority("PRIORITY_HIGH")
-        assert len(high_priority) == 1
-        assert high_priority[0].id == "case-1"
-
-        open_cases = result.filter_by_status("OPEN")
-        assert len(open_cases) == 1
-        assert open_cases[0].id == "case-1"
+        assert isinstance(result, dict)
+        assert len(result["cases"]) == 2
+        assert result["cases"][0]["id"] == "case-1"
+        assert result["cases"][1]["id"] == "case-2"
 
 
 def test_get_cases_error(chronicle_client):
@@ -723,3 +723,20 @@ def test_fix_json_formatting(chronicle_client):
     json_without_trailing_commas = '{"a": [1, 2], "b": {"c": 3, "d": 4}}'
     fixed = chronicle_client._fix_json_formatting(json_without_trailing_commas)
     assert fixed == json_without_trailing_commas
+
+@patch("secops.chronicle.client._list_rules")
+def test_client_list_rules_as_list(mock_list_rules, chronicle_client):
+    """Test that ChronicleClient.list_rules passes the as_list parameter."""
+    mock_list_rules.return_value = [{"name": "rule1"}]
+    
+    result = chronicle_client.list_rules(as_list=True)
+    
+    mock_list_rules.assert_called_once_with(
+        chronicle_client,
+        view="FULL",
+        page_size=None,
+        page_token=None,
+        api_version=APIVersion.V1,
+        as_list=True
+    )
+    assert isinstance(result, list)

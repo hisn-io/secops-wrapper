@@ -5,6 +5,55 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.43.0] - 2026-04-22
+### Changed
+- Standardised case management return types to return `dict` instead of typed objects, consistent with the rest of the SDK
+  - `get_case()` now returns `dict[str, Any]` instead of `Case`
+  - `get_cases()` (batch) now returns `dict[str, Any]` instead of `CaseList`
+  - `patch_case()` now returns `dict[str, Any]` instead of `Case`
+
+### Removed
+- `Case`, `CaseList`, and `SoarPlatformInfo` model classes.
+
+## [0.42.0] - 2026-04-15
+### Added
+- `fetch_parser_candidates()` method to retrieve parser candidates for a given log type
+- CLI command `secops parser fetch-candidates` for fetching parser candidates for given type
+
+## [0.41.0] - 2026-04-09
+### Added
+- Comprehensive SOAR integration management capabilities
+  - Integration management (`create_integration()`, `update_integration()`, `list_integrations()`, `export_integration_items()`, etc.)
+  - Integration instances management (`get_default_integration_instance()`, `list_integration_instances()`, etc.)
+  - Marketplace integration management (`install_marketplace_integration()`, `uninstall_marketplace_integration()`, etc.)
+- CLI support for SOAR integration management commands
+  - `secops integration integrations` for managing custom integrations
+  - `secops integration instances` for managing integration instances
+  - `secops integration marketplace` for managing marketplace integrations
+- Comprehensive utility helpers and data models for SOAR integration parameters, action types, scheduling, and connector configurations
+
+## [0.40.0] - 2026-04-06
+### Added
+- Parser validation methods
+  - `trigger_github_checks()` - Trigger GitHub checks for a parser against an associated pull request
+  - `get_analysis_report()` - Retrieve a completed parser analysis report
+- CLI support for parser validation commands
+  - `secops log-type trigger-checks` - Trigger parser validation checks for a PR
+  - `secops log-type get-analysis-report` - Get details of a specific analysis report
+
+## [0.39.0] - 2026-04-02
+### Updated
+- Refactored Chronicle modules to use centralized `chronicle_request` and `chronicle_paginated_request` helper functions for improved code consistency and maintainability
+- Standardized `as_list` parameter support across paginated API methods
+
+## [0.38.0] - 2026-03-31
+### Added
+- CLI local configuration support with `--local` flag for config set and view commands
+- `SECOPS_LOCAL_CONFIG_DIR` environment variable support for managing multiple local configurations
+
+### Updated
+- CLI argument parsing to properly handle global flags placed after subcommands
+
 ## [0.37.0] - 2026-03-11
 ### Added
 - Comprehensive case management functionality for Chronicle

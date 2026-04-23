@@ -19,10 +19,12 @@ from typing import Any
 
 from secops.chronicle.models import (
     APIVersion,
-    Case,
     CaseCloseReason,
-    CaseList,
     CasePriority,
+)
+from secops.chronicle.utils.format_utils import (
+    format_resource_id,
+    remove_none_values,
 )
 from secops.chronicle.utils.request_utils import (
     chronicle_paginated_request,
@@ -58,31 +60,28 @@ def get_cases(
     Raises:
         APIError: If the API request fails
     """
-    params: dict[str, Any] = {"pageSize": str(page_size)}
-
-    if page_token:
-        params["pageToken"] = page_token
+    params = remove_none_values(
+        {
+            "pageSize": str(page_size),
+            "pageToken": page_token,
+            "tenantId": tenant_id,
+        }
+    )
 
     if start_time:
         params["createTime.startTime"] = start_time.strftime(
             "%Y-%m-%dT%H:%M:%S.%fZ"
         )
-
     if end_time:
         params["createTime.endTime"] = end_time.strftime(
             "%Y-%m-%dT%H:%M:%S.%fZ"
         )
-
     if case_ids:
         for case_id in case_ids:
             params["caseId"] = case_id
-
     if asset_identifiers:
         for asset in asset_identifiers:
             params["assetId"] = asset
-
-    if tenant_id:
-        params["tenantId"] = tenant_id
 
     return chronicle_request(
         client,
@@ -94,7 +93,7 @@ def get_cases(
     )
 
 
-def get_cases_from_list(client, case_ids: list[str]) -> CaseList:
+def get_cases_from_list(client, case_ids: list[str]) -> dict[str, Any]:
     """Get cases from Chronicle.
 
     Args:
@@ -102,7 +101,7 @@ def get_cases_from_list(client, case_ids: list[str]) -> CaseList:
         case_ids: List of case IDs to retrieve
 
     Returns:
-        CaseList object with case details
+        Dictionary containing cases data
 
     Raises:
         APIError: If the API request fails
@@ -111,7 +110,7 @@ def get_cases_from_list(client, case_ids: list[str]) -> CaseList:
     if len(case_ids) > 1000:
         raise ValueError("Maximum of 1000 cases can be retrieved in a batch")
 
-    data = chronicle_request(
+    return chronicle_request(
         client,
         method="GET",
         endpoint_path="legacy:legacyBatchGetCases",
@@ -119,13 +118,6 @@ def get_cases_from_list(client, case_ids: list[str]) -> CaseList:
         params={"names": case_ids},
         error_message="Failed to get cases",
     )
-
-    cases = []
-    if "cases" in data:
-        for case_data in data["cases"]:
-            cases.append(Case.from_dict(case_data))
-
-    return CaseList(cases)
 
 
 def execute_bulk_add_tag(
@@ -172,7 +164,7 @@ def execute_bulk_assign(
     Raises:
         APIError: If the API request fails
     """
-    body = {"casesIds": case_ids, "username": username}
+    body = {"casesIds": case_ids, "userName": username}
 
     return chronicle_request(
         client,
@@ -296,17 +288,15 @@ def execute_bulk_close(
                     f"Valid values: {valid_values}"
                 ) from ve
 
-    body: dict[str, Any] = {
-        "casesIds": case_ids,
-        "closeReason": close_reason,
-    }
-
-    if root_cause is not None:
-        body["rootCause"] = root_cause
-    if close_comment is not None:
-        body["closeComment"] = close_comment
-    if dynamic_parameters is not None:
-        body["dynamicParameters"] = dynamic_parameters
+    body = remove_none_values(
+        {
+            "casesIds": case_ids,
+            "closeReason": close_reason,
+            "rootCause": root_cause,
+            "closeComment": close_comment,
+            "dynamicParameters": dynamic_parameters,
+        }
+    )
 
     return chronicle_request(
         client,
@@ -346,7 +336,9 @@ def execute_bulk_reopen(
     )
 
 
-def get_case(client, case_name: str, expand: str | None = None) -> Case:
+def get_case(
+    client, case_name: str, expand: str | None = None
+) -> dict[str, Any]:
     """Get a single case details.
 
     Args:
@@ -358,30 +350,27 @@ def get_case(client, case_name: str, expand: str | None = None) -> Case:
         expand: Optional expand field for getting related resources
 
     Returns:
-        Case object with case details
+        Dictionary containing case details
 
     Raises:
         APIError: If the API request fails
     """
-    if not case_name.startswith("projects/"):
-        endpoint_path = f"cases/{case_name}"
-    else:
-        endpoint_path = case_name
+    endpoint_path = format_resource_id(case_name)
 
-    params: dict[str, Any] = {}
-    if expand:
-        params["expand"] = expand
-
-    data = chronicle_request(
-        client,
-        method="GET",
-        endpoint_path=endpoint_path,
-        api_version=APIVersion.V1BETA,
-        params=params,
-        error_message="Failed to get case",
+    params = remove_none_values(
+        {
+            "expand": expand,
+        }
     )
 
-    return Case.from_dict(data)
+    return chronicle_request(
+        client,
+        method="GET",
+        endpoint_path=f"cases/{endpoint_path}",
+        api_version=APIVersion.V1BETA,
+        params=params or None,
+        error_message="Failed to get case",
+    )
 
 
 def list_cases(
@@ -418,15 +407,14 @@ def list_cases(
     Raises:
         APIError: If the API request fails
     """
-    extra_params: dict[str, Any] = {}
-    if filter_query:
-        extra_params["filter"] = filter_query
-    if order_by:
-        extra_params["orderBy"] = order_by
-    if expand:
-        extra_params["expand"] = expand
-    if distinct_by:
-        extra_params["distinctBy"] = distinct_by
+    extra_params = remove_none_values(
+        {
+            "filter": filter_query,
+            "orderBy": order_by,
+            "expand": expand,
+            "distinctBy": distinct_by,
+        }
+    )
 
     return chronicle_paginated_request(
         client,
@@ -435,7 +423,7 @@ def list_cases(
         items_key="cases",
         page_size=page_size,
         page_token=page_token,
-        extra_params=extra_params if extra_params else None,
+        extra_params=extra_params or None,
         as_list=as_list,
     )
 
@@ -481,7 +469,7 @@ def patch_case(
     case_name: str,
     case_data: dict[str, Any],
     update_mask: str | None = None,
-) -> Case:
+) -> dict[str, Any]:
     """Update a case using partial update (PATCH).
 
     Args:
@@ -494,16 +482,13 @@ def patch_case(
         update_mask: Optional comma-separated list of fields to update
 
     Returns:
-        Updated Case object
+        Dictionary containing the updated case
 
     Raises:
         APIError: If the API request fails
         ValueError: If an invalid priority value is provided
     """
-    if not case_name.startswith("projects/"):
-        endpoint_path = f"cases/{case_name}"
-    else:
-        endpoint_path = case_name
+    endpoint_path = format_resource_id(case_name)
 
     if "priority" in case_data and isinstance(case_data["priority"], str):
         case_priority = case_data["priority"]
@@ -519,18 +504,18 @@ def patch_case(
                     f"Valid values: {valid_values}"
                 ) from ve
 
-    params: dict[str, Any] = {}
-    if update_mask:
-        params["updateMask"] = update_mask
-
-    data = chronicle_request(
-        client,
-        method="PATCH",
-        endpoint_path=endpoint_path,
-        api_version=APIVersion.V1BETA,
-        json=case_data,
-        params=params if params else None,
-        error_message="Failed to patch case",
+    params = remove_none_values(
+        {
+            "updateMask": update_mask,
+        }
     )
 
-    return Case.from_dict(data)
+    return chronicle_request(
+        client,
+        method="PATCH",
+        endpoint_path=f"cases/{endpoint_path}",
+        api_version=APIVersion.V1BETA,
+        json=case_data,
+        params=params or None,
+        error_message="Failed to patch case",
+    )

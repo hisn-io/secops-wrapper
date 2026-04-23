@@ -31,7 +31,6 @@ from secops.chronicle.case import (
     patch_case,
 )
 from secops.chronicle import case as case_module
-from secops.chronicle.models import Case
 from secops.exceptions import APIError
 
 
@@ -133,7 +132,7 @@ def test_execute_bulk_assign_success(chronicle_client):
         assert call_args[1]["endpoint_path"] == "cases:executeBulkAssign"
         assert call_args[1]["json"] == {
             "casesIds": [123, 456],
-            "username": "user@example.com",
+            "userName": "user@example.com",
         }
         assert result == {}
 
@@ -427,10 +426,10 @@ def test_get_case_with_id(chronicle_client, mock_case_data):
         assert call_args[1]["endpoint_path"] == "cases/12345"
         assert not call_args[1]["params"]
 
-        assert isinstance(result, Case)
-        assert result.id == "12345"
-        assert result.display_name == "Test Case"
-        assert result.priority == "PRIORITY_HIGH"
+        assert isinstance(result, dict)
+        assert result["id"] == "12345"
+        assert result["displayName"] == "Test Case"
+        assert result["priority"] == "PRIORITY_HIGH"
 
 
 def test_get_case_with_full_name(chronicle_client, mock_case_data):
@@ -447,10 +446,10 @@ def test_get_case_with_full_name(chronicle_client, mock_case_data):
 
         mock_request.assert_called_once()
         call_args = mock_request.call_args
-        assert call_args[1]["endpoint_path"] == full_name
+        assert call_args[1]["endpoint_path"] == "cases/12345"
 
-        assert isinstance(result, Case)
-        assert result.id == "12345"
+        assert isinstance(result, dict)
+        assert result["id"] == "12345"
 
 
 def test_get_case_with_expand(chronicle_client, mock_case_data):
@@ -462,7 +461,7 @@ def test_get_case_with_expand(chronicle_client, mock_case_data):
 
         call_args = mock_request.call_args
         assert call_args[1]["params"] == {"expand": "tags,products"}
-        assert isinstance(result, Case)
+        assert isinstance(result, dict)
 
 
 def test_get_case_api_error(chronicle_client):
@@ -724,8 +723,8 @@ def test_patch_case_with_id(chronicle_client, mock_case_data):
         assert str(call_args[1]["json"]["priority"]) == "PRIORITY_CRITICAL"
         assert call_args[1]["params"] == {"updateMask": "priority"}
 
-        assert isinstance(result, Case)
-        assert result.priority == "PRIORITY_CRITICAL"
+        assert isinstance(result, dict)
+        assert result["priority"] == "PRIORITY_CRITICAL"
 
 
 def test_patch_case_with_full_name(chronicle_client, mock_case_data):
@@ -742,8 +741,8 @@ def test_patch_case_with_full_name(chronicle_client, mock_case_data):
 
         mock_request.assert_called_once()
         call_args = mock_request.call_args
-        assert call_args[1]["endpoint_path"] == full_name
-        assert isinstance(result, Case)
+        assert call_args[1]["endpoint_path"] == "cases/12345"
+        assert isinstance(result, dict)
 
 
 def test_patch_case_without_update_mask(chronicle_client, mock_case_data):
@@ -757,7 +756,7 @@ def test_patch_case_without_update_mask(chronicle_client, mock_case_data):
 
         call_args = mock_request.call_args
         assert call_args[1]["params"] is None
-        assert isinstance(result, Case)
+        assert isinstance(result, dict)
 
 
 def test_patch_case_multiple_fields(chronicle_client, mock_case_data):
@@ -784,8 +783,8 @@ def test_patch_case_multiple_fields(chronicle_client, mock_case_data):
         call_args = mock_request.call_args
         assert str(call_args[1]["json"]["priority"]) == "PRIORITY_LOW"
         assert call_args[1]["json"]["stage"] == "Closed"
-        assert result.priority == "PRIORITY_LOW"
-        assert result.stage == "Closed"
+        assert result["priority"] == "PRIORITY_LOW"
+        assert result["stage"] == "Closed"
 
 
 def test_patch_case_api_error(chronicle_client):
@@ -808,3 +807,24 @@ def test_patch_case_json_parse_error(chronicle_client):
     ):
         with pytest.raises(APIError):
             patch_case(chronicle_client, "12345", {"status": "CLOSED"})
+
+
+def test_list_cases_as_list(chronicle_client):
+    """Test list_cases function returning a list of cases."""
+    mock_response = Mock()
+    mock_response.status_code = 200
+    mock_response.json.return_value = {
+        "cases": [
+            {"id": "case-1", "displayName": "First Case"},
+            {"id": "case-2", "displayName": "Second Case"},
+        ]
+    }
+    with patch.object(
+        chronicle_client.session, "request", return_value=mock_response
+    ):
+        result = list_cases(chronicle_client, as_list=True)
+
+        assert isinstance(result, list)
+        assert len(result) == 2
+        assert result[0]["id"] == "case-1"
+        assert result[1]["id"] == "case-2"

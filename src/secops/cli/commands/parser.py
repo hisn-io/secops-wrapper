@@ -6,7 +6,7 @@ import argparse
 import base64
 import sys
 
-from secops.cli.utils.common_args import add_pagination_args
+from secops.cli.utils.common_args import add_as_list_arg, add_pagination_args
 from secops.cli.utils.formatters import output_formatter
 from secops.exceptions import APIError, SecOpsError
 
@@ -136,12 +136,33 @@ def setup_parser_command(subparsers):
         help="Log type to filter by (default: '-' for all).",
     )
     add_pagination_args(list_parsers_sub)
+    add_as_list_arg(list_parsers_sub)
     list_parsers_sub.add_argument(
         "--filter",
         type=str,
         help="Filter expression to apply (e.g., 'state=ACTIVE').",
     )
     list_parsers_sub.set_defaults(func=handle_parser_list_command)
+
+    # --- Fetch Parser Candidates Command ---
+    fetch_parser_candidates_sub = parser_subparsers.add_parser(
+        "fetch-candidates", help="Fetch unactivated prebuilt parsers."
+    )
+    fetch_parser_candidates_sub.add_argument(
+        "--log-type", type=str, required=True, help="Log type of the parser."
+    )
+    fetch_parser_candidates_sub.add_argument(
+        "--parser-action",
+        type=str,
+        required=True,
+        help=(
+            "Action for the parser candidates "
+            "(e.g., PARSER_ACTION_OPT_IN_TO_PREVIEW)."
+        ),
+    )
+    fetch_parser_candidates_sub.set_defaults(
+        func=handle_parser_fetch_candidates_command
+    )
 
     # --- Run Parser Command ---
     run_parser_sub = parser_subparsers.add_parser(
@@ -313,6 +334,18 @@ def handle_parser_delete_command(args, chronicle):
         sys.exit(1)
 
 
+def handle_parser_fetch_candidates_command(args, chronicle):
+    """Handle parser fetch-candidates command."""
+    try:
+        result = chronicle.fetch_parser_candidates(
+            args.log_type, args.parser_action
+        )
+        output_formatter(result, args.output)
+    except Exception as e:  # pylint: disable=broad-exception-caught
+        print(f"Error fetching parser candidates: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def handle_parser_get_command(args, chronicle):
     """Handle parser get command."""
     try:
@@ -327,7 +360,11 @@ def handle_parser_list_command(args, chronicle):
     """Handle parser list command."""
     try:
         result = chronicle.list_parsers(
-            args.log_type, args.page_size, args.page_token, args.filter
+            args.log_type,
+            args.page_size,
+            args.page_token,
+            args.filter,
+            args.as_list,
         )
         output_formatter(result, args.output)
     except Exception as e:  # pylint: disable=broad-exception-caught
@@ -353,9 +390,7 @@ def handle_parser_run_command(args, chronicle):
             # If no parser code provided,
             # try to find an active parser for the log type
             parser_list_response = chronicle.list_parsers(
-                args.log_type,
-                page_size=1,
-                filter="STATE=ACTIVE",
+                args.log_type, page_size=1, filter="STATE=ACTIVE", as_list=False
             )
             parsers = parser_list_response.get("parsers", [])
             if len(parsers) < 1:
